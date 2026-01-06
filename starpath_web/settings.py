@@ -140,3 +140,8 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 CONTACT_TO_EMAIL = os.environ.get("CONTACT_TO_EMAIL", EMAIL_HOST_USER)
+
+CSRF_TRUSTED_ORIGINS = [
+  "https://starpathai.mx",
+  "https://www.starpathai.mx/",
+]
