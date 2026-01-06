@@ -1159,6 +1159,44 @@
     #sp-kb-modal.sp-open .sp-kb-card {
       transform: translateY(0);
     }
+
+    /* ===== Menú inicial del chatbot ===== */
+    .sp-chat-menu {
+      padding: 10px 10px 4px;
+      border-top: 1px solid rgba(0, 0, 0, .06);
+      background: rgba(255, 255, 255, .85);
+      backdrop-filter: blur(6px);
+    }
+
+    .sp-menu-title {
+      font-weight: 700;
+      font-size: 13px;
+      opacity: .85;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .sp-menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .sp-menu-btn {
+      border: 1px solid rgba(0, 0, 0, .12);
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+
+    .sp-menu-btn:hover {
+      background: rgba(13, 110, 253, .08);
+      border-color: rgba(13, 110, 253, .45);
+      transform: translateY(-1px);
+    }
   </style>
 
   <!-- Botón flotante -->
@@ -1182,7 +1220,19 @@
       </div>
     </div>
 
-    <div id="sp-chat-messages"></div>
+    <div id="sp-chat-messages">
+      <div id="sp-chat-menu" class="sp-chat-menu" style="display:none;">
+        <div class="sp-menu-title">¿En qué puedo ayudarte?</div>
+        <div class="sp-menu-grid">
+          <button type="button" class="sp-menu-btn" data-q="¿Qué servicios ofrece Star Path?">Servicios</button>
+          <button type="button" class="sp-menu-btn" data-q="¿Qué es EVE 360?">EVE 360</button>
+          <button type="button" class="sp-menu-btn" data-q="¿Cuál es su metodología FLOW?">Metodología</button>
+          <button type="button" class="sp-menu-btn" data-q="¿Quiénes son y qué hacen?">Quiénes somos</button>
+          <button type="button" class="sp-menu-btn" data-q="¿Cómo puedo contactarlos?">Contacto</button>
+        </div>
+      </div>
+    </div>
+
 
     <div class="sp-chat-input">
       <div class="input-group">
@@ -1229,6 +1279,8 @@
       const sendBtn = document.getElementById("sp-chat-send");
       const txt = document.getElementById("sp-chat-text");
       const msgs = document.getElementById("sp-chat-messages");
+      const menu = document.getElementById("sp-chat-menu");
+
 
       // Modal de fuentes
       const kbModal = document.getElementById("sp-kb-modal");
@@ -1400,16 +1452,53 @@
         sendBtn.disabled = isLoading;
         txt.disabled = isLoading;
       }
+      function showMenuIfEmpty() {
+        if (!menu) return;
+
+        // Mostrar menú si NO hay mensajes del usuario (solo bienvenida o nada)
+        const hasUserMsg = !!msgs.querySelector(".sp-msg.user");
+        menu.style.display = hasUserMsg ? "none" : "block";
+      }
+
+
+      async function sendMessage(message) {
+        addMsg("user", message);
+
+        setLoading(true);
+        try {
+          const res = await fetch(CHAT_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+            body: JSON.stringify({ session_id: sessionId, message, history })
+          });
+
+          const raw = await res.text();
+          let data;
+          try { data = JSON.parse(raw); } catch { addBotMsgWithSources("⚠️ Respuesta no JSON.", []); return; }
+          if (!res.ok) { addBotMsgWithSources("⚠️ " + (data.detail || "Error."), []); return; }
+
+          addBotMsgWithSources(data.reply || "Sin respuesta", data.sources);
+        } catch (e) {
+          addBotMsgWithSources("⚠️ Error de conexión.", []);
+        } finally {
+          setLoading(false);
+          showMenuIfEmpty(); // por si quedó vacío
+        }
+      }
 
       // -------- abrir/cerrar --------
       fab.onclick = () => {
         hideHint();
         panel.style.display = "block";
+
         if (!msgs.children.length) {
           addMsg("bot", "Hola 👋 Soy el asistente de StarPath. ¿En qué puedo ayudarte?");
         }
+
+        showMenuIfEmpty(); // ✅ muestra/oculta menú
         setTimeout(() => txt.focus(), 50);
       };
+
 
       closeBtn.onclick = () => (panel.style.display = "none");
 
@@ -1419,8 +1508,8 @@
         clearHistoryClient();
 
         addMsg("bot", "🧹 Listo, limpié la conversación.\n¿Quieres preguntar algo más?");
+        showMenuIfEmpty(); // ✅ aquí al final
 
-        // opcional: avisar backend (aunque sea stateless)
         try {
           await fetch(CHAT_ENDPOINT, {
             method: "POST",
@@ -1430,6 +1519,8 @@
         } catch (e) { }
       };
 
+
+
       // Enter para enviar / Shift+Enter salto de línea
       txt.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -1437,55 +1528,24 @@
           sendBtn.click();
         }
       });
+      menu?.addEventListener("click", (e) => {
+        const btn = e.target.closest(".sp-menu-btn");
+        if (!btn) return;
+        const q = btn.getAttribute("data-q");
+        if (!q) return;
 
+        // Oculta menú en cuanto el usuario elige
+        menu.style.display = "none";
+        sendMessage(q);
+      });
       // -------- enviar --------
-      sendBtn.onclick = async () => {
+      sendBtn.onclick = () => {
         const message = (txt.value || "").trim();
         if (!message) return;
-
-        addMsg("user", message);
         txt.value = "";
-
-        setLoading(true);
-
-        try {
-          const res = await fetch(CHAT_ENDPOINT, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Requested-With": "XMLHttpRequest"
-            },
-            body: JSON.stringify({
-              session_id: sessionId,
-              message: message,
-              history: history
-            })
-          });
-
-          const raw = await res.text();
-          let data;
-          try {
-            data = JSON.parse(raw);
-          } catch {
-            console.error("Respuesta NO es JSON:", raw);
-            addBotMsgWithSources("⚠️ El servidor no devolvió JSON válido.", []);
-            return;
-          }
-
-          if (!res.ok) {
-            addBotMsgWithSources("⚠️ " + (data.detail || data.error || "Error del servidor."), []);
-            return;
-          }
-
-          addBotMsgWithSources(data.reply || "Sin respuesta", data.sources);
-
-        } catch (err) {
-          console.error(err);
-          addBotMsgWithSources("⚠️ Error de conexión con el servidor.", []);
-        } finally {
-          setLoading(false);
-        }
+        sendMessage(message);
       };
+
 
     })();
   </script>
