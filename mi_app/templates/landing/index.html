@@ -798,7 +798,7 @@
 
   <!-- Vendor JS Files -->
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
- 
+
   <script src="{% static 'vendor/aos/aos.js' %}"></script>
   <script src="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></script>
   <script src="{% static 'vendor/purecounter/purecounter_vanilla.js' %}"></script>
@@ -807,65 +807,314 @@
   <!-- Main JS File -->
   <script src="{% static 'js/main.js' %}"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-  (function () {
-    const form = document.getElementById("contactForm");
-    const btn = document.getElementById("contactBtn");
+  <script>
+    (function () {
+      const form = document.getElementById("contactForm");
+      const btn = document.getElementById("contactBtn");
 
-    function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-
-    form.addEventListener("submit", async function (e) {
-      e.preventDefault();
-
-      btn.disabled = true;
-      const originalText = btn.textContent;
-      btn.textContent = "Enviando...";
-
-      try {
-        const formData = new FormData(form);
-
-        const res = await fetch(window.location.href, {
-          method: "POST",
-          headers: {
-            "X-Requested-With": "XMLHttpRequest",
-            "X-CSRFToken": getCookie("csrftoken"),
-          },
-          body: formData
-        });
-
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          const msg = data?.error || "Revisa los campos e intenta de nuevo.";
-          Swal.fire({ icon: "error", title: "No se pudo enviar", text: msg });
-          return;
-        }
-
-        Swal.fire({
-          icon: "success",
-          title: "¡Mensaje enviado!",
-          text: "En breve nos pondremos en contacto contigo.",
-          confirmButtonText: "Listo"
-        });
-
-        form.reset();
-      } catch (err) {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Ocurrió un problema al enviar el formulario. Intenta más tarde."
-        });
-      } finally {
-        btn.disabled = false;
-        btn.textContent = originalText;
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
       }
+
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = "Enviando...";
+
+        try {
+          const formData = new FormData(form);
+
+          const res = await fetch(window.location.href, {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: formData
+          });
+
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok) {
+            const msg = data?.error || "Revisa los campos e intenta de nuevo.";
+            Swal.fire({ icon: "error", title: "No se pudo enviar", text: msg });
+            return;
+          }
+
+          Swal.fire({
+            icon: "success",
+            title: "¡Mensaje enviado!",
+            text: "En breve nos pondremos en contacto contigo.",
+            confirmButtonText: "Listo"
+          });
+
+          form.reset();
+        } catch (err) {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Ocurrió un problema al enviar el formulario. Intenta más tarde."
+          });
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      });
+    })();
+  </script>
+<!-- ===================== CHATBOT ===================== -->
+
+<style>
+/* ---------- BOTÓN FLOTANTE ---------- */
+#sp-chat-fab{
+  position: fixed;
+  right: 60px;
+  bottom: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d6efd;
+  color: #fff;
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
+}
+#sp-chat-fab i{
+  font-size: 22px;
+}
+
+/* ---------- NUBE INICIAL ---------- */
+#sp-chat-hint{
+  position: fixed;
+  right: 130px;
+  bottom: 32px;
+  background: #fff;
+  color: #111;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  z-index: 9998;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+#sp-chat-hint::after{
+  content: "";
+  position: absolute;
+  right: -6px;
+  bottom: 12px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  transform: rotate(45deg);
+}
+.sp-hint-show{ animation: spHintIn .55s ease forwards; }
+.sp-hint-hide{ animation: spHintOut .35s ease forwards; }
+@keyframes spHintIn{ to{opacity:1;transform:translateY(0);} }
+@keyframes spHintOut{ to{opacity:0;transform:translateY(10px);} }
+
+/* ---------- PANEL CHAT ---------- */
+#sp-chat-panel{
+  position: fixed;
+  right: 20px;
+  bottom: 90px;
+  width: 360px;
+  height: 520px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.2);
+  z-index: 9999;
+  display: none;
+  overflow: hidden;
+}
+
+/* Header */
+.sp-chat-header{
+  padding: 12px 14px;
+  background: #f8f9fa;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sp-chat-title{
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 700;
+}
+.sp-chat-title .badge{
+  font-weight: 700;
+}
+
+/* Mensajes */
+#sp-chat-messages{
+  padding: 12px;
+  height: calc(100% - 120px);
+  overflow-y: auto;
+}
+.sp-msg{
+  display: flex;
+  margin: 8px 0;
+}
+.sp-msg.user{ justify-content: flex-end; }
+.sp-bubble{
+  max-width: 80%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+.sp-msg.user .sp-bubble{
+  background: #0d6efd;
+  color: #fff;
+  border-bottom-right-radius: 6px;
+}
+.sp-msg.bot .sp-bubble{
+  background: #f1f3f5;
+  color: #111;
+  border-bottom-left-radius: 6px;
+}
+
+/* Input */
+.sp-chat-input{
+  border-top: 1px solid rgba(0,0,0,.06);
+  padding: 10px;
+}
+
+/* Responsive */
+@media (max-width: 576px){
+  #sp-chat-fab{ right: 20px; }
+  #sp-chat-hint{ right: 90px; }
+  #sp-chat-panel{
+    right: 10px;
+    width: calc(100vw - 20px);
+  }
+}
+</style>
+
+<!-- Botón flotante -->
+<button id="sp-chat-fab" aria-label="Abrir chat">
+  <i class="bi bi-chat-dots"></i>
+</button>
+
+<!-- Nube -->
+<div id="sp-chat-hint">👋 Soy tu asistente</div>
+
+<!-- Panel Chat -->
+<div id="sp-chat-panel">
+  <div class="sp-chat-header">
+    <div class="sp-chat-title">
+      <span class="badge text-bg-primary">Star Path</span>
+      <span>Asistente</span>
+    </div>
+    <div class="d-flex gap-2">
+      <button id="sp-chat-clear" class="btn btn-sm btn-outline-secondary">Limpiar</button>
+      <button id="sp-chat-close" class="btn btn-sm btn-outline-danger">✕</button>
+    </div>
+  </div>
+
+  <div id="sp-chat-messages"></div>
+
+  <div class="sp-chat-input">
+    <div class="input-group">
+      <textarea id="sp-chat-text" class="form-control" placeholder="Escribe tu mensaje..."></textarea>
+      <button id="sp-chat-send" class="btn btn-primary">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  const CHAT_ENDPOINT = "/api/chat/";
+  const SESSION_KEY = "sp_chat_session_id";
+  const HINT_KEY = "sp_chat_hint_seen";
+
+  const fab = document.getElementById("sp-chat-fab");
+  const panel = document.getElementById("sp-chat-panel");
+  const closeBtn = document.getElementById("sp-chat-close");
+  const clearBtn = document.getElementById("sp-chat-clear");
+  const hint = document.getElementById("sp-chat-hint");
+  const sendBtn = document.getElementById("sp-chat-send");
+  const txt = document.getElementById("sp-chat-text");
+  const msgs = document.getElementById("sp-chat-messages");
+
+  let sessionId = localStorage.getItem(SESSION_KEY);
+  if(!sessionId){
+    sessionId = crypto.randomUUID();
+    localStorage.setItem(SESSION_KEY, sessionId);
+  }
+
+  /* ---------- NUBE SOLO PRIMERA VEZ ---------- */
+  if(!localStorage.getItem(HINT_KEY)){
+    localStorage.setItem(HINT_KEY,"1");
+    setTimeout(()=> hint.classList.add("sp-hint-show"),400);
+    setTimeout(()=> hideHint(),4200);
+  }
+  function hideHint(){
+    hint.classList.remove("sp-hint-show");
+    hint.classList.add("sp-hint-hide");
+  }
+
+  /* ---------- CHAT ---------- */
+  function addMsg(role,text){
+    const d = document.createElement("div");
+    d.className = "sp-msg " + role;
+    d.innerHTML = `<div class="sp-bubble">${text}</div>`;
+    msgs.appendChild(d);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  fab.onclick = () => {
+    hideHint();
+    panel.style.display = "block";
+    if(!msgs.children.length){
+      addMsg("bot","Hola 👋 Soy el asistente de StarPath. ¿En qué puedo ayudarte?");
+    }
+  };
+
+  closeBtn.onclick = () => panel.style.display = "none";
+
+  clearBtn.onclick = () => {
+    msgs.innerHTML = "";
+    addMsg("bot","🧹 Listo, limpié la conversación.\n¿Quieres preguntar algo más?");
+  };
+
+  sendBtn.onclick = async () => {
+    const message = txt.value.trim();
+    if(!message) return;
+
+    addMsg("user",message);
+    txt.value = "";
+
+    const res = await fetch(CHAT_ENDPOINT,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        session_id: sessionId,
+        message: message
+      })
     });
-  })();
+
+    const data = await res.json();
+    addMsg("bot", data.reply || "Sin respuesta");
+  };
+
+})();
 </script>
+
+<!-- =================== /CHATBOT =================== -->
 
 </body>
 

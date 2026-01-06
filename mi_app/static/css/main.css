@@ -2298,3 +2298,18 @@ section,
   padding: 8px 14px;
   font-weight: 700;
 }
+
+.why-box p,
+.why-box li {
+  text-align: justify;
+}
+
+.about-panel p,
+.about-panel li,
+.flow-card p {
+  text-align: justify;
+}
+
+.footer-tagline {
+  text-align: justify;
+}
