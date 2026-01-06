@@ -16,7 +16,9 @@
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
 
   <!-- Vendor CSS Files -->
   <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -45,8 +47,9 @@
     <div class="topbar d-flex align-items-center">
       <div class="container d-flex justify-content-center justify-content-md-between">
         <div class="contact-info d-flex align-items-center">
-          <i class="bi bi-envelope d-flex align-items-center"><a href="mailto:soporte@starpathai.mx">soporte@starpathai.mx</a></i>
-          <i class="bi bi-phone d-flex align-items-center ms-4"><span>+1 5540448996</span></i>
+          <i class="bi bi-envelope d-flex align-items-center"><a
+              href="mailto:soporte@starpathai.mx">soporte@starpathai.mx</a></i>
+          <i class="bi bi-phone d-flex align-items-center ms-4"><span>+52 5540448996</span></i>
         </div>
         <div class="social-links d-none d-md-flex align-items-center">
           <a href="#" class="twitter"><i class="bi bi-twitter-x"></i></a>
@@ -58,17 +61,18 @@
     </div><!-- End Top Bar -->
 
     <div class="branding d-flex align-items-center">
-
       <div class="container position-relative d-flex align-items-center justify-content-between">
-        <a href="index.html" class="logo d-flex align-items-center me-auto">
-          <!-- Uncomment the line below if you also wish to use an image logo -->
-          <!-- <img src="assets/img/logo.png" alt=""> -->
-          <h1 class="sitename">StarpathAI</h1>
+
+        <!-- LOGO + TEXTO -->
+        <a href="index.html" class="logo d-flex align-items-center gap-3 me-auto">
+          <img src="{% static 'img/logo_star.png' %}" alt="Star Path Icon">
+
         </a>
 
+        <!-- MENÚ -->
         <nav id="navmenu" class="navmenu">
           <ul>
-            <li><a href="#hero" class="active">Inicio<br></a></li>
+            <li><a href="#hero" class="active">Inicio</a></li>
             <li><a href="#about">Quiénes Somos</a></li>
             <li><a href="#services">Servicios</a></li>
             <li><a href="#departments">Conoce el Modelo de Trabajo</a></li>
@@ -76,11 +80,12 @@
           <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>
 
+        <!-- BOTÓN -->
         <a class="cta-btn d-none d-sm-block" href="#contact">Contacto</a>
 
       </div>
-
     </div>
+
 
   </header>
 
@@ -89,25 +94,35 @@
     <!-- Hero Section -->
     <section id="hero" class="hero section light-background">
 
-      <img src="assets/img/hero-bg.jpg" alt="" data-aos="fade-in">
+      <img src="{% static 'img/fondo_inicio.png' %}" alt="" data-aos="fade-in">
 
       <div class="container position-relative">
 
         <div class="welcome position-relative" data-aos="fade-down" data-aos-delay="100">
-          <h2>Bienvenido a StarpathAI</h2>
-          <p>We are team of talented designers making websites with Bootstrap</p>
+          <h2>Bienvenido a Star Path</h2>
+          <p>Diseñamos, automatizamos y operamos sistemas para escalar tu operación.</p>
         </div><!-- End Welcome -->
 
         <div class="content row gy-4">
           <div class="col-lg-4 d-flex align-items-stretch">
             <div class="why-box" data-aos="zoom-out" data-aos-delay="200">
-              <h3>Why Choose Medilab?</h3>
-              <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit
-                Asperiores dolores sed et. Tenetur quia eos. Autem tempore quibusdam vel necessitatibus optio ad corporis.
+              <h3>¿Por qué Star Path?</h3>
+
+              <ul class="why-starpath">
+                <li>Pensamos como dueños de la operación, no como proveedores.</li>
+                <li>Convertimos la complejidad en control.</li>
+                <li>La automatización aquí tiene impacto real en el negocio.</li>
+                <li>No solo implementamos: nos quedamos.</li>
+                <li>Hablamos en indicadores, no en promesas.</li>
+              </ul>
+
+              <p class="closing-text">
+                Star Path no se contrata para “hacer algo”.
+                Se elige para hacer que la operación funcione mejor, hoy y mañana.
               </p>
+
               <div class="text-center">
-                <a href="#about" class="more-btn"><span>Learn More</span> <i class="bi bi-chevron-right"></i></a>
+                <a href="#about" class="more-btn"><span>Quiénes Somos</span> <i class="bi bi-chevron-right"></i></a>
               </div>
             </div>
           </div><!-- End Why Box -->
@@ -118,25 +133,26 @@
 
                 <div class="col-xl-4 d-flex align-items-stretch">
                   <div class="icon-box" data-aos="zoom-out" data-aos-delay="300">
-                    <i class="bi bi-clipboard-data"></i>
-                    <h4>Corporis voluptates officia eiusmod</h4>
-                    <p>Consequuntur sunt aut quasi enim aliquam quae harum pariatur laboris nisi ut aliquip</p>
+                    <i class="bi bi-lightning-charge"></i>
+                    <h4>Innovación que Impulsa tu Negocio</h4>
+                    <p>Diseñamos y operamos soluciones tecnológicas que transforman la manera en que tu empresa ejecuta
+                      su operación.</p>
                   </div>
                 </div><!-- End Icon Box -->
 
                 <div class="col-xl-4 d-flex align-items-stretch">
                   <div class="icon-box" data-aos="zoom-out" data-aos-delay="400">
-                    <i class="bi bi-gem"></i>
-                    <h4>Ullamco laboris ladore pan</h4>
-                    <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt</p>
+                    <i class="bi bi-diagram-3 "></i>
+                    <h4>Digitalización Inteligente</h4>
+                    <p>Convertimos procesos manuales y frágiles en flujos digitales robusto</p>
                   </div>
                 </div><!-- End Icon Box -->
 
                 <div class="col-xl-4 d-flex align-items-stretch">
                   <div class="icon-box" data-aos="zoom-out" data-aos-delay="500">
-                    <i class="bi bi-inboxes"></i>
-                    <h4>Labore consequatur incidid dolore</h4>
-                    <p>Aut suscipit aut cum nemo deleniti aut omnis. Doloribus ut maiores omnis facere</p>
+                    <i class="bi bi-arrows-expand"></i>
+                    <h4>Sistemas Flexibles y Evolutivos</h4>
+                    <p>Creamos soluciones hechas para operar y escalar</p>
                   </div>
                 </div><!-- End Icon Box -->
 
@@ -151,51 +167,100 @@
 
     <!-- About Section -->
     <section id="about" class="about section">
-
       <div class="container">
-
         <div class="row gy-4 gx-5">
 
+          <!-- Columna Izquierda: Quiénes Somos -->
           <div class="col-lg-6 position-relative align-self-start" data-aos="fade-up" data-aos-delay="200">
-            <img src="assets/img/about.jpg" class="img-fluid" alt="">
-            <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8" class="glightbox pulsating-play-btn"></a>
+
+            <div class="about-panel">
+              <h3>Quiénes Somos</h3>
+
+              <p class="mb-3">
+                Star Path es una empresa de soluciones tecnológicas especializada en el diseño e implementación de
+                arquitecturas low-code, automatización inteligente de procesos y Agentic AI, complementadas con
+                servicios
+                de <strong>staff augmentation</strong> para crear y operar soluciones digitales escalables.
+              </p>
+
+              <p class="mb-4">
+                Diseñamos sistemas, los automatizamos y ponemos a los equipos correctos para que funcionen en el mundo
+                real.
+              </p>
+
+              <ul class="about-highlights">
+                <li><i class="fa-solid fa-layer-group"></i> Arquitecturas low-code listas para operar</li>
+                <li><i class="fa-solid fa-gears"></i> Automatización enfocada en eficiencia y control</li>
+                <li><i class="fa-solid fa-robot"></i> Agentic AI aplicada a procesos reales</li>
+                <li><i class="fa-solid fa-people-group"></i> Talento tech bajo demanda para ejecución</li>
+              </ul>
+
+              <div class="about-badge">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Enfoque en resultados medibles</span>
+              </div>
+            </div>
+
           </div>
 
+          <!-- Columna Derecha: Metodología FLOW -->
           <div class="col-lg-6 content" data-aos="fade-up" data-aos-delay="100">
-            <h3>About Us</h3>
-            <p>
-              Dolor iure expedita id fuga asperiores qui sunt consequatur minima. Quidem voluptas deleniti. Sit quia molestiae quia quas qui magnam itaque veritatis dolores. Corrupti totam ut eius incidunt reiciendis veritatis asperiores placeat.
+
+            <h3>Nuestros principios: F.L.O.W.</h3>
+            <p class="mb-4">
+              Un modelo operativo que combina diseño, automatización e inteligencia aplicada para ejecutar con
+              consistencia,
+              velocidad y control.
             </p>
-            <ul>
-              <li>
-                <i class="fa-solid fa-vial-circle-check"></i>
+
+            <div class="flow-grid">
+
+              <div class="flow-card">
+                <div class="flow-icon"><i class="fa-solid fa-building-columns"></i></div>
                 <div>
-                  <h5>Ullamco laboris nisi ut aliquip consequat</h5>
-                  <p>Magni facilis facilis repellendus cum excepturi quaerat praesentium libre trade</p>
+                  <h5><span class="flow-letter">F</span> Flexible Foundation</h5>
+                  <p>Arquitectura sólida y diseño adaptable. Estructuras claras alineadas a la realidad del negocio.</p>
                 </div>
-              </li>
-              <li>
-                <i class="fa-solid fa-pump-medical"></i>
+              </div>
+
+              <div class="flow-card">
+                <div class="flow-icon"><i class="fa-solid fa-bolt"></i></div>
                 <div>
-                  <h5>Magnam soluta odio exercitationem reprehenderi</h5>
-                  <p>Quo totam dolorum at pariatur aut distinctio dolorum laudantium illo direna pasata redi</p>
+                  <h5><span class="flow-letter">L</span> Leverage Automation</h5>
+                  <p>Automatización como multiplicador de capacidad. Libera tiempo, talento y margen operativo.</p>
                 </div>
-              </li>
-              <li>
-                <i class="fa-solid fa-heart-circle-xmark"></i>
+              </div>
+
+              <div class="flow-card">
+                <div class="flow-icon"><i class="fa-solid fa-bullseye"></i></div>
                 <div>
-                  <h5>Voluptatem et qui exercitationem</h5>
-                  <p>Et velit et eos maiores est tempora et quos dolorem autem tempora incidunt maxime veniam</p>
+                  <h5><span class="flow-letter">O</span> Outcome Focus</h5>
+                  <p>Resultados antes que tareas. Priorizamos impacto real, no actividad.</p>
                 </div>
-              </li>
-            </ul>
+              </div>
+
+              <div class="flow-card">
+                <div class="flow-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                <div>
+                  <h5><span class="flow-letter">W</span> Way of Execution</h5>
+                  <p>Disciplina operativa con mentalidad ágil. Planeamos claro, ejecutamos rápido y corregimos con
+                    datos.</p>
+                </div>
+              </div>
+
+            </div>
+
           </div>
 
         </div>
-
       </div>
+    </section>
+    <!-- /About Section -->
 
-    </section><!-- /About Section -->
+
+
+
+
 
 
 
@@ -220,7 +285,8 @@
               <a href="#" class="stretched-link">
                 <h3>Nesciunt Mete</h3>
               </a>
-              <p>Provident nihil minus qui consequatur non omnis maiores. Eos accusantium minus dolores iure perferendis tempore et consequatur.</p>
+              <p>Provident nihil minus qui consequatur non omnis maiores. Eos accusantium minus dolores iure perferendis
+                tempore et consequatur.</p>
             </div>
           </div><!-- End Service Item -->
 
@@ -232,7 +298,8 @@
               <a href="#" class="stretched-link">
                 <h3>Eosle Commodi</h3>
               </a>
-              <p>Ut autem aut autem non a. Sint sint sit facilis nam iusto sint. Libero corrupti neque eum hic non ut nesciunt dolorem.</p>
+              <p>Ut autem aut autem non a. Sint sint sit facilis nam iusto sint. Libero corrupti neque eum hic non ut
+                nesciunt dolorem.</p>
             </div>
           </div><!-- End Service Item -->
 
@@ -244,7 +311,8 @@
               <a href="#" class="stretched-link">
                 <h3>Ledo Markt</h3>
               </a>
-              <p>Ut excepturi voluptatem nisi sed. Quidem fuga consequatur. Minus ea aut. Vel qui id voluptas adipisci eos earum corrupti.</p>
+              <p>Ut excepturi voluptatem nisi sed. Quidem fuga consequatur. Minus ea aut. Vel qui id voluptas adipisci
+                eos earum corrupti.</p>
             </div>
           </div><!-- End Service Item -->
 
@@ -256,7 +324,8 @@
               <a href="#" class="stretched-link">
                 <h3>Asperiores Commodit</h3>
               </a>
-              <p>Non et temporibus minus omnis sed dolor esse consequatur. Cupiditate sed error ea fuga sit provident adipisci neque.</p>
+              <p>Non et temporibus minus omnis sed dolor esse consequatur. Cupiditate sed error ea fuga sit provident
+                adipisci neque.</p>
               <a href="#" class="stretched-link"></a>
             </div>
           </div><!-- End Service Item -->
@@ -269,7 +338,8 @@
               <a href="#" class="stretched-link">
                 <h3>Velit Doloremque</h3>
               </a>
-              <p>Cumque et suscipit saepe. Est maiores autem enim facilis ut aut ipsam corporis aut. Sed animi at autem alias eius labore.</p>
+              <p>Cumque et suscipit saepe. Est maiores autem enim facilis ut aut ipsam corporis aut. Sed animi at autem
+                alias eius labore.</p>
               <a href="#" class="stretched-link"></a>
             </div>
           </div><!-- End Service Item -->
@@ -282,7 +352,8 @@
               <a href="#" class="stretched-link">
                 <h3>Dolori Architecto</h3>
               </a>
-              <p>Hic molestias ea quibusdam eos. Fugiat enim doloremque aut neque non et debitis iure. Corrupti recusandae ducimus enim.</p>
+              <p>Hic molestias ea quibusdam eos. Fugiat enim doloremque aut neque non et debitis iure. Corrupti
+                recusandae ducimus enim.</p>
               <a href="#" class="stretched-link"></a>
             </div>
           </div><!-- End Service Item -->
@@ -293,7 +364,7 @@
 
     </section><!-- /Services Section -->
 
-    
+
 
     <!-- Departments Section -->
     <section id="departments" class="departments section">
@@ -332,8 +403,11 @@
                 <div class="row">
                   <div class="col-lg-8 details order-2 order-lg-1">
                     <h3>Cardiology</h3>
-                    <p class="fst-italic">Qui laudantium consequatur laborum sit qui ad sapiente dila parde sonata raqer a videna mareta paulona marka</p>
-                    <p>Et nobis maiores eius. Voluptatibus ut enim blanditiis atque harum sint. Laborum eos ipsum ipsa odit magni. Incidunt hic ut molestiae aut qui. Est repellat minima eveniet eius et quis magni nihil. Consequatur dolorem quaerat quos qui similique accusamus nostrum rem vero</p>
+                    <p class="fst-italic">Qui laudantium consequatur laborum sit qui ad sapiente dila parde sonata raqer
+                      a videna mareta paulona marka</p>
+                    <p>Et nobis maiores eius. Voluptatibus ut enim blanditiis atque harum sint. Laborum eos ipsum ipsa
+                      odit magni. Incidunt hic ut molestiae aut qui. Est repellat minima eveniet eius et quis magni
+                      nihil. Consequatur dolorem quaerat quos qui similique accusamus nostrum rem vero</p>
                   </div>
                   <div class="col-lg-4 text-center order-1 order-lg-2">
                     <img src="assets/img/departments-1.jpg" alt="" class="img-fluid">
@@ -344,8 +418,11 @@
                 <div class="row">
                   <div class="col-lg-8 details order-2 order-lg-1">
                     <h3>Et blanditiis nemo veritatis excepturi</h3>
-                    <p class="fst-italic">Qui laudantium consequatur laborum sit qui ad sapiente dila parde sonata raqer a videna mareta paulona marka</p>
-                    <p>Ea ipsum voluptatem consequatur quis est. Illum error ullam omnis quia et reiciendis sunt sunt est. Non aliquid repellendus itaque accusamus eius et velit ipsa voluptates. Optio nesciunt eaque beatae accusamus lerode pakto madirna desera vafle de nideran pal</p>
+                    <p class="fst-italic">Qui laudantium consequatur laborum sit qui ad sapiente dila parde sonata raqer
+                      a videna mareta paulona marka</p>
+                    <p>Ea ipsum voluptatem consequatur quis est. Illum error ullam omnis quia et reiciendis sunt sunt
+                      est. Non aliquid repellendus itaque accusamus eius et velit ipsa voluptates. Optio nesciunt eaque
+                      beatae accusamus lerode pakto madirna desera vafle de nideran pal</p>
                   </div>
                   <div class="col-lg-4 text-center order-1 order-lg-2">
                     <img src="assets/img/departments-2.jpg" alt="" class="img-fluid">
@@ -356,8 +433,11 @@
                 <div class="row">
                   <div class="col-lg-8 details order-2 order-lg-1">
                     <h3>Impedit facilis occaecati odio neque aperiam sit</h3>
-                    <p class="fst-italic">Eos voluptatibus quo. Odio similique illum id quidem non enim fuga. Qui natus non sunt dicta dolor et. In asperiores velit quaerat perferendis aut</p>
-                    <p>Iure officiis odit rerum. Harum sequi eum illum corrupti culpa veritatis quisquam. Neque necessitatibus illo rerum eum ut. Commodi ipsam minima molestiae sed laboriosam a iste odio. Earum odit nesciunt fugiat sit ullam. Soluta et harum voluptatem optio quae</p>
+                    <p class="fst-italic">Eos voluptatibus quo. Odio similique illum id quidem non enim fuga. Qui natus
+                      non sunt dicta dolor et. In asperiores velit quaerat perferendis aut</p>
+                    <p>Iure officiis odit rerum. Harum sequi eum illum corrupti culpa veritatis quisquam. Neque
+                      necessitatibus illo rerum eum ut. Commodi ipsam minima molestiae sed laboriosam a iste odio. Earum
+                      odit nesciunt fugiat sit ullam. Soluta et harum voluptatem optio quae</p>
                   </div>
                   <div class="col-lg-4 text-center order-1 order-lg-2">
                     <img src="assets/img/departments-3.jpg" alt="" class="img-fluid">
@@ -368,8 +448,11 @@
                 <div class="row">
                   <div class="col-lg-8 details order-2 order-lg-1">
                     <h3>Fuga dolores inventore laboriosam ut est accusamus laboriosam dolore</h3>
-                    <p class="fst-italic">Totam aperiam accusamus. Repellat consequuntur iure voluptas iure porro quis delectus</p>
-                    <p>Eaque consequuntur consequuntur libero expedita in voluptas. Nostrum ipsam necessitatibus aliquam fugiat debitis quis velit. Eum ex maxime error in consequatur corporis atque. Eligendi asperiores sed qui veritatis aperiam quia a laborum inventore</p>
+                    <p class="fst-italic">Totam aperiam accusamus. Repellat consequuntur iure voluptas iure porro quis
+                      delectus</p>
+                    <p>Eaque consequuntur consequuntur libero expedita in voluptas. Nostrum ipsam necessitatibus aliquam
+                      fugiat debitis quis velit. Eum ex maxime error in consequatur corporis atque. Eligendi asperiores
+                      sed qui veritatis aperiam quia a laborum inventore</p>
                   </div>
                   <div class="col-lg-4 text-center order-1 order-lg-2">
                     <img src="assets/img/departments-4.jpg" alt="" class="img-fluid">
@@ -381,7 +464,9 @@
                   <div class="col-lg-8 details order-2 order-lg-1">
                     <h3>Est eveniet ipsam sindera pad rone matrelat sando reda</h3>
                     <p class="fst-italic">Omnis blanditiis saepe eos autem qui sunt debitis porro quia.</p>
-                    <p>Exercitationem nostrum omnis. Ut reiciendis repudiandae minus. Omnis recusandae ut non quam ut quod eius qui. Ipsum quia odit vero atque qui quibusdam amet. Occaecati sed est sint aut vitae molestiae voluptate vel</p>
+                    <p>Exercitationem nostrum omnis. Ut reiciendis repudiandae minus. Omnis recusandae ut non quam ut
+                      quod eius qui. Ipsum quia odit vero atque qui quibusdam amet. Occaecati sed est sint aut vitae
+                      molestiae voluptate vel</p>
                   </div>
                   <div class="col-lg-4 text-center order-1 order-lg-2">
                     <img src="assets/img/departments-5.jpg" alt="" class="img-fluid">
@@ -396,12 +481,12 @@
 
     </section><!-- /Departments Section -->
 
-    
 
-   
-    
 
-    
+
+
+
+
 
     <!-- Contact Section -->
     <section id="contact" class="contact section">
@@ -413,7 +498,9 @@
       </div><!-- End Section Title -->
 
       <div class="mb-5" data-aos="fade-up" data-aos-delay="200">
-        <iframe style="border:0; width: 100%; height: 270px;" src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d48389.78314118045!2d-74.006138!3d40.710059!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a22a3bda30d%3A0xb89d1fe6bc499443!2sDowntown%20Conference%20Center!5e0!3m2!1sen!2sus!4v1676961268712!5m2!1sen!2sus" frameborder="0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <iframe style="border:0; width: 100%; height: 270px;"
+          src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d48389.78314118045!2d-74.006138!3d40.710059!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a22a3bda30d%3A0xb89d1fe6bc499443!2sDowntown%20Conference%20Center!5e0!3m2!1sen!2sus!4v1676961268712!5m2!1sen!2sus"
+          frameborder="0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div><!-- End Google Maps -->
 
       <div class="container" data-aos="fade-up" data-aos-delay="100">
@@ -448,7 +535,8 @@
           </div>
 
           <div class="col-lg-8">
-            <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up" data-aos-delay="200">
+            <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up"
+              data-aos-delay="200">
               <div class="row gy-4">
 
                 <div class="col-md-6">
@@ -563,14 +651,16 @@
         <!-- You can delete the links only if you've purchased the pro version. -->
         <!-- Licensing information: https://bootstrapmade.com/license/ -->
         <!-- Purchase the pro version with working PHP/AJAX contact form: [buy-url] -->
-        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> Distributed by <a href=“https://themewagon.com>ThemeWagon
+        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> Distributed by <a
+          href=“https://themewagon.com>ThemeWagon
       </div>
     </div>
 
   </footer>
 
   <!-- Scroll Top -->
-  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
+      class="bi bi-arrow-up-short"></i></a>
 
   <!-- Preloader -->
   <div id="preloader"></div>

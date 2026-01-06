@@ -277,17 +277,20 @@ h6 {
 }
 
 .header .branding {
-  min-height: 60px;
-  padding: 10px 0;
+  min-height: 20px;
+  padding: 0px 0;
 }
 
 .header .logo {
+   margin-left: 60px;  /* ajusta a gusto */
   line-height: 1;
 }
 
 .header .logo img {
-  max-height: 36px;
-  margin-right: 8px;
+    height: 120px;      /* aquí mandas tú */
+  max-height: none;   /* MUY IMPORTANTE */
+  width: auto;
+  margin-right: 10px;
 }
 
 .header .logo h1 {
@@ -1727,3 +1730,103 @@ section,
 .starter-section {
   /* Add your styles here */
 }
+
+
+/* Panel izquierda */
+.about-panel{
+  background: rgba(255,255,255,0.90);
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+}
+
+.about-highlights{
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px 0;
+}
+
+.about-highlights li{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.about-highlights li i{
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.about-badge{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(13,110,253,0.10);
+  font-weight: 600;
+}
+
+/* FLOW cards */
+.flow-grid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.flow-card{
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.75);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.05);
+}
+
+.flow-icon{
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(13,110,253,0.12);
+  flex: 0 0 44px;
+}
+
+.flow-icon i{
+  font-size: 18px;
+}
+
+.flow-card h5{
+  margin: 0 0 6px 0;
+}
+
+.flow-card p{
+  margin: 0;
+  line-height: 1.55;
+}
+
+.flow-letter{
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  line-height: 22px;
+  text-align: center;
+  border-radius: 6px;
+  background: rgba(13,110,253,0.15);
+  margin-right: 6px;
+  font-weight: 800;
+}
+
+/* Responsive: en pantallas medianas, FLOW en 2 columnas (si te gusta) */
+@media (min-width: 768px){
+  .flow-grid{
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
+
