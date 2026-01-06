@@ -1827,6 +1827,474 @@ section,
     grid-template-columns: 1fr 1fr;
   }
 }
+/* =========================
+   SERVICES (Cards)
+   ========================= */
+
+.services .service-item {
+  position: relative;
+  height: 100%;
+  padding: 32px 26px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.06);
+  transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease, color .25s ease;
+  text-align: center; /* tu diseño centrado */
+  overflow: hidden;
+}
+
+/* Icono superior */
+.services .service-item .icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px auto;
+  background: rgba(13, 110, 253, 0.12);
+  transition: background-color .25s ease;
+}
+
+.services .service-item .icon i {
+  font-size: 26px;
+  color: #1977cc; /* color base */
+  transition: color .25s ease;
+}
+
+/* Título y textos */
+.services .service-item h3 {
+  margin: 6px 0 12px 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.services .service-item .service-intro {
+  margin: 0 0 12px 0;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* =========================
+   LISTA CON VIÑETAS (ALINEACIÓN PRO)
+   - La card está centrada
+   - La lista se centra como bloque
+   - El texto de la lista queda alineado a la izquierda
+   - Las viñetas se alinean con el texto
+   ========================= */
+
+.services .service-item .service-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  display: inline-block; /* centra el bloque UL dentro del card */
+  text-align: left;      /* dentro, alinea el texto correctamente */
+}
+
+.services .service-item .service-list li {
+  position: relative;
+  padding-left: 18px;
+  margin-bottom: 8px;
+  line-height: 1.55;
+  color: inherit; /* clave para que el bullet herede */
+}
+
+/* Viñeta controlada */
+.services .service-item .service-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 900;
+  color: inherit; /* clave: en hover también se pone blanco */
+}
+
+/* Texto final opcional */
+.services .service-item .service-footer {
+  margin-top: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* Link estirado (si lo usas) */
+.services .service-item .stretched-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* =========================
+   HOVER (fondo azul + texto blanco + viñetas blancas)
+   ========================= */
+
+.services .service-item:hover {
+  background: #1977cc; /* cambia aquí si usas #6570ff */
+  color: #fff;         /* todo el texto hereda */
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(13, 110, 253, 0.20);
+}
+
+/* Asegura herencia en elementos comunes */
+.services .service-item:hover h3,
+.services .service-item:hover p,
+.services .service-item:hover li,
+.services .service-item:hover a {
+  color: #fff;
+}
+
+/* Fuerza viñetas blancas si algún estilo externo las pisa */
+.services .service-item:hover .service-list li::before {
+  color: #fff;
+}
+
+/* Icono se adapta en hover */
+.services .service-item:hover .icon {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.services .service-item:hover .icon i {
+  color: #fff;
+}
+
+/* =========================
+   VARIANTE (si marcas una card como "highlight")
+   ========================= */
+.services .service-item.highlight {
+  border: 1px solid rgba(13, 110, 253, 0.18);
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+@media (max-width: 768px) {
+  .services .service-item {
+    padding: 26px 20px;
+    border-radius: 18px;
+  }
+
+  .services .service-item .icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 14px;
+  }
+
+  .services .service-item .icon i {
+    font-size: 24px;
+  }
+
+  .services .service-item h3 {
+    font-size: 1.15rem;
+  }
+}
+
+/* =========================
+   FLOW / DEPARTMENTS STYLING
+   ========================= */
+
+.flow-tabs .nav-link {
+  border: 0;
+  border-radius: 16px;
+  padding: 14px 14px;
+  margin-bottom: 10px;
+  background: rgba(255,255,255,0.85);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.05);
+  color: #1f2d3d;
+  transition: transform .2s ease, background-color .2s ease, color .2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.flow-tabs .nav-link small {
+  opacity: .75;
+  font-weight: 500;
+}
+
+.flow-tabs .nav-link:hover {
+  transform: translateY(-2px);
+}
+
+.flow-tabs .nav-link.active {
+  background: #1977cc; /* cambia por tu color (ej. #6570ff) */
+  color: #fff;
+}
+
+.flow-tabs .nav-link.active small {
+  opacity: .9;
+}
+
+/* Tag de letra (F/L/O/W) */
+.flow-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-weight: 800;
+  background: rgba(13,110,253,0.12);
+  color: #1977cc;
+}
+
+.flow-tabs .nav-link.active .flow-tag {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+
+/* Panel del contenido */
+.departments .tab-content {
+  background: rgba(255,255,255,0.85);
+  border-radius: 22px;
+  padding: 26px;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.06);
+}
+
+.departments .details h3 {
+  margin-bottom: 6px;
+  font-weight: 800;
+}
+
+.departments .details .fst-italic {
+  opacity: .85;
+  margin-bottom: 14px;
+}
+
+/* Lista con icono */
+.flow-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+  text-align: left;
+}
+
+.flow-bullets li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  line-height: 1.55;
+}
+
+.flow-bullets li i {
+  margin-top: 3px;
+  opacity: .9;
+}
+
+/* Output badge */
+.flow-output {
+  margin-top: 10px;
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(13,110,253,0.10);
+  font-weight: 600;
+}
+
+.flow-output i {
+  opacity: .95;
+}
+
+/* Imagen */
+.flow-img {
+  border-radius: 18px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .departments .tab-content {
+    padding: 18px;
+  }
+}
 
 
 
+/* =========================
+   CONTACT – PREMIUM STYLE
+   ========================= */
+
+.contact.section {
+  padding: 80px 0;
+}
+
+/* Título */
+.contact .section-title p {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* MAPA */
+.contact-map {
+  margin: 0 0 60px 0;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(0,0,0,0.08);
+}
+
+.contact-map iframe {
+  width: 100%;
+  height: 300px;
+  border: 0;
+}
+
+/* INFO ITEMS */
+.contact .info-item {
+  background: #fff;
+  padding: 20px 22px;
+  border-radius: 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.06);
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.contact .info-item i {
+  font-size: 22px;
+  color: #fff;
+  margin-top: 4px;
+}
+
+.contact .info-item h3 {
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.contact .info-item p {
+  margin: 0;
+  line-height: 1.5;
+  opacity: .9;
+}
+
+/* FORM */
+.contact .php-email-form {
+  background: #fff;
+  padding: 30px;
+  border-radius: 22px;
+  box-shadow: 0 16px 36px rgba(0,0,0,0.08);
+}
+
+.contact .php-email-form .form-control {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: none;
+  font-size: .95rem;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.contact .php-email-form .form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13,110,253,0.15);
+}
+
+/* BOTÓN */
+.contact .php-email-form button {
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.contact .php-email-form button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(13,110,253,0.35);
+}
+
+/* RESPONSIVE */
+@media (max-width: 991px) {
+  .contact-map iframe {
+    height: 260px;
+  }
+
+  .contact .php-email-form {
+    padding: 24px;
+  }
+}
+
+
+.footer .footer-tagline {
+  opacity: .9;
+  line-height: 1.6;
+  max-width: 360px;
+}
+
+.footer .footer-contact i {
+  margin-right: 8px;
+  opacity: .9;
+}
+
+.footer .social-links a {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(13,110,253,0.10);
+  transition: transform .2s ease, background-color .2s ease;
+}
+
+.footer .social-links a:hover {
+  transform: translateY(-2px);
+  background: rgba(13,110,253,0.18);
+}
+
+.footer .footer-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer .footer-links ul li {
+  margin-bottom: 10px;
+}
+
+.footer .footer-links ul li a {
+  text-decoration: none;
+  opacity: .9;
+}
+
+.footer .footer-links ul li a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* FLOW badges */
+.footer-flow {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-flow li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  opacity: .92;
+}
+
+.flow-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  background: rgba(13,110,253,0.12);
+  color: #0d6efd;
+}
+
+.footer .footer-cta .btn {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 700;
+}
