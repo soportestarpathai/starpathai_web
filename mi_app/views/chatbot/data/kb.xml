@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knowledge_base source="Contenido general.docx" version="1.0">
+
+  <!-- ================= MENSAJE PRINCIPAL ================= -->
+  <item id="hero-1">
+    <title>Mensaje principal</title>
+    <body>
+      Diseñamos, automatizamos y operamos sistemas para escalar tu operación.
+    </body>
+    <tags>hero,propuesta,valor</tags>
+  </item>
+
+  <item id="hero-2">
+    <title>Subtítulo de apoyo</title>
+    <body>
+      Construimos el sistema completo: procesos, tecnología y ejecución para una
+      operación rentable, controlada y preparada para crecer.
+    </body>
+    <tags>beneficios,operacion,escalamiento</tags>
+  </item>
+
+  <!-- ================= QUIÉNES SOMOS ================= -->
+  <item id="about-1">
+    <title>Quiénes Somos</title>
+    <body>
+      Star Path es una empresa de soluciones tecnológicas especializada en el diseño
+      e implementación de arquitecturas low-code, automatización inteligente de procesos
+      y Agentic AI, complementadas con servicios de staff augmentation para crear y operar
+      soluciones digitales escalables.
+    </body>
+    <tags>empresa,identidad,tecnologia</tags>
+  </item>
+
+  <item id="about-2">
+    <title>Filosofía de Trabajo</title>
+    <body>
+      Trabajamos bajo una filosofía simple: una buena operación se diseña, no se improvisa.
+      Integramos Low-Code Architectures, Intelligent Process Automation, Agentic AI y
+      Tech Talent on Demand en un solo modelo operativo que permite a las empresas
+      ganar control, velocidad y consistencia.
+    </body>
+    <tags>filosofia,operacion,automatizacion</tags>
+  </item>
+
+  <item id="about-3">
+    <title>Experiencia del Equipo</title>
+    <body>
+      Nuestro equipo combina experiencia en tecnología, automatización, operación,
+      inteligencia artificial y construcción de soluciones digitales de alto impacto.
+      Acompañamos a organizaciones que buscan modernizar su operación y optimizar
+      procesos críticos con resultados medibles.
+    </body>
+    <tags>experiencia,equipo,impacto</tags>
+  </item>
+
+  <!-- ================= VALORES FLOW ================= -->
+  <item id="values-flow">
+    <title>Valores FLOW</title>
+    <body>
+      FLOW representa nuestros principios operativos:
+      Flexible Foundation: arquitectura sólida y adaptable.
+      Leverage Automation: la automatización como multiplicador de capacidad.
+      Outcome Focus: resultados antes que tareas.
+      Way of Execution: disciplina operativa con mentalidad ágil.
+    </body>
+    <tags>valores,flow,principios</tags>
+  </item>
+
+  <!-- ================= SERVICIOS ================= -->
+  <item id="services-1">
+    <title>Arquitectura y Asesoría Tecnológica</title>
+    <body>
+      Diseñamos la base sobre la cual corre tu operación digital: arquitecturas low-code,
+      ecosistemas digitales, gobierno tecnológico y roadmaps de transformación.
+    </body>
+    <tags>servicios,arquitectura,asesoria</tags>
+  </item>
+
+  <item id="services-2">
+    <title>Automatización Inteligente de Procesos</title>
+    <body>
+      Convertimos procesos manuales en flujos digitales robustos mediante IPA,
+      orquestación de workflows, integración de sistemas, automatización con IA
+      y monitoreo en tiempo real.
+    </body>
+    <tags>automatizacion,ipa,procesos</tags>
+  </item>
+
+  <item id="services-3">
+    <title>Desarrollo de Soluciones Digitales</title>
+    <body>
+      Creamos aplicaciones y portales diseñados para operar y escalar, combinando
+      low-code y pro-code según las necesidades del negocio.
+    </body>
+    <tags>desarrollo,aplicaciones,portales</tags>
+  </item>
+
+  <item id="services-4">
+    <title>Tech Talent on Demand</title>
+    <body>
+      Proveemos equipos listos para ejecutar: arquitectos de solución, ingenieros
+      de automatización, desarrolladores full-stack, especialistas en IA y datos,
+      y equipos de operación y soporte.
+    </body>
+    <tags>talento,staff,augmentation</tags>
+  </item>
+
+  <item id="services-5">
+    <title>Soporte Operativo y Evolión Continua</title>
+    <body>
+      Ofrecemos soporte técnico y funcional, mantenimiento evolutivo, optimización
+      de procesos y acompañamiento operativo para garantizar mejora continua.
+    </body>
+    <tags>soporte,evolucion,operacion</tags>
+  </item>
+
+  <!-- ================= PRODUCTO / PARTNER ================= -->
+  <item id="product-1">
+    <title>Partner Oficial EVE 360</title>
+    <body>
+      Star Path es partner oficial de EVE 360, una plataforma avanzada de cumplimiento,
+      automatización y control operativo para organizaciones que requieren altos
+      estándares de gobierno, trazabilidad y eficiencia.
+    </body>
+    <tags>producto,partner,eve360</tags>
+  </item>
+
+  <!-- ================= METODOLOGÍA ================= -->
+  <item id="method-1">
+    <title>Metodología de Trabajo FLOW</title>
+    <body>
+      Nuestra metodología asegura orden y resultados:
+      Discover and Frame: entendemos la operación.
+      Design and Leverage: diseñamos la solución.
+      Build and Operate: implementamos en operación real.
+      Optimize and Evolve: evolucionamos con datos.
+    </body>
+    <tags>metodologia,flow,ejecucion</tags>
+  </item>
+
+  <!-- ================= DIFERENCIAL ================= -->
+  <item id="why-1">
+    <title>¿Por qué Star Path?</title>
+    <body>
+      Porque pensamos como dueños de la operación, convertimos complejidad en control,
+      hablamos en indicadores y no solo implementamos: nos quedamos.
+      Star Path no se contrata para hacer algo, se elige para hacer que la operación
+      funcione mejor hoy y mañana.
+    </body>
+    <tags>diferencial,valor,negocio</tags>
+  </item>
+
+</knowledge_base>

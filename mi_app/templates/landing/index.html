@@ -866,255 +866,632 @@
       });
     })();
   </script>
-<!-- ===================== CHATBOT ===================== -->
+  <!-- ===================== CHATBOT ===================== -->
 
-<style>
-/* ---------- BOTÓN FLOTANTE ---------- */
-#sp-chat-fab{
-  position: fixed;
-  right: 60px;
-  bottom: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #0d6efd;
-  color: #fff;
-  box-shadow: 0 12px 30px rgba(0,0,0,.18);
-}
-#sp-chat-fab i{
-  font-size: 22px;
-}
-
-/* ---------- NUBE INICIAL ---------- */
-#sp-chat-hint{
-  position: fixed;
-  right: 130px;
-  bottom: 32px;
-  background: #fff;
-  color: #111;
-  padding: 10px 14px;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 10px 30px rgba(0,0,0,.18);
-  z-index: 9998;
-  opacity: 0;
-  transform: translateY(10px);
-  pointer-events: none;
-}
-#sp-chat-hint::after{
-  content: "";
-  position: absolute;
-  right: -6px;
-  bottom: 12px;
-  width: 12px;
-  height: 12px;
-  background: #fff;
-  transform: rotate(45deg);
-}
-.sp-hint-show{ animation: spHintIn .55s ease forwards; }
-.sp-hint-hide{ animation: spHintOut .35s ease forwards; }
-@keyframes spHintIn{ to{opacity:1;transform:translateY(0);} }
-@keyframes spHintOut{ to{opacity:0;transform:translateY(10px);} }
-
-/* ---------- PANEL CHAT ---------- */
-#sp-chat-panel{
-  position: fixed;
-  right: 20px;
-  bottom: 90px;
-  width: 360px;
-  height: 520px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 18px 60px rgba(0,0,0,.2);
-  z-index: 9999;
-  display: none;
-  overflow: hidden;
-}
-
-/* Header */
-.sp-chat-header{
-  padding: 12px 14px;
-  background: #f8f9fa;
-  border-bottom: 1px solid rgba(0,0,0,.06);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.sp-chat-title{
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  font-weight: 700;
-}
-.sp-chat-title .badge{
-  font-weight: 700;
-}
-
-/* Mensajes */
-#sp-chat-messages{
-  padding: 12px;
-  height: calc(100% - 120px);
-  overflow-y: auto;
-}
-.sp-msg{
-  display: flex;
-  margin: 8px 0;
-}
-.sp-msg.user{ justify-content: flex-end; }
-.sp-bubble{
-  max-width: 80%;
-  padding: 10px 12px;
-  border-radius: 14px;
-  font-size: 14px;
-  white-space: pre-wrap;
-}
-.sp-msg.user .sp-bubble{
-  background: #0d6efd;
-  color: #fff;
-  border-bottom-right-radius: 6px;
-}
-.sp-msg.bot .sp-bubble{
-  background: #f1f3f5;
-  color: #111;
-  border-bottom-left-radius: 6px;
-}
-
-/* Input */
-.sp-chat-input{
-  border-top: 1px solid rgba(0,0,0,.06);
-  padding: 10px;
-}
-
-/* Responsive */
-@media (max-width: 576px){
-  #sp-chat-fab{ right: 20px; }
-  #sp-chat-hint{ right: 90px; }
-  #sp-chat-panel{
-    right: 10px;
-    width: calc(100vw - 20px);
-  }
-}
-</style>
-
-<!-- Botón flotante -->
-<button id="sp-chat-fab" aria-label="Abrir chat">
-  <i class="bi bi-chat-dots"></i>
-</button>
-
-<!-- Nube -->
-<div id="sp-chat-hint">👋 Soy tu asistente</div>
-
-<!-- Panel Chat -->
-<div id="sp-chat-panel">
-  <div class="sp-chat-header">
-    <div class="sp-chat-title">
-      <span class="badge text-bg-primary">Star Path</span>
-      <span>Asistente</span>
-    </div>
-    <div class="d-flex gap-2">
-      <button id="sp-chat-clear" class="btn btn-sm btn-outline-secondary">Limpiar</button>
-      <button id="sp-chat-close" class="btn btn-sm btn-outline-danger">✕</button>
-    </div>
-  </div>
-
-  <div id="sp-chat-messages"></div>
-
-  <div class="sp-chat-input">
-    <div class="input-group">
-      <textarea id="sp-chat-text" class="form-control" placeholder="Escribe tu mensaje..."></textarea>
-      <button id="sp-chat-send" class="btn btn-primary">Enviar</button>
-    </div>
-  </div>
-</div>
-
-<script>
-(function(){
-
-  const CHAT_ENDPOINT = "/api/chat/";
-  const SESSION_KEY = "sp_chat_session_id";
-  const HINT_KEY = "sp_chat_hint_seen";
-
-  const fab = document.getElementById("sp-chat-fab");
-  const panel = document.getElementById("sp-chat-panel");
-  const closeBtn = document.getElementById("sp-chat-close");
-  const clearBtn = document.getElementById("sp-chat-clear");
-  const hint = document.getElementById("sp-chat-hint");
-  const sendBtn = document.getElementById("sp-chat-send");
-  const txt = document.getElementById("sp-chat-text");
-  const msgs = document.getElementById("sp-chat-messages");
-
-  let sessionId = localStorage.getItem(SESSION_KEY);
-  if(!sessionId){
-    sessionId = crypto.randomUUID();
-    localStorage.setItem(SESSION_KEY, sessionId);
-  }
-
-  /* ---------- NUBE SOLO PRIMERA VEZ ---------- */
-  if(!localStorage.getItem(HINT_KEY)){
-    localStorage.setItem(HINT_KEY,"1");
-    setTimeout(()=> hint.classList.add("sp-hint-show"),400);
-    setTimeout(()=> hideHint(),4200);
-  }
-  function hideHint(){
-    hint.classList.remove("sp-hint-show");
-    hint.classList.add("sp-hint-hide");
-  }
-
-  /* ---------- CHAT ---------- */
-  function addMsg(role,text){
-    const d = document.createElement("div");
-    d.className = "sp-msg " + role;
-    d.innerHTML = `<div class="sp-bubble">${text}</div>`;
-    msgs.appendChild(d);
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-
-  fab.onclick = () => {
-    hideHint();
-    panel.style.display = "block";
-    if(!msgs.children.length){
-      addMsg("bot","Hola 👋 Soy el asistente de StarPath. ¿En qué puedo ayudarte?");
+  <style>
+    /* ---------- BOTÓN FLOTANTE ---------- */
+    #sp-chat-fab {
+      position: fixed;
+      right: 60px;
+      bottom: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0d6efd;
+      color: #fff;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, .18);
     }
-  };
 
-  closeBtn.onclick = () => panel.style.display = "none";
+    #sp-chat-fab i {
+      font-size: 22px;
+    }
 
-  clearBtn.onclick = () => {
-    msgs.innerHTML = "";
-    addMsg("bot","🧹 Listo, limpié la conversación.\n¿Quieres preguntar algo más?");
-  };
+    /* ---------- NUBE INICIAL ---------- */
+    #sp-chat-hint {
+      position: fixed;
+      right: 130px;
+      bottom: 32px;
+      background: #fff;
+      color: #111;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+      z-index: 9998;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+    }
 
-  sendBtn.onclick = async () => {
-    const message = txt.value.trim();
-    if(!message) return;
+    #sp-chat-hint::after {
+      content: "";
+      position: absolute;
+      right: -6px;
+      bottom: 12px;
+      width: 12px;
+      height: 12px;
+      background: #fff;
+      transform: rotate(45deg);
+    }
 
-    addMsg("user",message);
-    txt.value = "";
+    .sp-hint-show {
+      animation: spHintIn .55s ease forwards;
+    }
 
-    const res = await fetch(CHAT_ENDPOINT,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({
-        session_id: sessionId,
-        message: message
-      })
-    });
+    .sp-hint-hide {
+      animation: spHintOut .35s ease forwards;
+    }
 
-    const data = await res.json();
-    addMsg("bot", data.reply || "Sin respuesta");
-  };
+    @keyframes spHintIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-})();
-</script>
+    @keyframes spHintOut {
+      to {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+    }
 
-<!-- =================== /CHATBOT =================== -->
+    /* ---------- PANEL CHAT ---------- */
+    #sp-chat-panel {
+      position: fixed;
+      right: 20px;
+      bottom: 90px;
+      width: 360px;
+      height: 520px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, .2);
+      z-index: 9999;
+      display: none;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .sp-chat-header {
+      padding: 12px 14px;
+      background: #f8f9fa;
+      border-bottom: 1px solid rgba(0, 0, 0, .06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sp-chat-title {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-weight: 700;
+    }
+
+    .sp-chat-title .badge {
+      font-weight: 700;
+    }
+
+    /* Mensajes */
+    #sp-chat-messages {
+      padding: 12px;
+      height: calc(100% - 120px);
+      overflow-y: auto;
+    }
+
+    .sp-msg {
+      display: flex;
+      margin: 8px 0;
+    }
+
+    .sp-msg.user {
+      justify-content: flex-end;
+    }
+
+    .sp-bubble {
+      max-width: 80%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .sp-msg.user .sp-bubble {
+      background: #0d6efd;
+      color: #fff;
+      border-bottom-right-radius: 6px;
+    }
+
+    .sp-msg.bot .sp-bubble {
+      background: #f1f3f5;
+      color: #111;
+      border-bottom-left-radius: 6px;
+    }
+
+    /* Input */
+    .sp-chat-input {
+      border-top: 1px solid rgba(0, 0, 0, .06);
+      padding: 10px;
+    }
+
+    /* Responsive */
+    @media (max-width: 576px) {
+      #sp-chat-fab {
+        right: 20px;
+      }
+
+      #sp-chat-hint {
+        right: 90px;
+      }
+
+      #sp-chat-panel {
+        right: 10px;
+        width: calc(100vw - 20px);
+      }
+    }
+
+    /* ===== Modal de fuente ===== */
+    #sp-kb-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    #sp-kb-modal .sp-kb-card {
+      width: min(720px, 95vw);
+      max-height: min(80vh, 720px);
+      overflow: auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, .25);
+      padding: 14px 14px 12px;
+    }
+
+    #sp-kb-modal .sp-kb-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      border-bottom: 1px solid rgba(0, 0, 0, .08);
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    #sp-kb-modal .sp-kb-title {
+      font-weight: 800;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    #sp-kb-modal .sp-kb-meta {
+      margin-top: 4px;
+      font-size: 12px;
+      opacity: .75;
+    }
+
+    #sp-kb-modal .sp-kb-close {
+      border: none;
+      background: transparent;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* ===== Justificado real para el contenido del modal ===== */
+    #sp-kb-modal .sp-kb-body {
+      text-align: justify;
+      /* ✅ justificado */
+      text-justify: inter-word;
+
+      font-size: 14px;
+      line-height: 1.7;
+      color: #2c2c2c;
+
+      /* manejo correcto de palabras largas */
+      hyphens: auto;
+      overflow-wrap: break-word;
+      word-break: normal;
+
+      /* aire visual */
+      padding: 6px 4px;
+    }
+
+
+    .sp-src-btn {
+      border: 1px solid rgba(0, 0, 0, .12);
+      background: #fff;
+      border-radius: 10px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .sp-src-btn:hover {
+      background: rgba(13, 110, 253, .06);
+      border-color: rgba(13, 110, 253, .35);
+    }
+
+    .sp-src-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    /* ===== Animación del modal ===== */
+    #sp-kb-modal {
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(.98);
+      transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+      display: flex;
+      /* mantenlo flex para centrar */
+      pointer-events: none;
+      /* evita clics cuando está cerrado */
+    }
+
+    #sp-kb-modal.sp-open {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    /* animación del card (un poco más elegante) */
+    #sp-kb-modal .sp-kb-card {
+      transform: translateY(6px);
+      transition: transform .18s ease;
+    }
+
+    #sp-kb-modal.sp-open .sp-kb-card {
+      transform: translateY(0);
+    }
+  </style>
+
+  <!-- Botón flotante -->
+  <button id="sp-chat-fab" aria-label="Abrir chat">
+    <i class="bi bi-chat-dots"></i>
+  </button>
+
+  <!-- Nube -->
+  <div id="sp-chat-hint">👋 Soy tu asistente</div>
+
+  <!-- Panel Chat -->
+  <div id="sp-chat-panel">
+    <div class="sp-chat-header">
+      <div class="sp-chat-title">
+        <span class="badge text-bg-primary">Star Path</span>
+        <span>Asistente</span>
+      </div>
+      <div class="d-flex gap-2">
+        <button id="sp-chat-clear" class="btn btn-sm btn-outline-secondary">Limpiar</button>
+        <button id="sp-chat-close" class="btn btn-sm btn-outline-danger">✕</button>
+      </div>
+    </div>
+
+    <div id="sp-chat-messages"></div>
+
+    <div class="sp-chat-input">
+      <div class="input-group">
+        <textarea id="sp-chat-text" class="form-control" placeholder="Escribe tu mensaje..."></textarea>
+        <button id="sp-chat-send" class="btn btn-primary">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sp-kb-modal" aria-hidden="true">
+    <div class="sp-kb-card" role="dialog" aria-modal="true">
+      <div class="sp-kb-head">
+        <div>
+          <div class="sp-kb-title" id="sp-kb-title">Fuente</div>
+          <div class="sp-kb-meta" id="sp-kb-meta"></div>
+        </div>
+        <button class="sp-kb-close" id="sp-kb-close" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="sp-kb-body" id="sp-kb-body"></div>
+    </div>
+  </div>
+
+
+
+  <script>
+    (function () {
+
+      const CHAT_ENDPOINT = "/api/chat/";
+      const SESSION_KEY = "sp_chat_session_id";
+      const HINT_KEY = "sp_chat_hint_seen";
+
+      // Memoria corta en cliente (sin BD / sin Redis)
+      const HISTORY_KEY = "sp_chat_history_v1";
+      const MAX_HISTORY_MSGS = 12; // 6 turnos (user+bot)
+
+      // Endpoint para detalle de fuente
+      const KB_ITEM_ENDPOINT = (id) => `/api/kb/item/${encodeURIComponent(id)}/`;
+
+      const fab = document.getElementById("sp-chat-fab");
+      const panel = document.getElementById("sp-chat-panel");
+      const closeBtn = document.getElementById("sp-chat-close");
+      const clearBtn = document.getElementById("sp-chat-clear");
+      const hint = document.getElementById("sp-chat-hint");
+      const sendBtn = document.getElementById("sp-chat-send");
+      const txt = document.getElementById("sp-chat-text");
+      const msgs = document.getElementById("sp-chat-messages");
+
+      // Modal de fuentes
+      const kbModal = document.getElementById("sp-kb-modal");
+      const kbClose = document.getElementById("sp-kb-close");
+      const kbTitle = document.getElementById("sp-kb-title");
+      const kbMeta = document.getElementById("sp-kb-meta");
+      const kbBody = document.getElementById("sp-kb-body");
+
+      // -------- session id --------
+      let sessionId = localStorage.getItem(SESSION_KEY);
+      if (!sessionId) {
+        sessionId = (crypto?.randomUUID?.() || String(Date.now()) + "-" + Math.random().toString(16).slice(2));
+        localStorage.setItem(SESSION_KEY, sessionId);
+      }
+
+      // -------- memoria corta (history) --------
+      let history = [];
+      try {
+        const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+        history = Array.isArray(saved) ? saved : [];
+      } catch {
+        history = [];
+      }
+      function saveHistory() {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-MAX_HISTORY_MSGS)));
+      }
+      function pushHistory(role, content) {
+        history.push({ role, content });
+        history = history.slice(-MAX_HISTORY_MSGS);
+        saveHistory();
+      }
+      function clearHistoryClient() {
+        history = [];
+        localStorage.removeItem(HISTORY_KEY);
+      }
+
+      // -------- nube solo 1a vez --------
+      if (!localStorage.getItem(HINT_KEY)) {
+        localStorage.setItem(HINT_KEY, "1");
+        setTimeout(() => hint.classList.add("sp-hint-show"), 400);
+        setTimeout(() => hideHint(), 4200);
+      }
+      function hideHint() {
+        if (!hint) return;
+        hint.classList.remove("sp-hint-show");
+        hint.classList.add("sp-hint-hide");
+      }
+
+      // -------- modal fuentes --------
+      function openKbModal({ id, title, body, tags }) {
+        if (!kbModal) return;
+
+        kbTitle.textContent = title || "Fuente";
+        kbMeta.textContent = `id: ${id || "-"}` + (tags ? ` · tags: ${tags}` : "");
+
+        // (Opcional recomendado) para que se note el justificado:
+        kbBody.textContent = (body || "").replace(/\s*\n\s*/g, " ").replace(/\s{2,}/g, " ");
+
+        // ✅ NO uses display:flex aquí; solo aplica clase
+        kbModal.classList.add("sp-open");
+        kbModal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeKbModal() {
+        if (!kbModal) return;
+        kbModal.classList.remove("sp-open");
+        kbModal.setAttribute("aria-hidden", "true");
+      }
+
+
+      kbClose?.addEventListener("click", closeKbModal);
+      kbModal?.addEventListener("click", (e) => {
+        if (e.target === kbModal) closeKbModal();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && kbModal?.style.display === "flex") closeKbModal();
+      });
+
+      async function fetchKbItem(id) {
+        const res = await fetch(KB_ITEM_ENDPOINT(id), {
+          method: "GET",
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+        const raw = await res.text();
+        let data;
+        try { data = JSON.parse(raw); } catch { throw new Error("Respuesta no JSON"); }
+        if (!res.ok) throw new Error(data.detail || "Error al cargar fuente");
+        return data;
+      }
+
+      // -------- UI helpers --------
+      function addMsg(role, text) {
+        const d = document.createElement("div");
+        d.className = "sp-msg " + role;
+
+        const bubble = document.createElement("div");
+        bubble.className = "sp-bubble";
+        bubble.textContent = text; // seguro (sin HTML)
+
+        d.appendChild(bubble);
+        msgs.appendChild(d);
+        msgs.scrollTop = msgs.scrollHeight;
+
+        // ✅ guardamos memoria en cliente
+        pushHistory(role, text);
+      }
+
+      // Mensaje del bot + burbuja de Fuentes clickeables (sin guardarlas en history)
+      function addBotMsgWithSources(text, sources) {
+        addMsg("bot", text);
+
+        if (!sources || !Array.isArray(sources) || sources.length === 0) return;
+
+        const d = document.createElement("div");
+        d.className = "sp-msg bot";
+
+        const bubble = document.createElement("div");
+        bubble.className = "sp-bubble";
+
+        const title = document.createElement("div");
+        title.style.fontWeight = "700";
+        title.style.marginBottom = "8px";
+        title.textContent = "Fuentes";
+
+        const ul = document.createElement("ul");
+        ul.className = "sp-src-list";
+
+        sources.slice(0, 5).forEach(s => {
+          const li = document.createElement("li");
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "sp-src-btn";
+          btn.textContent = `${s.title} (${s.id})`;
+
+          btn.addEventListener("click", async () => {
+            const original = btn.textContent;
+            try {
+              btn.disabled = true;
+              btn.textContent = "Cargando…";
+              const item = await fetchKbItem(s.id);
+              openKbModal(item);
+            } catch (err) {
+              openKbModal({
+                id: s.id,
+                title: s.title || "Fuente",
+                body: "⚠️ No se pudo cargar el detalle de la fuente.",
+                tags: ""
+              });
+            } finally {
+              btn.disabled = false;
+              btn.textContent = original;
+            }
+          });
+
+          li.appendChild(btn);
+          ul.appendChild(li);
+        });
+
+        bubble.appendChild(title);
+        bubble.appendChild(ul);
+        d.appendChild(bubble);
+
+        msgs.appendChild(d);
+        msgs.scrollTop = msgs.scrollHeight;
+      }
+
+      function setLoading(isLoading) {
+        sendBtn.disabled = isLoading;
+        txt.disabled = isLoading;
+      }
+
+      // -------- abrir/cerrar --------
+      fab.onclick = () => {
+        hideHint();
+        panel.style.display = "block";
+        if (!msgs.children.length) {
+          addMsg("bot", "Hola 👋 Soy el asistente de StarPath. ¿En qué puedo ayudarte?");
+        }
+        setTimeout(() => txt.focus(), 50);
+      };
+
+      closeBtn.onclick = () => (panel.style.display = "none");
+
+      // -------- limpiar --------
+      clearBtn.onclick = async () => {
+        msgs.innerHTML = "";
+        clearHistoryClient();
+
+        addMsg("bot", "🧹 Listo, limpié la conversación.\n¿Quieres preguntar algo más?");
+
+        // opcional: avisar backend (aunque sea stateless)
+        try {
+          await fetch(CHAT_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId, reset: true })
+          });
+        } catch (e) { }
+      };
+
+      // Enter para enviar / Shift+Enter salto de línea
+      txt.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendBtn.click();
+        }
+      });
+
+      // -------- enviar --------
+      sendBtn.onclick = async () => {
+        const message = (txt.value || "").trim();
+        if (!message) return;
+
+        addMsg("user", message);
+        txt.value = "";
+
+        setLoading(true);
+
+        try {
+          const res = await fetch(CHAT_ENDPOINT, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify({
+              session_id: sessionId,
+              message: message,
+              history: history
+            })
+          });
+
+          const raw = await res.text();
+          let data;
+          try {
+            data = JSON.parse(raw);
+          } catch {
+            console.error("Respuesta NO es JSON:", raw);
+            addBotMsgWithSources("⚠️ El servidor no devolvió JSON válido.", []);
+            return;
+          }
+
+          if (!res.ok) {
+            addBotMsgWithSources("⚠️ " + (data.detail || data.error || "Error del servidor."), []);
+            return;
+          }
+
+          addBotMsgWithSources(data.reply || "Sin respuesta", data.sources);
+
+        } catch (err) {
+          console.error(err);
+          addBotMsgWithSources("⚠️ Error de conexión con el servidor.", []);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+    })();
+  </script>
+
+
+
 
 </body>
 

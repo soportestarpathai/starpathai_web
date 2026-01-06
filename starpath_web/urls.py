@@ -17,8 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from mi_app.views.landing_page.landing_page_views import LandingPage
+from mi_app.views.chatbot.chatbot_api import ChatAPIView
+from mi_app.views.chatbot.services.kb_api import KBItemAPIView
+
 
 urlpatterns = [
     #path('admin/', admin.site.urls),
     path("", LandingPage.as_view(), name="home"),
+    path("api/chat/", ChatAPIView.as_view(), name="api_chat"),
+    path("api/kb/item/<str:item_id>/", KBItemAPIView.as_view(), name="api_kb_item"),
 ]
