@@ -31,6 +31,10 @@ class LandingPage(APIView):
             return Response({"ok": False, "errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # sanity check envs (en prod te salva)
+            if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+                return Response({"ok": False, "error": "Email SMTP no configurado."}, status=500)
+
             msg = EmailMessage(
                 subject=f"[Contacto Star Path] {subject}",
                 body=(
@@ -45,11 +49,8 @@ class LandingPage(APIView):
             )
             msg.send(fail_silently=False)
 
-            return Response({"ok": True}, status=status.HTTP_200_OK)
+            return Response({"ok": True}, status=200)
 
         except Exception as e:
-            logger.exception("Error enviando correo")
-            return Response(
-                {"ok": False, "error": "No se pudo enviar el mensaje. Intenta más tarde."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            logger.exception("PROD: Error enviando correo (SMTP).")
+            return Response({"ok": False, "error": str(e)}, status=500)
