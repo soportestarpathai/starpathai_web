@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import re
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -13,6 +16,25 @@ class ChatAPIView(APIView):
     MAX_MSG_LEN = 2000
     MAX_HISTORY_MSGS = 12  # 6 turnos (user+bot)
 
+    GREETING_PATTERNS = [
+        r"\bhola\b",
+        r"\bbuen(as|os)?\b",
+        r"\bhey\b",
+        r"\bhello\b",
+        r"\bme puedes ayudar\b",
+        r"\bpuedes ayudarme\b",
+        r"\bnecesito ayuda\b",
+        r"\bayuda\b",
+    ]
+
+    @classmethod
+    def is_greeting(cls, text: str) -> bool:
+        t = (text or "").lower().strip()
+        for p in cls.GREETING_PATTERNS:
+            if re.search(p, t):
+                return True
+        return False
+
     def post(self, request, *args, **kwargs):
         session_id = request.data.get("session_id")
         message = (request.data.get("message") or "").strip()
@@ -22,15 +44,29 @@ class ChatAPIView(APIView):
         if not session_id:
             return Response({"detail": "Falta session_id"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Backend stateless: solo confirma reset (el frontend borra su history)
+        # Reset stateless (frontend borra su history)
         if reset:
-            return Response({"session_id": session_id, "reply": "🧹 Listo, reinicié la conversación."})
+            return Response(
+                {"session_id": session_id, "reply": "🧹 Listo, reinicié la conversación.", "sources": []},
+                status=status.HTTP_200_OK
+            )
 
         if not message:
             return Response({"detail": "Mensaje vacío"}, status=status.HTTP_400_BAD_REQUEST)
 
         if len(message) > self.MAX_MSG_LEN:
             return Response({"detail": "Mensaje demasiado largo."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ✅ Intención: saludo/ayuda (NO pasa por KB)
+        if self.is_greeting(message):
+            return Response(
+                {
+                    "session_id": session_id,
+                    "reply": "Hola 👋 Soy el asistente de StarPath. ¿En qué puedo ayudarte?",
+                    "sources": []
+                },
+                status=status.HTTP_200_OK
+            )
 
         # --- Validar history (no confiar en el cliente) ---
         safe_history = []
@@ -45,6 +81,9 @@ class ChatAPIView(APIView):
                 if not content:
                     continue
                 safe_history.append({"role": role, "content": content[:self.MAX_MSG_LEN]})
+
+        # (Opcional) aquí podrías usar safe_history para reglas futuras,
+        # por ahora solo lo sanitizamos.
 
         # --- Buscar en XML ---
         hits = search_kb(message, limit=3)
@@ -71,4 +110,3 @@ class ChatAPIView(APIView):
             {"session_id": session_id, "reply": reply, "sources": sources},
             status=status.HTTP_200_OK
         )
-
