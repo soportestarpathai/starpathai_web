@@ -17,24 +17,26 @@
   --nav-font: "Raleway",  sans-serif;
 }
 
-/* Global Colors - The following color variables are used throughout the website. Updating them here will change the color scheme of the entire website */
+/* Global Colors - Star Path Technologies Mexico - Brand Palette */
 :root { 
   --background-color: #ffffff; /* Background color for the entire website, including individual sections */
   --default-color: #444444; /* Default color used for the majority of the text content across the entire website */
-  --heading-color: #2c4964; /* Color for headings, subheadings and title throughout the website */
-  --accent-color: #1977cc; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
-  --surface-color: #ffffff; /* The surface color is used as a background of boxed elements within sections, such as cards, icon boxes, or other elements that require a visual separation from the global background. */
-  --contrast-color: #ffffff; /* Contrast color for text, ensuring readability against backgrounds of accent, heading, or default colors. */
+  --heading-color: #0B1C2D; /* Azul Profundo (Base Tech) - Headers, fondos dark */
+  --accent-color: #00C4C9; /* Cian Tecnológico - Flujos, highlights, íconos, estados activos */
+  --success-color: #3DDC97; /* Verde Control - Checks, success, confianza, compliance */
+  --dark-bg: #0B1C2D; /* Azul Profundo - Fondos oscuros, dashboards */
+  --surface-color: #ffffff; /* The surface color is used as a background of boxed elements within sections */
+  --contrast-color: #ffffff; /* Contrast color for text on accent/dark backgrounds */
 }
 
-/* Nav Menu Colors - The following color variables are used specifically for the navigation menu. They are separate from the global colors to allow for more customization options */
+/* Nav Menu Colors - Star Path Brand */
 :root {
-  --nav-color: #2c4964;  /* The default color of the main navmenu links */
-  --nav-hover-color: #1977cc; /* Applied to main navmenu links when they are hovered over or active */
-  --nav-mobile-background-color: #ffffff; /* Used as the background color for mobile navigation menu */
-  --nav-dropdown-background-color: #ffffff; /* Used as the background color for dropdown items that appear when hovering over primary navigation items */
-  --nav-dropdown-color: #2c4964; /* Used for navigation links of the dropdown items in the navigation menu. */
-  --nav-dropdown-hover-color: #1977cc; /* Similar to --nav-hover-color, this color is applied to dropdown navigation links when they are hovered over. */
+  --nav-color: #0B1C2D;  /* Azul Profundo - main nav links */
+  --nav-hover-color: #00C4C9; /* Cian Tecnológico - hover/active */
+  --nav-mobile-background-color: #ffffff;
+  --nav-dropdown-background-color: #ffffff;
+  --nav-dropdown-color: #0B1C2D;
+  --nav-dropdown-hover-color: #00C4C9;
 }
 
 /* Color Presets - These classes override global colors when applied to any section or element, providing reuse of the sam color scheme. */
@@ -45,10 +47,10 @@
 }
 
 .dark-background {
-  --background-color: #060606;
+  --background-color: #0B1C2D; /* Azul Profundo */
   --default-color: #ffffff;
   --heading-color: #ffffff;
-  --surface-color: #252525;
+  --surface-color: #1a2f45;
   --contrast-color: #ffffff;
 }
 
@@ -85,6 +87,26 @@ h5,
 h6 {
   color: var(--heading-color);
   font-family: var(--heading-font);
+}
+
+/* Bootstrap primary buttons - Star Path brand */
+.btn-primary,
+.btn-primary:focus {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+.btn-primary:hover {
+  background-color: color-mix(in srgb, var(--accent-color), transparent 15%);
+  border-color: color-mix(in srgb, var(--accent-color), transparent 15%);
+}
+.btn-outline-primary {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+.btn-outline-primary:hover {
+  background-color: var(--accent-color);
+  color: var(--contrast-color);
+  border-color: var(--accent-color);
 }
 
 /* Pulsating Play Button
@@ -181,7 +203,7 @@ h6 {
 .php-email-form .sent-message {
   display: none;
   color: #ffffff;
-  background: #059652;
+  background: var(--success-color); /* Verde Control #3DDC97 */
   text-align: center;
   padding: 15px;
   margin-bottom: 24px;
@@ -229,7 +251,7 @@ h6 {
 }
 
 .header .topbar {
-  background-color: var(--accent-color);
+  background-color: var(--dark-bg); /* Azul Profundo - Headers, Fondos Dark */
   height: 40px;
   padding: 0;
   font-size: 14px;
@@ -1568,7 +1590,7 @@ section,
 }
 
 .testimonials .testimonial-item .stars i {
-  color: #ffc107;
+  color: var(--success-color); /* Verde Control - Success, confianza */
   margin: 0 1px;
 }
 
@@ -1765,8 +1787,12 @@ section,
   gap: 10px;
   padding: 10px 14px;
   border-radius: 999px;
-  background: rgba(13,110,253,0.10);
+  background: rgba(61,220,151,0.12); /* Verde Control - confianza, resultados medibles */
   font-weight: 600;
+}
+
+.about-badge i {
+  color: var(--success-color);
 }
 
 /* FLOW cards */
@@ -1792,7 +1818,7 @@ section,
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(13,110,253,0.12);
+  background: rgba(0,196,201,0.12);
   flex: 0 0 44px;
 }
 
@@ -1816,7 +1842,7 @@ section,
   line-height: 22px;
   text-align: center;
   border-radius: 6px;
-  background: rgba(13,110,253,0.15);
+  background: rgba(0,196,201,0.15);
   margin-right: 6px;
   font-weight: 800;
 }
@@ -1852,13 +1878,13 @@ section,
   align-items: center;
   justify-content: center;
   margin: 0 auto 14px auto;
-  background: rgba(13, 110, 253, 0.12);
+  background: rgba(0,196,201,0.12);
   transition: background-color .25s ease;
 }
 
 .services .service-item .icon i {
   font-size: 26px;
-  color: #1977cc; /* color base */
+  color: var(--accent-color);
   transition: color .25s ease;
 }
 
@@ -1929,10 +1955,10 @@ section,
    ========================= */
 
 .services .service-item:hover {
-  background: #1977cc; /* cambia aquí si usas #6570ff */
-  color: #fff;         /* todo el texto hereda */
+  background: var(--accent-color);
+  color: #fff;
   transform: translateY(-4px);
-  box-shadow: 0 18px 40px rgba(13, 110, 253, 0.20);
+  box-shadow: 0 18px 40px rgba(0,196,201,0.20);
 }
 
 /* Asegura herencia en elementos comunes */
@@ -1961,7 +1987,7 @@ section,
    VARIANTE (si marcas una card como "highlight")
    ========================= */
 .services .service-item.highlight {
-  border: 1px solid rgba(13, 110, 253, 0.18);
+  border: 1px solid rgba(0,196,201,0.18);
 }
 
 /* =========================
@@ -2016,7 +2042,7 @@ section,
 }
 
 .flow-tabs .nav-link.active {
-  background: #1977cc; /* cambia por tu color (ej. #6570ff) */
+  background: var(--accent-color);
   color: #fff;
 }
 
@@ -2033,8 +2059,8 @@ section,
   height: 34px;
   border-radius: 10px;
   font-weight: 800;
-  background: rgba(13,110,253,0.12);
-  color: #1977cc;
+  background: rgba(0,196,201,0.12);
+  color: var(--accent-color);
 }
 
 .flow-tabs .nav-link.active .flow-tag {
@@ -2081,7 +2107,7 @@ section,
   opacity: .9;
 }
 
-/* Output badge */
+/* Output badge - Verde Control: Salida, éxito, completado */
 .flow-output {
   margin-top: 10px;
   display: inline-flex;
@@ -2089,11 +2115,12 @@ section,
   align-items: center;
   padding: 10px 14px;
   border-radius: 999px;
-  background: rgba(13,110,253,0.10);
+  background: rgba(61,220,151,0.12);
   font-weight: 600;
 }
 
 .flow-output i {
+  color: var(--success-color);
   opacity: .95;
 }
 
@@ -2187,13 +2214,13 @@ section,
 }
 
 .contact .php-email-form .form-control:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 3px rgba(13,110,253,0.15);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(0,196,201,0.15);
 }
 
 /* BOTÓN */
 .contact .php-email-form button {
-  background: #0d6efd;
+  background: var(--accent-color);
   color: #fff;
   border: none;
   padding: 14px 28px;
@@ -2204,7 +2231,7 @@ section,
 
 .contact .php-email-form button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(13,110,253,0.35);
+  box-shadow: 0 12px 30px rgba(0,196,201,0.35);
 }
 
 /* RESPONSIVE */
@@ -2237,13 +2264,13 @@ section,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(13,110,253,0.10);
+  background: rgba(0,196,201,0.10);
   transition: transform .2s ease, background-color .2s ease;
 }
 
 .footer .social-links a:hover {
   transform: translateY(-2px);
-  background: rgba(13,110,253,0.18);
+  background: rgba(0,196,201,0.18);
 }
 
 .footer .footer-links ul {
@@ -2289,8 +2316,8 @@ section,
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  background: rgba(13,110,253,0.12);
-  color: #0d6efd;
+  background: rgba(0,196,201,0.12);
+  color: var(--accent-color);
 }
 
 .footer .footer-cta .btn {
@@ -2346,7 +2373,7 @@ section,
   content: "";
   position: absolute;
   inset: -1rem;
-  background: #1979cc7b;
+  background: rgba(0,196,201,0.5);
   border-radius: 12px;
   z-index: -1;
 }
