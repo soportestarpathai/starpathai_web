@@ -99,7 +99,7 @@
             <tbody id="fields-tbody">
               {% for f in formset %}
               <tr class="formset-row">
-                <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}{{ f.label }}</td>
+                <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}<span class="d-none">{{ f.DELETE }}</span>{{ f.label }}</td>
                 <td>{{ f.field_type }}</td>
                 <td>{{ f.required }}</td>
                 <td>{{ f.order }}</td>
@@ -111,7 +111,7 @@
         </div>
         <table class="d-none" aria-hidden="true"><tbody>
           <tr id="fields-template-row">
-            <td>{{ formset.empty_form.id }}{{ formset.empty_form.label }}</td>
+            <td>{{ formset.empty_form.id }}<span class="d-none">{{ formset.empty_form.DELETE }}</span>{{ formset.empty_form.label }}</td>
             <td>{{ formset.empty_form.field_type }}</td>
             <td>{{ formset.empty_form.required }}</td>
             <td>{{ formset.empty_form.order }}</td>
@@ -135,7 +135,7 @@
             <tbody id="criteria-tbody">
               {% for f in criteria_formset %}
               <tr class="formset-row">
-                <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}{{ f.label }}</td>
+                <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}<span class="d-none">{{ f.DELETE }}</span>{{ f.label }}</td>
                 <td>{{ f.order }}</td>
                 <td class="text-end">{% if f.DELETE %}<button type="button" class="btn btn-sm btn-outline-danger btn-remove-row btn-delete-criterion" data-delete-id="{{ f.DELETE.id_for_label }}">Quitar</button>{% endif %}</td>
               </tr>
@@ -145,7 +145,7 @@
         </div>
         <table class="d-none" aria-hidden="true"><tbody>
           <tr id="criteria-template-row">
-            <td>{{ criteria_formset.empty_form.id }}{{ criteria_formset.empty_form.label }}</td>
+            <td>{{ criteria_formset.empty_form.id }}<span class="d-none">{{ criteria_formset.empty_form.DELETE }}</span>{{ criteria_formset.empty_form.label }}</td>
             <td>{{ criteria_formset.empty_form.order }}</td>
             <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-row btn-delete-criterion">Quitar</button></td>
           </tr>

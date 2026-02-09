@@ -704,8 +704,8 @@ class ATSFormEditView(LoginRequiredMixin, View):
         ats_form = get_object_or_404(ATSForm, pk=pk, client=client)
         form = ATSFormCreateEditForm(instance=ats_form)
         form.fields["vacancy"].queryset = client.vacancies.all()
-        formset = get_ats_form_field_formset(extra=2, form_instance=ats_form)
-        criteria_formset = get_ats_form_criterion_formset(extra=2, form_instance=ats_form)
+        formset = get_ats_form_field_formset(extra=1, form_instance=ats_form)
+        criteria_formset = get_ats_form_criterion_formset(extra=1, form_instance=ats_form)
         return render(request, "ats/form_edit.html", {
             "ats_form": ats_form,
             "form": form,

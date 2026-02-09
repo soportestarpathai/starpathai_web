@@ -65,6 +65,10 @@
               {% if not f.is_active %}<span class="badge bg-warning text-dark">Inactivo</span>{% endif %}
               <span class="small text-muted">{{ f.submissions_count }} envío(s)</span>
             </div>
+            <p class="small text-muted mb-0">
+              Creado: {{ f.created_at|date:"d/m/Y H:i" }}
+              {% if f.updated_at != f.created_at %} · Modificado: {{ f.updated_at|date:"d/m/Y H:i" }}{% endif %}
+            </p>
             <div class="form-link-wrap">
               <span class="link-text text-muted small" id="link-{{ f.pk }}">{{ request.scheme }}://{{ request.get_host }}{% url 'ats_form_public' f.uuid %}</span>
               <button type="button" class="btn btn-sm btn-outline-secondary btn-copy" data-copy-target="link-{{ f.pk }}" title="Copiar enlace"><i class="bi bi-clipboard"></i> Copiar</button>
