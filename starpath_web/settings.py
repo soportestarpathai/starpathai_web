@@ -36,9 +36,12 @@ SECRET_KEY = os.environ.get(
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").strip().lower() in ("true", "1", "yes")
 
 # En producción definir ALLOWED_HOSTS=tu-dominio.com,www.tu-dominio.com (separados por coma).
+_default_hosts = "localhost,127.0.0.1"
+if not DEBUG:
+    _default_hosts = "localhost,127.0.0.1,starpathai.mx,www.starpathai.mx"
 ALLOWED_HOSTS = [
     h.strip()
-    for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").strip().split(",")
+    for h in os.environ.get("ALLOWED_HOSTS", _default_hosts).strip().split(",")
     if h.strip()
 ]
 if not ALLOWED_HOSTS:
