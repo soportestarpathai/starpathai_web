@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic.base import RedirectView
 from mi_app.views.landing_page.landing_page_views import LandingPage
 from mi_app.views.chatbot.chatbot_api import ChatAPIView
 from mi_app.views.chatbot.services.kb_api import KBItemAPIView
@@ -58,12 +59,14 @@ from mi_app.views.ats.ats_views import (
     ATSNotificationPanelView,
     ATSAdminDashboardView,
     ATSAdminChangePlanView,
+    ATSAdminSetLangSmithView,
     ATSStaffAccountView,
     ATSPasswordChangeView,
 )
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("favicon.ico", RedirectView.as_view(url=settings.STATIC_URL + "img/favicon.png", permanent=False)),
     path("", LandingPage.as_view(), name="home"),
     path("ats/", ATSProductoView.as_view(), name="ats_producto"),
     path("ats/plataforma/", ATSPlataformaView.as_view(), name="ats_plataforma"),
@@ -101,6 +104,7 @@ urlpatterns = [
     path("ats/plataforma/dashboard/notificaciones/marcar-todas-leidas/", ATSNotificationMarkAllReadView.as_view(), name="ats_notification_mark_all_read"),
     path("ats/plataforma/administracion/", ATSAdminDashboardView.as_view(), name="ats_admin_dashboard"),
     path("ats/plataforma/administracion/cambiar-plan/", ATSAdminChangePlanView.as_view(), name="ats_admin_change_plan"),
+    path("ats/plataforma/administracion/langsmith-cliente/", ATSAdminSetLangSmithView.as_view(), name="ats_admin_set_langsmith"),
     path("ats/plataforma/administracion/mi-cuenta/", ATSStaffAccountView.as_view(), name="ats_staff_account"),
     path("ats/plataforma/administracion/cambiar-password/", ATSPasswordChangeView.as_view(), name="ats_password_change"),
     path("api/chat/", ChatAPIView.as_view(), name="api_chat"),

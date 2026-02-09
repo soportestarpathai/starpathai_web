@@ -261,18 +261,21 @@ def analyze_cv_with_ai(raw_text: str, profile_config: dict) -> tuple[dict, dict 
 
 def _send_langsmith_trace_if_enabled(profile_config: dict, raw_text_len: int, result: dict, usage: dict, candidate) -> None:
     """
-    Si LANGSMITH_API_KEY está configurada, envía una traza del análisis a LangSmith
-    para poder orquestar y ver consumo desde el dashboard de LangSmith.
+    Si LANGSMITH_API_KEY está configurada, envía una traza del análisis a LangSmith.
+    Proyecto: el del cliente (langsmith_project) si está definido, si no el global (LANGSMITH_PROJECT).
     """
     api_key = os.environ.get("LANGSMITH_API_KEY", "").strip()
     if not api_key:
         return
+    project_name = (getattr(candidate.client, "langsmith_project", None) or "").strip()
+    if not project_name:
+        project_name = os.environ.get("LANGSMITH_PROJECT", "default")
     try:
         from langsmith.run_trees import RunTree
         run = RunTree(
             name="cv_analysis",
             run_type="chain",
-            project_name=os.environ.get("LANGSMITH_PROJECT", "ats-cv"),
+            project_name=project_name,
             inputs={
                 "profile_summary": (profile_config.get("profile_summary") or "")[:300],
                 "vacancy_title": (profile_config.get("vacancy_title") or "")[:100],

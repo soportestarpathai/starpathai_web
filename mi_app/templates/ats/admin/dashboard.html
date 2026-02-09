@@ -36,6 +36,28 @@
       <p class="mb-1"><strong>Este mes:</strong> {{ llm_usage_this_month }} tokens en {{ llm_usage_this_month_runs }} análisis.</p>
       <p class="mb-0 text-muted small"><strong>Total (todo el tiempo):</strong> {{ llm_usage_all_time }} tokens en {{ llm_usage_all_time_runs }} análisis.</p>
       <p class="small mt-2 mb-0">Los registros detallados por cliente y candidato están en el <a href="{% url 'admin:mi_app_llmusagelog_changelist' %}">admin de Django → Uso IA (tokens)</a>.</p>
+      {% if langsmith_configured and langsmith_runs %}
+      <div class="mt-3 pt-3 border-top">
+        <strong class="small">Últimos runs en LangSmith (proyecto {{ langsmith_project }})</strong>
+        <div class="table-responsive mt-2">
+          <table class="ats-admin-table table table-sm mb-0">
+            <thead>
+              <tr><th>Nombre</th><th>Fecha</th><th>Tokens</th><th>Cliente / Candidato</th></tr>
+            </thead>
+            <tbody>
+              {% for r in langsmith_runs %}
+              <tr>
+                <td>{{ r.name|default:"—" }}</td>
+                <td>{% if r.start_time %}{{ r.start_time|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
+                <td>{{ r.total_tokens|default:"—" }}</td>
+                <td>{% if r.inputs %}{{ r.inputs.client_id|default:"" }} / {{ r.inputs.candidate_id|default:"" }}{% else %}—{% endif %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
 
@@ -88,6 +110,7 @@
             <th>Email</th>
             <th>Plan actual</th>
             <th>CVs (usados / límite)</th>
+            <th>Proyecto LangSmith</th>
             <th>Cambiar plan</th>
           </tr>
         </thead>
@@ -99,6 +122,14 @@
               <td>{{ row.client.user.email }}</td>
               <td>{% if row.subscription %}{{ row.subscription.get_plan_display }}{% else %}—{% endif %}</td>
               <td>{% if row.subscription %}{{ row.subscription.cvs_used }} / {{ row.subscription.cvs_limit }}{% else %}—{% endif %}</td>
+              <td>
+                <form method="post" action="{% url 'ats_admin_set_langsmith' %}" class="plan-form d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="client_id" value="{{ row.client.id }}">
+                  <input type="text" name="langsmith_project" value="{{ row.client.langsmith_project|default:'' }}" class="form-control form-control-sm d-inline-block" placeholder="default" style="width: 120px;" maxlength="100">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary ms-1">Guardar</button>
+                </form>
+              </td>
               <td>
                 {% if row.subscription %}
                   <form method="post" action="{% url 'ats_admin_change_plan' %}" class="plan-form d-inline">
@@ -117,7 +148,7 @@
               </td>
             </tr>
           {% empty %}
-            <tr><td colspan="6" class="text-center text-muted py-4">No hay clientes ATS.</td></tr>
+            <tr><td colspan="7" class="text-center text-muted py-4">No hay clientes ATS.</td></tr>
           {% endfor %}
         </tbody>
       </table>

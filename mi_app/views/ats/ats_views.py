@@ -1303,7 +1303,23 @@ class ATSAdminDashboardView(StaffRequiredMixin, View):
         llm_usage_all_time = LLMUsageLog.objects.aggregate(total=Sum("total_tokens"), runs=Count("id"))
         import os
         langsmith_configured = bool(os.environ.get("LANGSMITH_API_KEY", "").strip())
-        langsmith_project = os.environ.get("LANGSMITH_PROJECT", "ats-cv")
+        langsmith_project = os.environ.get("LANGSMITH_PROJECT", "default")
+        langsmith_runs = []
+        if langsmith_configured:
+            try:
+                from langsmith import Client
+                client = Client()
+                for run in client.list_runs(project_name=langsmith_project, limit=15):
+                    extra = getattr(run, "extra", None) or {}
+                    usage = extra.get("usage") or {}
+                    langsmith_runs.append({
+                        "name": getattr(run, "name", "—"),
+                        "start_time": getattr(run, "start_time", None),
+                        "total_tokens": usage.get("total_tokens"),
+                        "inputs": getattr(run, "inputs", None),
+                    })
+            except Exception:
+                langsmith_runs = []
         return render(request, self.template_name, {
             "rows": rows,
             "page_obj": page_obj,
@@ -1316,6 +1332,7 @@ class ATSAdminDashboardView(StaffRequiredMixin, View):
             "llm_usage_all_time_runs": llm_usage_all_time.get("runs") or 0,
             "langsmith_configured": langsmith_configured,
             "langsmith_project": langsmith_project,
+            "langsmith_runs": langsmith_runs,
             "ats_page": "administracion",
             "ats_client": getattr(request.user, "ats_client", None),
             "ats_header_title": "Administración ATS",
@@ -1350,6 +1367,26 @@ class ATSAdminChangePlanView(StaffRequiredMixin, View):
                 link=reverse("ats_dashboard") + "?section=cuenta",
                 request=request,
             )
+        return redirect("ats_admin_dashboard")
+
+
+class ATSAdminSetLangSmithView(StaffRequiredMixin, View):
+    """POST: asignar proyecto LangSmith a un cliente (desde el panel ATS administración)."""
+    http_method_names = ["post"]
+
+    def post(self, request):
+        client_id = request.POST.get("client_id")
+        langsmith_project = (request.POST.get("langsmith_project") or "").strip()[:100]
+        if not client_id:
+            messages.error(request, "Falta el cliente.")
+            return redirect("ats_admin_dashboard")
+        client = get_object_or_404(ATSClient, pk=client_id)
+        client.langsmith_project = langsmith_project
+        client.save(update_fields=["langsmith_project"])
+        if langsmith_project:
+            messages.success(request, f"Proyecto LangSmith «{langsmith_project}» asignado a {client.company_name}.")
+        else:
+            messages.success(request, f"Proyecto LangSmith quitado para {client.company_name}. Se usará el global.")
         return redirect("ats_admin_dashboard")
 
 

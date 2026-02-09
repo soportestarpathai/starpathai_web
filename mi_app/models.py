@@ -16,6 +16,13 @@ class ATSClient(models.Model):
     contact_name = models.CharField("Nombre del contacto", max_length=150, blank=True)
     contact_phone = models.CharField("Teléfono", max_length=30, blank=True)
     avatar = models.ImageField("Foto de perfil", upload_to="ats/avatars/%Y/%m/", blank=True, null=True)
+    # LangSmith: proyecto opcional por cliente. Si está vacío se usa LANGSMITH_PROJECT global.
+    langsmith_project = models.CharField(
+        "Proyecto LangSmith",
+        max_length=100,
+        blank=True,
+        help_text="Opcional. Nombre del proyecto en LangSmith para las trazas de análisis de CV de este cliente. Si está vacío se usa el proyecto por defecto.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

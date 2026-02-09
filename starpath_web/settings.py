@@ -228,10 +228,14 @@ if not CONTACT_TO_EMAILS:
     CONTACT_TO_EMAILS = [CONTACT_TO_EMAIL] if CONTACT_TO_EMAIL else []
 
 
-# Orígenes permitidos para CSRF (HTTPS). Añadir en servidor con CSRF_TRUSTED_ORIGINS=https://tudominio.com si hace falta.
+# Orígenes permitidos para CSRF. En local (DEBUG) añadimos localhost para que el login no devuelva 403.
 CSRF_TRUSTED_ORIGINS = [
     "https://starpathai.mx",
     "https://www.starpathai.mx",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "http://127.0.0.1:80",
+    "http://localhost",
 ]
 _extra_csrf = os.environ.get("CSRF_TRUSTED_ORIGINS", "").strip()
 if _extra_csrf:
