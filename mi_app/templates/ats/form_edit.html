@@ -1,0 +1,235 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}Editar formulario{% endblock %}
+{% block ats_header_title %}Editar formulario{% endblock %}
+
+{% block ats_extra_css %}
+  .edit-section {
+    background: var(--surface-color);
+    border-radius: 16px;
+    border: 1px solid rgba(0,196,201,0.12);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 6px 20px rgba(11,28,45,0.04);
+  }
+  .edit-section h2 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .cv-switch-card {
+    background: rgba(0,196,201,0.06);
+    border: 1px solid rgba(0,196,201,0.2);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+  }
+  .formset-table { margin-bottom: 0; }
+  .formset-table th { font-size: 0.8rem; color: #6c757d; font-weight: 600; border-bottom-width: 1px; vertical-align: middle; }
+  .formset-table td { vertical-align: middle; padding: 0.5rem 0.4rem; }
+  .formset-table .form-control, .formset-table .form-select { min-height: 38px; }
+  .btn-add-row { border-radius: 10px; font-weight: 600; }
+  .btn-remove-row { padding: 0.25rem 0.5rem; font-size: 0.8rem; border-radius: 8px; }
+  .formset-row.deleted { opacity: 0.5; pointer-events: none; }
+  .formset-row.deleted td { text-decoration: line-through; }
+  @media (max-width: 767px) {
+    .formset-table .table-responsive { font-size: 0.9rem; }
+    .formset-table th, .formset-table td { white-space: normal; }
+  }
+{% endblock %}
+
+{% block ats_content %}
+  <div class="mb-3"><a href="{% url 'ats_form_list' %}" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Volver a formularios</a></div>
+
+  <div class="edit-section">
+    <h1 class="h4 mb-4 fw-bold">Editar: {{ ats_form.name }}</h1>
+    <form method="post" action="" id="form-edit-main">
+      {% csrf_token %}
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-bold">Nombre</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-bold">Vacante</label>
+          {{ form.vacancy }}
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-bold">Vista del formulario (grilla)</label>
+          {{ form.layout }}
+          <p class="small text-muted mb-0 mt-1">Cómo se verán los campos en el enlace público: una, dos o tres columnas.</p>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descripción (instrucciones para el candidato)</label>
+          {{ form.description }}
+        </div>
+        <div class="col-12">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="cv-switch-card">
+                <div class="form-check form-switch mb-0">
+                  {{ form.request_email }}
+                  <label class="form-check-label fw-bold" for="id_request_email">Solicitar correo electrónico</label>
+                </div>
+                <p class="small text-muted mb-0 mt-2">Si está activo, se mostrará un campo de correo (o se usará el que añadas en los campos).</p>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="cv-switch-card">
+                <div class="form-check form-switch mb-0">
+                  {{ form.request_cv }}
+                  <label class="form-check-label fw-bold" for="id_request_cv">Solicitar CV en este formulario</label>
+                </div>
+                <p class="small text-muted mb-0 mt-2">Si está activo, los candidatos verán un campo para subir su CV (PDF o Word).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="edit-section mt-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div>
+            <h2 class="h6 fw-bold mb-1"><i class="bi bi-input-cursor-text me-2"></i>Campos del formulario</h2>
+            <p class="small text-muted mb-0">Añade los campos que verán los candidatos. Usa "Quitar" para eliminar una fila.</p>
+          </div>
+          <button type="button" class="btn btn-outline-primary btn-add-row" id="btn-add-field"><i class="bi bi-plus-lg me-1"></i>Añadir campo</button>
+        </div>
+        {{ formset.management_form }}
+        <div class="table-responsive">
+          <table class="table table-sm formset-table">
+            <thead><tr><th>Etiqueta</th><th>Tipo</th><th>Oblig.</th><th>Orden</th><th class="text-end" style="width:100px;">Quitar</th></tr></thead>
+            <tbody id="fields-tbody">
+              {% for f in formset %}
+              <tr class="formset-row">
+                <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}{{ f.label }}</td>
+                <td>{{ f.field_type }}</td>
+                <td>{{ f.required }}</td>
+                <td>{{ f.order }}</td>
+                <td class="text-end">{% if f.DELETE %}<button type="button" class="btn btn-sm btn-outline-danger btn-remove-row btn-delete-field" data-delete-id="{{ f.DELETE.id_for_label }}">Quitar</button>{% endif %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <table class="d-none" aria-hidden="true"><tbody>
+          <tr id="fields-template-row">
+            <td>{{ formset.empty_form.id }}{{ formset.empty_form.label }}</td>
+            <td>{{ formset.empty_form.field_type }}</td>
+            <td>{{ formset.empty_form.required }}</td>
+            <td>{{ formset.empty_form.order }}</td>
+            <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-row btn-delete-field">Quitar</button></td>
+          </tr>
+        </tbody></table>
+      </div>
+
+      <div class="edit-section mt-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div>
+            <h2 class="h6 fw-bold mb-1"><i class="bi bi-check2-square me-2"></i>Criterios de evaluación manual</h2>
+            <p class="small text-muted mb-0">El revisor marcará Cumple / No cumple por cada criterio. Usa "Quitar" para eliminar.</p>
+          </div>
+          <button type="button" class="btn btn-outline-primary btn-add-row" id="btn-add-criterion"><i class="bi bi-plus-lg me-1"></i>Añadir criterio</button>
+        </div>
+        {{ criteria_formset.management_form }}
+        <div class="table-responsive">
+          <table class="table table-sm formset-table">
+            <thead><tr><th>Etiqueta / Criterio</th><th>Orden</th><th class="text-end" style="width:100px;">Quitar</th></tr></thead>
+            <tbody id="criteria-tbody">
+              {% for f in criteria_formset %}
+              <tr class="formset-row">
+                <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}{{ f.label }}</td>
+                <td>{{ f.order }}</td>
+                <td class="text-end">{% if f.DELETE %}<button type="button" class="btn btn-sm btn-outline-danger btn-remove-row btn-delete-criterion" data-delete-id="{{ f.DELETE.id_for_label }}">Quitar</button>{% endif %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <table class="d-none" aria-hidden="true"><tbody>
+          <tr id="criteria-template-row">
+            <td>{{ criteria_formset.empty_form.id }}{{ criteria_formset.empty_form.label }}</td>
+            <td>{{ criteria_formset.empty_form.order }}</td>
+            <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-row btn-delete-criterion">Quitar</button></td>
+          </tr>
+        </tbody></table>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-check-lg me-1"></i>Guardar formulario</button>
+        <a href="{% url 'ats_form_list' %}" class="btn btn-outline-secondary rounded-pill">Cancelar</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+  (function() {
+    var totalFieldsName = 'id_fields-TOTAL_FORMS';
+    var totalCriteriaName = 'id_criteria-TOTAL_FORMS';
+    var prefixFields = 'fields-';
+    var prefixCriteria = 'criteria-';
+    var templatePrefix = '__prefix__';
+
+    function getTotal(name) { return parseInt(document.getElementById(name).value, 10) || 0; }
+    function setTotal(name, val) { document.getElementById(name).value = val; }
+
+    function cloneRow(templateId, tbodyId, prefix, totalInputName) {
+      var template = document.getElementById(templateId);
+      var tbody = document.getElementById(tbodyId);
+      if (!template || !tbody) return;
+      var total = getTotal(totalInputName);
+      var html = template.innerHTML.replace(new RegExp(templatePrefix, 'g'), total);
+      var tr = document.createElement('tr');
+      tr.className = 'formset-row';
+      tr.innerHTML = html;
+      tr.querySelectorAll('input, select').forEach(function(el) {
+        if (el.name && el.name.indexOf(templatePrefix) !== -1) el.name = el.name.replace(templatePrefix, total);
+        if (el.id && el.id.indexOf(templatePrefix) !== -1) el.id = el.id.replace(templatePrefix, total);
+      });
+      tr.querySelectorAll('label').forEach(function(el) {
+        if (el.htmlFor && el.htmlFor.indexOf(templatePrefix) !== -1) el.htmlFor = el.htmlFor.replace(templatePrefix, total);
+      });
+      var deleteBtn = tr.querySelector('.btn-delete-field, .btn-delete-criterion');
+      var deleteCb = tr.querySelector('input[name$="-DELETE"]');
+      if (deleteBtn && deleteCb) {
+        deleteBtn.setAttribute('data-delete-id', deleteCb.id);
+        deleteBtn.onclick = function() { toggleDeleteRow(deleteBtn, deleteCb.id); };
+      }
+      tbody.appendChild(tr);
+      setTotal(totalInputName, total + 1);
+    }
+
+    function toggleDeleteRow(btn, deleteId) {
+      var cb = document.getElementById(deleteId);
+      var row = btn.closest('tr');
+      if (cb) {
+        cb.checked = !cb.checked;
+        if (cb.checked) row.classList.add('deleted');
+        else row.classList.remove('deleted');
+      }
+    }
+
+    document.getElementById('btn-add-field').onclick = function() {
+      cloneRow('fields-template-row', 'fields-tbody', prefixFields, totalFieldsName);
+      document.getElementById('fields-tbody').querySelectorAll('.btn-delete-field').forEach(function(btn) {
+        var id = btn.getAttribute('data-delete-id');
+        if (id && !btn._bound) { btn._bound = true; btn.onclick = function() { toggleDeleteRow(btn, id); }; }
+      });
+    };
+
+    document.getElementById('btn-add-criterion').onclick = function() {
+      cloneRow('criteria-template-row', 'criteria-tbody', prefixCriteria, totalCriteriaName);
+      document.getElementById('criteria-tbody').querySelectorAll('.btn-delete-criterion').forEach(function(btn) {
+        var id = btn.getAttribute('data-delete-id');
+        if (id && !btn._bound) { btn._bound = true; btn.onclick = function() { toggleDeleteRow(btn, id); }; }
+      });
+    };
+
+    document.querySelectorAll('.btn-delete-field').forEach(function(btn) {
+      var id = btn.getAttribute('data-delete-id');
+      if (id) btn.onclick = function() { toggleDeleteRow(btn, id); };
+    });
+    document.querySelectorAll('.btn-delete-criterion').forEach(function(btn) {
+      var id = btn.getAttribute('data-delete-id');
+      if (id) btn.onclick = function() { toggleDeleteRow(btn, id); };
+    });
+  })();
+  </script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block auth_title %}ATS{% endblock %} | Star Path</title>
+  <link href="{% static 'img/logo_star.png' %}" rel="icon">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+  <style>
+    :root { --ats-font: "Inter", system-ui, sans-serif; --ats-heading: "Plus Jakarta Sans", sans-serif; }
+    .ats-auth-page { min-height: 100vh; display: flex; flex-direction: column; background: var(--background-color); font-family: var(--ats-font); }
+    .ats-auth-hero { background: linear-gradient(160deg, var(--dark-bg) 0%, #0d2842 50%, #122d47 100%); color: #fff; padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem); }
+    .ats-auth-hero .logo-wrap { display: inline-flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; }
+    .ats-auth-hero .logo-wrap img { height: 42px; }
+    .ats-auth-hero h1 { font-family: var(--ats-heading); font-weight: 800; font-size: clamp(1.5rem, 3vw, 1.85rem); margin-bottom: 1rem; color: #fff; }
+    .ats-auth-form-col { display: flex; align-items: center; justify-content: center; padding: clamp(2rem, 5vw, 3.5rem); }
+    .ats-auth-form-col .form-wrapper { width: 100%; max-width: 420px; }
+    .ats-auth-form-col .subtitle, .ats-auth-form-col .auth-lead { font-size: 0.95rem; color: var(--default-color); margin-bottom: 1.5rem; opacity: 0.9; }
+    .ats-auth-form-col .form-group { margin-bottom: 1.25rem; }
+    .ats-auth-form-col .form-group label { font-weight: 600; font-size: 0.875rem; color: var(--heading-color); margin-bottom: 0.4rem; display: block; }
+    .ats-auth-form-col .form-control-wrap { position: relative; }
+    .ats-auth-form-col .form-control-wrap .input-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: rgba(11,28,45,0.4); font-size: 1.05rem; }
+    .ats-auth-form-col .form-control-wrap input.form-control { border-radius: 12px; border: 1px solid rgba(11,28,45,0.12); padding: 0.65rem 1rem 0.65rem 2.75rem; font-size: 0.95rem; }
+    .ats-auth-form-col .form-control-wrap input.form-control:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(0,196,201,0.15); }
+    .ats-auth-form-col .btn-submit { width: 100%; padding: 0.85rem 1.5rem; font-weight: 700; font-size: 0.95rem; border-radius: 12px; border: none; background: var(--dark-bg); color: #fff; margin-top: 0.5rem; }
+    .ats-auth-form-col .btn-submit:hover { background: #0d2842; color: #fff; }
+    .ats-auth-form-col .errorlist { list-style: none; padding: 0; margin: 0.35rem 0 0; font-size: 0.8rem; color: #c0392b; }
+    .ats-page-footer { padding: 1rem 1.5rem; text-align: center; font-size: 0.8rem; color: var(--default-color); opacity: 0.8; border-top: 1px solid rgba(11,28,45,0.06); }
+    .ats-page-footer a { color: var(--accent-color); font-weight: 500; }
+  </style>
+</head>
+<body class="ats-auth-page">
+  <div class="row g-0 flex-grow-1">
+    <div class="col-lg-5 ats-auth-hero">
+      <a href="{% url 'ats_plataforma' %}" class="logo-wrap text-decoration-none text-white">
+        <img src="{% static 'img/logo_star.png' %}" alt="Star Path">
+        <span>Star Path ATS</span>
+      </a>
+      <h1>{% block auth_hero_title %}Recuperar acceso{% endblock %}</h1>
+      <p class="lead mb-0">{% block auth_lead_hero %}Te enviaremos un enlace para restablecer tu contraseña.{% endblock %}</p>
+    </div>
+    <div class="col-lg-7 ats-auth-form-col">
+      <div class="form-wrapper">
+        <h2 class="h5 mb-3" style="font-family: var(--ats-heading); font-weight: 800;">{% block auth_heading %}ATS{% endblock %}</h2>
+        <p class="auth-lead">{% block auth_lead %}Introduce tu correo electrónico.{% endblock %}</p>
+        {% block auth_content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+  <footer class="ats-page-footer">
+    © <span id="year"></span> <strong>Star Path</strong> · <a href="{% url 'ats_plataforma' %}">Iniciar sesión</a>
+  </footer>
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

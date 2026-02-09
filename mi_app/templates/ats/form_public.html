@@ -1,0 +1,225 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ ats_form.name }} | Formulario de postulación</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+  <style>
+    :root {
+      --ats-font: "Inter", system-ui, sans-serif;
+      --ats-heading: "Plus Jakarta Sans", sans-serif;
+    }
+    .ats-form-public {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      font-family: var(--ats-font);
+      background: linear-gradient(160deg, #f0f4f8 0%, #e8eef4 50%, #f5f8fb 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .ats-form-public::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300C4C9' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .ats-form-public .form-card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 440px;
+      background: var(--surface-color);
+      border-radius: 20px;
+      box-shadow: 0 25px 50px -12px rgba(11, 28, 45, 0.12), 0 0 0 1px rgba(11, 28, 45, 0.04);
+      overflow: hidden;
+    }
+    .ats-form-public .form-card.layout-two_columns {
+      max-width: 560px;
+    }
+    .ats-form-public .form-card.layout-three_columns {
+      max-width: 680px;
+    }
+    .ats-form-public .form-card-header {
+      padding: 2rem 2rem 1.25rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(11, 28, 45, 0.06);
+    }
+    .ats-form-public .form-card-header .icon-wrap {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 1.25rem;
+      border-radius: 14px;
+      background: rgba(0, 196, 201, 0.12);
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+    }
+    .ats-form-public .form-card-header h1 {
+      font-family: var(--ats-heading);
+      font-weight: 700;
+      font-size: 1.35rem;
+      color: var(--heading-color);
+      margin: 0 0 0.35rem;
+    }
+    .ats-form-public .form-card-header .form-desc {
+      font-size: 0.9rem;
+      color: var(--default-color);
+      opacity: 0.85;
+      margin: 0;
+    }
+    .ats-form-public .form-card-body {
+      padding: 1.75rem 2rem 2rem;
+    }
+    .ats-form-public .form-label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--heading-color);
+      margin-bottom: 0.5rem;
+    }
+    .ats-form-public .form-control,
+    .ats-form-public .form-select {
+      border-radius: 12px;
+      border: 1px solid rgba(11, 28, 45, 0.12);
+      padding: 0.65rem 1rem;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .ats-form-public .form-control:focus,
+    .ats-form-public .form-select:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(0, 196, 201, 0.15);
+      outline: 0;
+    }
+    .ats-form-public .form-control::placeholder {
+      color: var(--default-color);
+      opacity: 0.55;
+    }
+    .ats-form-public textarea.form-control {
+      min-height: 100px;
+      resize: vertical;
+    }
+    .ats-form-public .form-control[type="file"] {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+    }
+    .ats-form-public .field-group {
+      margin-bottom: 1.25rem;
+    }
+    .ats-form-public .btn-submit {
+      width: 100%;
+      padding: 0.85rem 1.5rem;
+      font-family: var(--ats-font);
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-color), #00a8ad);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(0, 196, 201, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .ats-form-public .btn-submit:hover {
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 196, 201, 0.45);
+    }
+    .ats-form-public .btn-submit:active {
+      transform: translateY(0);
+    }
+    .ats-form-public .required-star {
+      color: #dc3545;
+      margin-left: 0.15rem;
+    }
+    /* Grilla según vista del formulario */
+    .ats-form-public .form-fields-grid {
+      display: grid;
+      gap: 1.25rem;
+    }
+    .ats-form-public .form-fields-grid.layout-single {
+      grid-template-columns: 1fr;
+    }
+    .ats-form-public .form-fields-grid.layout-two_columns {
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 576px) {
+      .ats-form-public .form-fields-grid.layout-two_columns { grid-template-columns: 1fr; }
+      .ats-form-public .form-fields-grid.layout-three_columns { grid-template-columns: 1fr; }
+    }
+    .ats-form-public .form-fields-grid.layout-three_columns {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    @media (max-width: 768px) {
+      .ats-form-public .form-fields-grid.layout-three_columns { grid-template-columns: 1fr; }
+    }
+    .ats-form-public .form-fields-grid .field-group.span-full {
+      grid-column: 1 / -1;
+    }
+  </style>
+</head>
+<body>
+  <div class="ats-form-public">
+    <div class="form-card layout-{{ ats_form.layout|default:'single' }}">
+      <div class="form-card-header">
+        <div class="icon-wrap"><i class="bi bi-ui-checks"></i></div>
+        <h1>{{ ats_form.name }}</h1>
+        {% if ats_form.description %}
+          <p class="form-desc">{{ ats_form.description }}</p>
+        {% endif %}
+      </div>
+      <div class="form-card-body">
+        <form method="post" action="" enctype="multipart/form-data">
+          {% csrf_token %}
+          {% if form_error %}
+          <div class="alert alert-danger border-0 rounded-2 mb-3" role="alert">{{ form_error }}</div>
+          {% endif %}
+          <div class="form-fields-grid layout-{{ ats_form.layout|default:'single' }}">
+          {% for field in ats_form.fields.all %}
+            <div class="field-group {% if field.field_type == 'textarea' or field.field_type == 'file' %}span-full{% endif %}">
+              <label for="field_{{ field.id }}" class="form-label">
+                {{ field.label }}{% if field.required %} <span class="required-star">*</span>{% endif %}
+              </label>
+              {% if field.field_type == 'text' %}
+                <input type="text" name="field_{{ field.id }}" id="field_{{ field.id }}" class="form-control" placeholder="{{ field.placeholder|default:'' }}" {% if field.required %}required{% endif %}>
+              {% elif field.field_type == 'email' %}
+                <input type="email" name="field_{{ field.id }}" id="field_{{ field.id }}" class="form-control" placeholder="{{ field.placeholder|default:'' }}" {% if field.required %}required{% endif %}>
+              {% elif field.field_type == 'phone' %}
+                <input type="tel" name="field_{{ field.id }}" id="field_{{ field.id }}" class="form-control" placeholder="{{ field.placeholder|default:'' }}" {% if field.required %}required{% endif %}>
+              {% elif field.field_type == 'textarea' %}
+                <textarea name="field_{{ field.id }}" id="field_{{ field.id }}" class="form-control" rows="4" placeholder="{{ field.placeholder|default:'' }}" {% if field.required %}required{% endif %}></textarea>
+              {% elif field.field_type == 'file' %}
+                <input type="file" name="field_{{ field.id }}" id="field_{{ field.id }}" class="form-control" accept=".pdf,.doc,.docx" {% if field.required %}required{% endif %}>
+              {% endif %}
+            </div>
+          {% endfor %}
+          {% if ats_form.request_email and not ats_form_has_email_field %}
+            <div class="field-group">
+              <label for="submitter_email" class="form-label">Correo electrónico <span class="required-star">*</span></label>
+              <input type="email" name="submitter_email" id="submitter_email" class="form-control" placeholder="tu@correo.com" required>
+            </div>
+          {% endif %}
+          {% if ats_form.request_cv %}
+            <div class="field-group span-full">
+              <label for="cv_file" class="form-label">CV (PDF o Word) <span class="required-star">*</span></label>
+              <input type="file" name="cv_file" id="cv_file" class="form-control" accept=".pdf,.doc,.docx" required>
+            </div>
+          {% endif %}
+          </div>
+          <button type="submit" class="btn btn-submit" style="margin-top: 1rem;">Enviar formulario</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

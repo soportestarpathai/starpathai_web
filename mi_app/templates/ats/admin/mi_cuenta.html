@@ -1,0 +1,31 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}Mi cuenta{% endblock %}
+{% block ats_header_title %}Mi cuenta{% endblock %}
+
+{% block ats_extra_css %}
+  .staff-account-card { max-width: 480px; margin: 0 auto; background: var(--surface-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(11,28,45,0.06); border: 1px solid rgba(0,196,201,0.1); padding: 1.5rem; }
+  .staff-account-card h2 { font-family: var(--ats-heading); font-size: 1.15rem; font-weight: 800; color: var(--heading-color); margin: 0 0 1rem; }
+  .staff-account-card .field { margin-bottom: 1rem; }
+  .staff-account-card .field label { font-size: 0.8rem; font-weight: 600; color: var(--default-color); opacity: 0.9; display: block; margin-bottom: 0.25rem; }
+  .staff-account-card .field .value { font-size: 0.95rem; color: var(--heading-color); }
+  .staff-account-card .btn-link { border-radius: 8px; font-weight: 600; }
+{% endblock %}
+
+{% block ats_content %}
+  <div class="staff-account-card">
+    <h2>Mi cuenta (Administrador)</h2>
+    <div class="field">
+      <label>Correo</label>
+      <div class="value">{{ user.email }}</div>
+    </div>
+    <div class="field">
+      <label>Nombre</label>
+      <div class="value">{% if user.get_full_name %}{{ user.get_full_name }}{% else %}—{% endif %}</div>
+    </div>
+    <div class="field">
+      <a href="{% url 'ats_password_change' %}" class="btn btn-outline-primary btn-sm">Cambiar contraseña</a>
+    </div>
+  </div>
+{% endblock %}

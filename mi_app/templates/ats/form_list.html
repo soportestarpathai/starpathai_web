@@ -1,0 +1,130 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}Formularios{% endblock %}
+{% block ats_header_title %}Formularios <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Crea formularios y comparte el enlace para que los candidatos se postulen. Asocia cada formulario a una vacante para crear candidatos automáticamente."></i>{% endblock %}
+
+{% block ats_extra_css %}
+  .form-card {
+    background: var(--surface-color);
+    border-radius: 16px;
+    border: 1px solid rgba(0,196,201,0.12);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 6px 20px rgba(11,28,45,0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .form-card:hover { box-shadow: 0 10px 32px rgba(11,28,45,0.08); }
+  @media (min-width: 768px) {
+    .form-card:hover { transform: translateY(-2px); }
+  }
+  .form-link-wrap {
+    background: rgba(0,196,201,0.08);
+    border-radius: 12px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.8rem;
+    word-break: break-all;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .form-link-wrap .link-text { flex: 1; min-width: 0; }
+  .btn-copy {
+    flex-shrink: 0;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+    border-radius: 8px;
+  }
+  .form-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .form-actions .btn { border-radius: 10px; }
+  @media (max-width: 767px) {
+    .form-card .row > div:last-child { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.06); }
+    .form-actions { justify-content: flex-start; }
+  }
+{% endblock %}
+
+{% block ats_content %}
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1 fw-bold">Tus formularios</h1>
+      <p class="text-muted small mb-0">Crea formularios para candidatos. Comparte el enlace y recibe respuestas aquí.</p>
+    </div>
+    <a href="{% url 'ats_form_create' %}" class="btn btn-primary rounded-pill"><i class="bi bi-plus-lg me-2"></i>Nuevo formulario</a>
+  </div>
+
+  <div class="row g-3">
+  {% for f in forms %}
+    <div class="col-12">
+      <div class="form-card">
+        <div class="row align-items-center g-3">
+          <div class="col-12 col-md-6">
+            <h2 class="h6 mb-1 fw-bold">{{ f.name }}</h2>
+            <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+              {% if f.vacancy %}<span class="badge bg-secondary">{{ f.vacancy.title }}</span>{% endif %}
+              {% if not f.is_active %}<span class="badge bg-warning text-dark">Inactivo</span>{% endif %}
+              <span class="small text-muted">{{ f.submissions_count }} envío(s)</span>
+            </div>
+            <div class="form-link-wrap">
+              <span class="link-text text-muted small" id="link-{{ f.pk }}">{{ request.scheme }}://{{ request.get_host }}{% url 'ats_form_public' f.uuid %}</span>
+              <button type="button" class="btn btn-sm btn-outline-secondary btn-copy" data-copy-target="link-{{ f.pk }}" title="Copiar enlace"><i class="bi bi-clipboard"></i> Copiar</button>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="form-actions justify-content-md-end">
+              <a href="{% url 'ats_form_submissions' f.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-inbox me-1"></i>Ver envíos</a>
+              <a href="{% url 'ats_form_edit' f.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Editar</a>
+              <form method="post" action="{% url 'ats_form_delete' f.pk %}" class="d-inline" onsubmit="return atsConfirmSubmit(event, { title: '¿Eliminar este formulario?', text: 'Esta acción no se puede deshacer.', icon: 'warning', confirmButtonText: 'Sí, eliminar' });">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Eliminar</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="ats-content-card p-5 text-center">
+        <i class="bi bi-ui-checks display-4 text-muted d-block mb-3"></i>
+        <p class="text-muted mb-3">Aún no tienes formularios. Crea uno para recibir postulaciones por enlace.</p>
+        <a href="{% url 'ats_form_create' %}" class="btn btn-primary rounded-pill">Crear primer formulario</a>
+      </div>
+    </div>
+  {% endfor %}
+  </div>
+
+  <p class="mt-4 mb-0"><a href="{% url 'ats_dashboard' %}" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Volver al panel</a></p>
+
+  <script>
+  (function() {
+    document.querySelectorAll('[data-copy-target]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = this.getAttribute('data-copy-target');
+        var el = document.getElementById(id);
+        if (!el) return;
+        var text = el.textContent || el.innerText;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function() {
+            var icon = btn.querySelector('i');
+            var label = btn.textContent.trim();
+            btn.textContent = '';
+            btn.appendChild(icon);
+            btn.appendChild(document.createTextNode(' Copiado'));
+            setTimeout(function() { btn.innerHTML = '<i class=\"bi bi-clipboard\"></i> Copiar'; }, 2000);
+          });
+        } else {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          btn.textContent = 'Copiado';
+          setTimeout(function() { btn.innerHTML = '<i class=\"bi bi-clipboard\"></i> Copiar'; }, 2000);
+        }
+      });
+    });
+  })();
+  </script>
+{% endblock %}

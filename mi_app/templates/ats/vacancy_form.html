@@ -1,0 +1,38 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}{% if is_edit %}Editar vacante{% else %}Nueva vacante{% endif %}{% endblock %}
+{% block ats_header_title %}Vacante{% endblock %}
+
+{% block ats_content %}
+  <div class="ats-content-card p-4 mb-4" style="max-width: 640px;">
+    <h1 class="h4 mb-4 fw-bold">{% if is_edit %}Editar vacante{% else %}Nueva vacante{% endif %} <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Cada vacante tiene su propio perfil para la IA. Al analizar un CV de un candidato de esta vacante, se usará el perfil e habilidades que definas aquí."></i></h1>
+    <p class="text-muted small mb-3">Define un puesto de trabajo. La <strong>configuración de la IA es por vacante</strong>: el perfil y las habilidades de abajo se usan al analizar con IA los CV de los candidatos asignados a <em>esta</em> vacante.</p>
+    <form method="post" action="">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label fw-bold">Título del puesto</label>
+        {{ form.title }}
+        {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Descripción (requisitos, responsabilidades)</label>
+        {{ form.description }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-bold">Perfil para análisis con IA</label>
+        {{ form.profile_for_analysis }}
+        <div class="form-text">Qué perfil debe buscar la IA en el CV: experiencia, tecnologías, nivel de idioma, etc.</div>
+        {% if form.profile_for_analysis.errors %}<div class="text-danger small">{{ form.profile_for_analysis.errors }}</div>{% endif %}
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-bold">Habilidades deseadas (una por línea)</label>
+        {{ form.desired_skills_text }}
+        {% if form.desired_skills_text.errors %}<div class="text-danger small">{{ form.desired_skills_text.errors }}</div>{% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary rounded-pill">{% if is_edit %}Guardar cambios{% else %}Crear vacante{% endif %}</button>
+      <a href="{% url 'ats_dashboard' %}?section=reclutamiento" class="btn btn-outline-secondary rounded-pill ms-2">Cancelar</a>
+    </form>
+  </div>
+  <p><a href="{% url 'ats_dashboard' %}?section=reclutamiento" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Volver a Reclutamiento</a></p>
+{% endblock %}

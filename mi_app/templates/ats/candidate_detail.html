@@ -1,0 +1,224 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}{% if candidate %}{{ candidate.name }}{% else %}Candidato{% endif %}{% endblock %}
+{% block ats_header_title %}{% if candidate %}{{ candidate.name }}{% else %}Candidato{% endif %}{% endblock %}
+
+{% block ats_extra_css %}
+  .detail-card { background: var(--surface-color); border-radius: 16px; border: 1px solid rgba(0,196,201,0.12); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: 0 6px 20px rgba(11,28,45,0.04); transition: box-shadow 0.2s; }
+  .detail-card:hover { box-shadow: 0 8px 28px rgba(11,28,45,0.06); }
+  .skill-bar { height: 10px; border-radius: 999px; background: rgba(0,0,0,.08); overflow: hidden; }
+  .skill-bar .fill { border-radius: 999px; background: var(--accent-color); height: 100%; }
+  .badge-apto { background: var(--success-color); color: #fff; }
+  .badge-revision { background: #f0ad4e; color: #fff; }
+  .badge-no-apto { background: #d9534f; color: #fff; }
+  .explanation-box { background: rgba(0,196,201,0.06); border-left: 4px solid var(--accent-color); padding: 1rem; border-radius: 0 12px 12px 0; }
+  .score-circle { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.5rem; }
+  .score-apto { background: rgba(40,167,69,0.15); color: var(--success-color); }
+  .score-revision { background: rgba(240,173,78,0.2); color: #b8860b; }
+  .score-no-apto { background: rgba(217,83,79,0.15); color: #d9534f; }
+  .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem 1.5rem; }
+  .data-item { padding: 0.5rem 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .data-item:last-child { border-bottom: 0; }
+  .data-item label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #6c757d; margin-bottom: 0.2rem; display: block; }
+  .data-item span { font-weight: 500; word-break: break-word; }
+  .file-dl { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: rgba(0,196,201,0.1); border-radius: 10px; color: var(--accent-color); text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: background 0.2s; }
+  .file-dl:hover { background: rgba(0,196,201,0.18); color: var(--accent-color); }
+  .criterion-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.85rem 1rem; background: rgba(0,0,0,0.02); border-radius: 12px; margin-bottom: 0.5rem; }
+  .criterion-row:last-child { margin-bottom: 0; }
+  .radio-cumple:checked + .form-check-label { color: var(--success-color) !important; font-weight: 600; }
+  .radio-nocumple:checked + .form-check-label { color: #d9534f !important; font-weight: 600; }
+  details summary { cursor: pointer; }
+  @media (max-width: 576px) {
+    .data-grid { grid-template-columns: 1fr; }
+    .criterion-row { flex-direction: column; align-items: flex-start; }
+  }
+{% endblock %}
+
+{% block ats_content %}
+  <p class="mb-3"><a href="{% url 'ats_dashboard' %}?section=candidatos" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Volver a candidatos</a></p>
+
+  {% if candidate %}
+    <div class="detail-card">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <h1 class="h4 mb-0 fw-bold">{{ candidate.name }}</h1>
+          <span class="badge fs-6 {% if candidate.status == 'APTO' %}badge-apto{% elif candidate.status == 'REVISION' %}badge-revision{% else %}badge-no-apto{% endif %}">
+            {% if candidate.status == 'APTO' %}Apto
+            {% elif candidate.status == 'REVISION' %}En revisión
+            {% else %}No apto{% endif %}
+          </span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <div class="score-circle {% if candidate.status == 'APTO' %}score-apto{% elif candidate.status == 'REVISION' %}score-revision{% else %}score-no-apto{% endif %}">
+            {{ candidate.score|floatformat:0 }}%
+          </div>
+          {% if candidate.match_percentage is not None %}<span class="text-muted small">Match vacante: <strong>{{ candidate.match_percentage|floatformat:0 }}%</strong></span>{% endif %}
+        </div>
+      </div>
+      {% if candidate.email %}<p class="text-muted mb-2"><i class="bi bi-envelope me-1"></i>{{ candidate.email }}</p>{% endif %}
+      {% if candidate.analysis_date %}<p class="small text-muted mb-0">Último análisis: {{ candidate.analysis_date|date:"d/m/Y H:i" }}</p>{% endif %}
+      {% if candidate.explanation_text %}
+        <div class="explanation-box mt-3">
+          <strong class="d-block mb-2">Explicación</strong>
+          <p class="mb-0">{{ candidate.explanation_text }}</p>
+        </div>
+      {% endif %}
+      {% if candidate.email %}
+      <div class="mt-3 pt-3 border-top">
+        <strong class="d-block mb-2 small">Comunicación con el candidato</strong>
+        <p class="small text-muted mb-2">Envía un correo al postulante para informarle si es apto para reclutar o si no fue seleccionado.</p>
+        {% if subscription_can_custom_email %}
+        <p class="small text-muted mb-2">Plan Pro/Enterprise: puedes añadir un mensaje personalizado (opcional) que reemplazará el texto por defecto del correo.</p>
+        {% endif %}
+        <form method="post" action="{% url 'ats_candidate_send_email' candidate.pk %}" class="mb-2">
+          {% csrf_token %}
+          <input type="hidden" name="email_type" value="apto">
+          {% if subscription_can_custom_email %}
+          <div class="mb-2">
+            <label class="form-label small">Mensaje personalizado (opcional)</label>
+            <textarea name="custom_message" class="form-control form-control-sm" rows="3" placeholder="Si lo dejas vacío se usará el mensaje por defecto de «apto para reclutar»."></textarea>
+          </div>
+          {% endif %}
+          <button type="submit" class="btn btn-sm btn-success rounded-pill"><i class="bi bi-envelope-check me-1"></i>Apto para reclutar</button>
+        </form>
+        <form method="post" action="{% url 'ats_candidate_send_email' candidate.pk %}" class="mb-0" onsubmit="return atsConfirmSubmit(event, { title: 'Enviar correo de no seleccionado', text: 'Se enviará un correo al candidato informando que no fue seleccionado en esta ocasión.', icon: 'question', confirmButtonText: 'Sí, enviar' });">
+          {% csrf_token %}
+          <input type="hidden" name="email_type" value="rechazo">
+          {% if subscription_can_custom_email %}
+          <div class="mb-2">
+            <label class="form-label small">Mensaje personalizado (opcional)</label>
+            <textarea name="custom_message" class="form-control form-control-sm" rows="3" placeholder="Si lo dejas vacío se usará el mensaje por defecto de «no seleccionado»."></textarea>
+          </div>
+          {% endif %}
+          <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill"><i class="bi bi-envelope-x me-1"></i>No seleccionado</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="detail-card">
+      <h2 class="h5 mb-3 fw-bold"><i class="bi bi-file-earmark-pdf me-2"></i>CV <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Sube o reemplaza el CV del candidato. Con «Analizar con IA» se evalúa según el perfil de la vacante y se guardan score y habilidades."></i></h2>
+      {% if candidate.cv_file %}
+        <p class="small text-muted mb-2">Archivo actual del candidato. Puedes reemplazarlo o analizarlo con IA según el perfil de la vacante.</p>
+        <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+          <a href="{{ candidate.cv_file.url }}" target="_blank" rel="noopener" class="file-dl"><i class="bi bi-download me-1"></i>Descargar CV</a>
+          {% if subscription_can_process_cv %}
+            <form method="post" action="{% url 'ats_candidate_analyze_cv' candidate.pk %}" class="d-inline" onsubmit="return atsConfirmSubmit(event, { title: 'Analizar CV con IA', text: 'Se usará 1 de tus análisis disponibles ({{ kpi_cvs_used }}/{{ kpi_cvs_limit }}). ¿Continuar?', icon: 'question', confirmButtonText: 'Sí, analizar' });">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-cpu me-1"></i>Analizar con IA</button>
+            </form>
+          {% else %}
+            <span class="text-muted small">Sin análisis disponibles ({{ kpi_cvs_used }}/{{ kpi_cvs_limit }}) o plan sin escaneo IA.</span>
+          {% endif %}
+        </div>
+        <details class="mt-2">
+          <summary class="small text-muted cursor-pointer">Reemplazar CV</summary>
+          <form method="post" action="{% url 'ats_candidate_upload_cv' candidate.pk %}" enctype="multipart/form-data" class="mt-2 p-3 rounded-2 bg-light">
+            {% csrf_token %}
+            <input type="file" name="cv_file" accept=".pdf,.doc,.docx" class="form-control form-control-sm mb-2" required>
+            <p class="small text-muted mb-2">PDF o DOCX, máx. {{ cv_max_size_mb }} MB.</p>
+            <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill">Subir y reemplazar</button>
+          </form>
+        </details>
+      {% else %}
+        <p class="small text-muted mb-3">Este candidato aún no tiene CV. Súbelo para poder analizarlo con IA.</p>
+        <form method="post" action="{% url 'ats_candidate_upload_cv' candidate.pk %}" enctype="multipart/form-data" class="p-3 rounded-2 bg-light" style="max-width: 360px;">
+          {% csrf_token %}
+          <label class="form-label fw-bold small">Seleccionar archivo (PDF o DOCX)</label>
+          <input type="file" name="cv_file" accept=".pdf,.doc,.docx" class="form-control mb-2" required>
+          <p class="small text-muted mb-2">Máximo {{ cv_max_size_mb }} MB.</p>
+          <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-upload me-1"></i>Cargar CV</button>
+        </form>
+      {% endif %}
+    </div>
+
+    {% if form_submission %}
+    <div class="detail-card">
+      <h2 class="h5 mb-3 fw-bold"><i class="bi bi-person-vcard me-2"></i>Datos del postulante</h2>
+      <p class="small text-muted mb-3">Información enviada en el formulario «{{ form_submission.form.name }}» el {{ form_submission.submitted_at|date:"d/m/Y" }} a las {{ form_submission.submitted_at|time:"H:i" }}.</p>
+      <div class="data-grid mb-3">
+        {% for key, value in form_submission.payload.items %}
+        <div class="data-item">
+          <label>{{ key }}</label>
+          <span>{% if value %}{{ value }}{% else %}—{% endif %}</span>
+        </div>
+        {% empty %}
+        <p class="text-muted small mb-0">Sin datos de formulario.</p>
+        {% endfor %}
+      </div>
+      {% if form_submission.files.all %}
+      <div class="mt-3 pt-3 border-top">
+        <strong class="d-block mb-2 small">Archivos adjuntos</strong>
+        <div class="d-flex flex-wrap gap-2">
+          {% for f in form_submission.files.all %}
+          <a href="{{ f.file.url }}" target="_blank" rel="noopener" class="file-dl"><i class="bi bi-file-earmark-arrow-down"></i> {{ f.original_name|default:"Descargar" }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="detail-card">
+      <h2 class="h5 mb-3 fw-bold"><i class="bi bi-tags me-2"></i>Habilidades evaluadas <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Resultado del análisis con IA. Si aún no hay datos, analiza el CV con el botón de la sección CV."></i></h2>
+      {% if candidate.skill_evaluations.all %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead><tr><th>Habilidad</th><th>Nivel</th><th>Coincidencia</th></tr></thead>
+            <tbody>
+              {% for s in candidate.skill_evaluations.all %}
+                <tr>
+                  <td><strong>{{ s.skill }}</strong></td>
+                  <td>
+                    <div class="skill-bar d-inline-block" style="width:120px;">
+                      <div class="fill" style="width:{{ s.level }}%;"></div>
+                    </div>
+                    <small class="text-muted ms-2">{{ s.level }}%</small>
+                  </td>
+                  <td>{% if s.match_percentage is not None %}{{ s.match_percentage|floatformat:0 }}%{% else %}—{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">Aún no hay habilidades evaluadas. Se completarán al procesar el CV con IA.</p>
+      {% endif %}
+    </div>
+
+    {% if evaluation_criteria_with_response %}
+    <div class="detail-card">
+      <h2 class="h5 mb-3 fw-bold"><i class="bi bi-check2-square me-2"></i>Evaluación manual por criterios</h2>
+      <p class="small text-muted mb-3">Marca Cumple o No cumple por cada criterio y guarda para actualizar el score.</p>
+      <form method="post" action="">
+        {% csrf_token %}
+        <div class="mb-3">
+          {% for c, cumple in evaluation_criteria_with_response %}
+          <div class="criterion-row">
+            <span class="fw-medium">{{ c.label }}</span>
+            <div class="d-flex gap-3">
+              <div class="form-check form-check-inline mb-0">
+                <input type="radio" name="criterion_{{ c.id }}" id="criterion_{{ c.id }}_1" value="1" class="form-check-input radio-cumple" {% if cumple %}checked{% endif %}>
+                <label class="form-check-label text-success" for="criterion_{{ c.id }}_1">Cumple</label>
+              </div>
+              <div class="form-check form-check-inline mb-0">
+                <input type="radio" name="criterion_{{ c.id }}" id="criterion_{{ c.id }}_0" value="0" class="form-check-input radio-nocumple" {% if not cumple %}checked{% endif %}>
+                <label class="form-check-label text-danger" for="criterion_{{ c.id }}_0">No cumple</label>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-check-lg me-1"></i>Guardar evaluación</button>
+      </form>
+    </div>
+    {% endif %}
+  {% else %}
+    <div class="ats-content-card p-5 text-center">
+      <i class="bi bi-person-x display-4 text-muted d-block mb-2"></i>
+      <p class="text-muted mb-3">No tienes acceso a este candidato o no existe.</p>
+      <a href="{% url 'ats_dashboard' %}?section=candidatos" class="btn btn-primary rounded-pill">Ir a candidatos</a>
+    </div>
+  {% endif %}
+{% endblock %}

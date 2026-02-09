@@ -12,6 +12,7 @@ __pycache__/
 # Django
 db.sqlite3
 *.log
+logs/
 media/
 
 # Variables de entorno

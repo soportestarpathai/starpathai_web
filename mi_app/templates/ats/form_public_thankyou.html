@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enviado | {{ ats_form.name }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+  <style>
+    :root { --ats-font: "Inter", system-ui, sans-serif; --ats-heading: "Plus Jakarta Sans", sans-serif; }
+    .ats-thankyou {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      font-family: var(--ats-font);
+      background: linear-gradient(160deg, #f0f4f8 0%, #e8eef4 50%, #f5f8fb 100%);
+    }
+    .ats-thankyou .card {
+      max-width: 440px;
+      width: 100%;
+      border-radius: 20px;
+      border: none;
+      box-shadow: 0 25px 50px -12px rgba(11, 28, 45, 0.12), 0 0 0 1px rgba(11, 28, 45, 0.04);
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+    .ats-thankyou .icon-wrap {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 1.25rem;
+      border-radius: 50%;
+      background: rgba(0, 196, 201, 0.12);
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+    .ats-thankyou h1 {
+      font-family: var(--ats-heading);
+      font-weight: 700;
+      font-size: 1.35rem;
+      color: var(--heading-color);
+      margin-bottom: 0.5rem;
+    }
+    .ats-thankyou p {
+      color: var(--default-color);
+      margin: 0;
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="ats-thankyou">
+    <div class="card">
+      <div class="icon-wrap"><i class="bi bi-check-circle-fill"></i></div>
+      <h1>Respuesta enviada</h1>
+      <p>Gracias por completar <strong>{{ ats_form.name }}</strong>. Tu información ha sido recibida correctamente.</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}Configuración análisis de CV{% endblock %}
+{% block ats_header_title %}Configuración análisis de CV{% endblock %}
+
+{% block ats_content %}
+  <div class="ats-content-card p-4 mb-4 mx-auto" style="max-width: 640px;">
+    <h1 class="h4 mb-2 fw-bold"><i class="bi bi-cpu me-2"></i>Configuración por defecto del análisis con IA <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Perfil e instrucciones que usará la IA cuando el candidato no tenga vacante o la vacante no tenga perfil definido."></i></h1>
+    <div class="alert alert-info border-0 rounded-2 mb-4 small">
+      <strong>La configuración de la IA es por vacante.</strong> En cada vacante (Reclutamiento → Editar vacante) defines el perfil e habilidades que debe buscar la IA para esa vacante. Esta página solo define el <em>valor por defecto</em> cuando el candidato no tiene vacante asociada o la vacante no tiene perfil definido.
+    </div>
+    <p class="text-muted small mb-4">Perfil e instrucciones por defecto (se usan cuando no aplica la configuración de una vacante concreta):</p>
+    <form method="post" action="">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label fw-bold">{{ form.default_profile.label }}</label>
+        {{ form.default_profile }}
+        {% if form.default_profile.help_text %}<div class="form-text">{{ form.default_profile.help_text }}</div>{% endif %}
+        {% if form.default_profile.errors %}<div class="text-danger small">{{ form.default_profile.errors }}</div>{% endif %}
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-bold">{{ form.default_desired_skills_text.label }}</label>
+        {{ form.default_desired_skills_text }}
+        {% if form.default_desired_skills_text.help_text %}<div class="form-text">{{ form.default_desired_skills_text.help_text }}</div>{% endif %}
+        {% if form.default_desired_skills_text.errors %}<div class="text-danger small">{{ form.default_desired_skills_text.errors }}</div>{% endif %}
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-bold">{{ form.analysis_instructions.label }}</label>
+        {{ form.analysis_instructions }}
+        {% if form.analysis_instructions.help_text %}<div class="form-text">{{ form.analysis_instructions.help_text }}</div>{% endif %}
+        {% if form.analysis_instructions.errors %}<div class="text-danger small">{{ form.analysis_instructions.errors }}</div>{% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary rounded-pill">Guardar configuración</button>
+      <a href="{% url 'ats_dashboard' %}" class="btn btn-outline-secondary rounded-pill ms-2">Volver al panel</a>
+    </form>
+  </div>
+  <p class="text-center mt-3"><a href="{% url 'ats_dashboard' %}" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Volver al panel</a></p>
+{% endblock %}

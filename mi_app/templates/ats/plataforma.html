@@ -1,0 +1,357 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso ATS | Star Path · Applicant Tracking System para RRHH</title>
+  <link href="{% static 'img/logo_star.png' %}" rel="icon">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+  <style>
+    :root {
+      --ats-font: "Inter", system-ui, sans-serif;
+      --ats-heading: "Plus Jakarta Sans", sans-serif;
+    }
+    .ats-auth-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--background-color);
+      font-family: var(--ats-font);
+    }
+    .ats-auth-page .ats-auth-hero {
+      background: linear-gradient(160deg, var(--dark-bg) 0%, #0d2842 50%, #122d47 100%);
+      color: #fff;
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem);
+      position: relative;
+      overflow: hidden;
+    }
+    .ats-auth-hero::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300C4C9' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.6;
+    }
+    .ats-auth-hero .content { position: relative; z-index: 1; max-width: 420px; }
+    .ats-auth-hero .logo-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    .ats-auth-hero .logo-wrap img { height: 42px; width: auto; }
+    .ats-auth-hero .logo-wrap span {
+      font-family: var(--ats-heading);
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+    }
+    .ats-auth-hero h1 {
+      font-family: var(--ats-heading);
+      font-weight: 800;
+      font-size: clamp(1.5rem, 3vw, 1.85rem);
+      line-height: 1.25;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+    .ats-auth-hero .lead {
+      font-size: 0.95rem;
+      opacity: 0.88;
+      line-height: 1.55;
+      margin-bottom: 1.75rem;
+    }
+    .ats-auth-hero .features {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .ats-auth-hero .features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      margin-bottom: 0.9rem;
+      opacity: 0.92;
+    }
+    .ats-auth-hero .features li i {
+      color: var(--accent-color);
+      font-size: 1.1rem;
+      margin-top: 0.15rem;
+      flex-shrink: 0;
+    }
+    .ats-auth-form-col {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(2rem, 5vw, 3.5rem) clamp(1.5rem, 4vw, 2.5rem);
+    }
+    .ats-auth-form-col .form-wrapper {
+      width: 100%;
+      max-width: 420px;
+    }
+    .ats-auth-form-col .form-wrapper .tabs-head {
+      display: flex;
+      border-radius: 14px;
+      background: rgba(11, 28, 45, 0.06);
+      padding: 4px;
+      margin-bottom: 1.75rem;
+    }
+    .ats-auth-form-col .form-wrapper .tabs-head .tab-btn {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--ats-font);
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--default-color);
+      background: transparent;
+      transition: background 0.2s, color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+    .ats-auth-form-col .form-wrapper .tabs-head .tab-btn:hover { color: var(--heading-color); background: rgba(255,255,255,0.7); }
+    .ats-auth-form-col .form-wrapper .tabs-head .tab-btn.active {
+      background: #fff;
+      color: var(--heading-color);
+      box-shadow: 0 2px 8px rgba(11,28,45,0.08);
+    }
+    .ats-auth-form-col .form-wrapper .tab-pane { display: none; }
+    .ats-auth-form-col .form-wrapper .tab-pane.active { display: block; }
+    .ats-auth-form-col .form-wrapper .subtitle {
+      font-size: 0.875rem;
+      color: var(--default-color);
+      margin-bottom: 1.5rem;
+      opacity: 0.9;
+    }
+    .ats-auth-form-col .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .ats-auth-form-col .form-group label {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--heading-color);
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+    .ats-auth-form-col .form-control-wrap {
+      position: relative;
+    }
+    .ats-auth-form-col .form-control-wrap .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(11,28,45,0.4);
+      font-size: 1.05rem;
+      pointer-events: none;
+    }
+    .ats-auth-form-col .form-control-wrap input.form-control {
+      padding-left: 2.75rem;
+      border-radius: 12px;
+      border: 1px solid rgba(11,28,45,0.12);
+      padding-top: 0.65rem;
+      padding-bottom: 0.65rem;
+      font-size: 0.95rem;
+    }
+    .ats-auth-form-col .form-control-wrap input.form-control:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(0,196,201,0.15);
+    }
+    .ats-auth-form-col .form-control-wrap:not(.has-icon) input.form-control { padding-left: 1rem; }
+    .ats-auth-form-col .btn-submit {
+      width: 100%;
+      padding: 0.85rem 1.5rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: 12px;
+      border: none;
+      background: var(--dark-bg);
+      color: #fff;
+      margin-top: 0.5rem;
+      transition: background 0.2s, transform 0.05s;
+    }
+    .ats-auth-form-col .btn-submit:hover { background: #0d2842; color: #fff; transform: translateY(-1px); }
+    .ats-auth-form-col .btn-submit:active { transform: translateY(0); }
+    .ats-auth-form-col .errorlist {
+      list-style: none;
+      padding: 0;
+      margin: 0.35rem 0 0;
+      font-size: 0.8rem;
+      color: #c0392b;
+    }
+    .ats-auth-form-col .form-text { font-size: 0.8rem; margin-top: 0.3rem; }
+    .ats-auth-form-col .footer-links {
+      margin-top: 1.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(11,28,45,0.08);
+      text-align: center;
+      font-size: 0.875rem;
+    }
+    .ats-auth-form-col .footer-links a {
+      color: var(--accent-color);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .ats-auth-form-col .footer-links a:hover { text-decoration: underline; }
+    .ats-auth-form-col .footer-links .dot { color: rgba(11,28,45,0.35); margin: 0 0.35rem; }
+    .ats-auth-page .ats-page-footer {
+      padding: 1rem 1.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--default-color);
+      opacity: 0.8;
+      border-top: 1px solid rgba(11,28,45,0.06);
+    }
+    .ats-auth-page .ats-page-footer a { color: var(--accent-color); font-weight: 500; }
+  </style>
+</head>
+<body class="ats-auth-page">
+  <div class="row g-0 flex-grow-1">
+    <div class="col-lg-5 ats-auth-hero">
+      <div class="content">
+        <a href="{% url 'home' %}" class="logo-wrap text-decoration-none text-white">
+          <img src="{% static 'img/logo_star.png' %}" alt="Star Path">
+          <span>Star Path</span>
+        </a>
+        <h1>ATS para equipos de Recursos Humanos</h1>
+        <p class="lead">
+          Evalúa candidatos con IA, revisa habilidades y aptitud por vacante, y controla tu facturación en una sola plataforma.
+        </p>
+        <ul class="features">
+          <li>
+            <i class="bi bi-check2-circle-fill"></i>
+            <span><strong>Evaluación automática</strong> de CVs con LLM: habilidades, nivel y match con la vacante.</span>
+          </li>
+          <li>
+            <i class="bi bi-check2-circle-fill"></i>
+            <span><strong>Decisión clara</strong>: Apto, En revisión o No apto, con explicación en lenguaje natural.</span>
+          </li>
+          <li>
+            <i class="bi bi-check2-circle-fill"></i>
+            <span><strong>Planes y límites</strong> por suscripción; control de CVs usados y próximo cobro.</span>
+          </li>
+        </ul>
+        <p class="small mt-4 mb-0 opacity-75">
+          <i class="bi bi-shield-check me-1"></i> Datos seguros
+          <span class="opacity-50 mx-2">·</span>
+          <i class="bi bi-credit-card me-1"></i> Facturación clara por plan
+        </p>
+      </div>
+    </div>
+
+    <div class="col-lg-7 ats-auth-form-col">
+      <div class="form-wrapper">
+        <div class="tabs-head" role="tablist">
+          <a class="tab-btn {% if not active_tab or active_tab == 'login' %}active{% endif %}" href="#login" data-tab="login" role="tab">
+            <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+          </a>
+          <a class="tab-btn {% if active_tab == 'register' %}active{% endif %}" href="#register" data-tab="register" role="tab">
+            <i class="bi bi-person-plus"></i> Registrarse
+          </a>
+        </div>
+
+        <div id="login" class="tab-pane {% if not active_tab or active_tab == 'login' %}active{% endif %}" role="tabpanel">
+          <p class="subtitle">Acceso para empresas y equipos de RRHH que ya tienen cuenta.</p>
+          <form method="post" action="{% url 'ats_login' %}">
+            {% csrf_token %}
+            {% for field in login_form %}
+              <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                <div class="form-control-wrap has-icon">
+                  {% if field.name == 'username' %}
+                    <i class="input-icon bi bi-envelope"></i>
+                  {% elif field.name == 'password' %}
+                    <i class="input-icon bi bi-lock"></i>
+                  {% endif %}
+                  {{ field }}
+                </div>
+                {% if field.errors %}<ul class="errorlist">{{ field.errors }}</ul>{% endif %}
+              </div>
+            {% endfor %}
+            {% if login_form.non_field_errors %}
+              <ul class="errorlist mb-3">{{ login_form.non_field_errors }}</ul>
+            {% endif %}
+            <button type="submit" class="btn btn-submit">Entrar a la plataforma</button>
+            <p class="mt-3 mb-0 text-center small">
+              <a href="{% url 'ats_password_reset' %}" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
+            </p>
+          </form>
+        </div>
+
+        <div id="register" class="tab-pane {% if active_tab == 'register' %}active{% endif %}" role="tabpanel">
+          <p class="subtitle">Crear cuenta para contratar el servicio ATS. Ideal para empresas de reclutamiento y RRHH.</p>
+          <form method="post" action="{% url 'ats_register' %}">
+            {% csrf_token %}
+            {% for field in register_form %}
+              <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                <div class="form-control-wrap {% if field.name == 'email' or field.name == 'password1' or field.name == 'password2' %}has-icon{% endif %}">
+                  {% if field.name == 'email' %}
+                    <i class="input-icon bi bi-envelope"></i>
+                  {% elif field.name == 'password1' or field.name == 'password2' %}
+                    <i class="input-icon bi bi-lock"></i>
+                  {% endif %}
+                  {{ field }}
+                </div>
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<ul class="errorlist">{{ field.errors }}</ul>{% endif %}
+              </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-submit">Crear cuenta</button>
+          </form>
+        </div>
+
+        <div class="footer-links">
+          <a href="{% url 'ats_producto' %}">Ver oferta ATS</a>
+          <span class="dot">·</span>
+          <a href="{% url 'home' %}">Inicio</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="ats-page-footer">
+    © <span id="year"></span> <strong>Star Path</strong> · Applicant Tracking System para empresas de RRHH
+    <span class="dot">·</span>
+    <a href="{% url 'home' %}#contact">Contacto</a>
+  </footer>
+
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script>
+    (function() {
+      var activeTab = "{{ active_tab|default:'' }}";
+      var tabBtns = document.querySelectorAll('.form-wrapper .tab-btn');
+      var panes = document.querySelectorAll('.form-wrapper .tab-pane');
+
+      function showTab(id) {
+        tabBtns.forEach(function(btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-tab') === id);
+        });
+        panes.forEach(function(pane) {
+          pane.classList.toggle('active', pane.id === id);
+        });
+      }
+
+      tabBtns.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var id = this.getAttribute('data-tab');
+          if (id) showTab(id);
+        });
+      });
+
+      if (activeTab === 'register') showTab('register');
+    })();
+  </script>
+</body>
+</html>

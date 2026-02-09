@@ -16,17 +16,33 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Cargar variables de entorno desde .env (EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, etc.)
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / ".env")
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-(w1nm3#xxx3sb#ws07awge=9(oowl5bg^r_7lx3ahaan&#=#3*'
+# En producción definir SECRET_KEY en variables de entorno (nunca subir al repo).
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-(w1nm3#xxx3sb#ws07awge=9(oowl5bg^r_7lx3ahaan&#=#3*",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# En producción definir DJANGO_DEBUG=0 o False en el servidor.
+DEBUG = os.environ.get("DJANGO_DEBUG", "True").strip().lower() in ("true", "1", "yes")
 
-ALLOWED_HOSTS = ['*']
+# En producción definir ALLOWED_HOSTS=tu-dominio.com,www.tu-dominio.com (separados por coma).
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").strip().split(",")
+    if h.strip()
+]
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -43,8 +59,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    "mi_app.middleware.RequestLoggingMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -65,6 +82,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'mi_app.context_processors.ats_notifications',
             ],
         },
     },
@@ -75,13 +93,53 @@ WSGI_APPLICATION = 'starpath_web.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# PostgreSQL (Render o .env); si no hay credenciales, SQLite en local.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+_use_pg = False
+_db_url = os.environ.get("DATABASE_URL")
+if _db_url:
+    import re
+    _db_url = re.sub(r"^postgres://", "postgresql://", _db_url)
+    _use_pg = True
+elif os.environ.get("DB_PASSWORD") or os.environ.get("DB_HOST"):
+    _use_pg = True
+
+if _use_pg:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME", "ats_postgresql_cv"),
+            "USER": os.environ.get("DB_USER", "ats_postgresql_cv_user"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+            "HOST": os.environ.get("DB_HOST", "dpg-d63lnmn5r7bs73dav0b0-a.virginia-postgres.render.com"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+            "CONN_MAX_AGE": 60,
+            "OPTIONS": {"sslmode": "require"},
+        }
     }
-}
+    if _db_url and _db_url.startswith("postgresql://"):
+        from urllib.parse import urlparse
+        try:
+            _p = urlparse(_db_url)
+            if _p.path:
+                DATABASES["default"]["NAME"] = _p.path.lstrip("/")
+            if _p.username:
+                DATABASES["default"]["USER"] = _p.username
+            if _p.password:
+                DATABASES["default"]["PASSWORD"] = _p.password
+            if _p.hostname:
+                DATABASES["default"]["HOST"] = _p.hostname
+            if _p.port:
+                DATABASES["default"]["PORT"] = str(_p.port)
+        except Exception:
+            pass
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
@@ -115,9 +173,16 @@ USE_I18N = True
 USE_TZ = True
 
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": BASE_DIR / "media",
+            "base_url": "/media/",
+        },
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    }
+    },
 }
 
 # Static files (CSS, JavaScript, Images)
@@ -127,6 +192,10 @@ STORAGES = {
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]   # tu carpeta static/ (CSS/JS/img)
 STATIC_ROOT = BASE_DIR / "staticfiles"     # aquí se juntan para producción
+
+# Archivos subidos por usuarios (avatares, CVs, etc.)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 
 
@@ -140,14 +209,52 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+# Destinatarios del formulario de contacto (soporte + equipo)
 CONTACT_TO_EMAIL = os.environ.get("CONTACT_TO_EMAIL", EMAIL_HOST_USER)
-
-
-CSRF_TRUSTED_ORIGINS = [
-  "https://starpathai.mx",
-  "https://www.starpathai.mx/",
+CONTACT_TO_EMAILS = [
+    e.strip()
+    for e in os.environ.get(
+        "CONTACT_TO_EMAILS",
+        "soporte@starpathai.mx,gerardo.cruz@starpathai.mx,j.jimenez@starpathai.mx,brandon.sotelo@starpathai.mx,enrique.badillo@starpathai.mx,oscar.fernandez@starpathai.mx",
+    ).split(",")
+    if e.strip()
 ]
+if not CONTACT_TO_EMAILS:
+    CONTACT_TO_EMAILS = [CONTACT_TO_EMAIL] if CONTACT_TO_EMAIL else []
 
+
+# Orígenes permitidos para CSRF (HTTPS). Añadir en servidor con CSRF_TRUSTED_ORIGINS=https://tudominio.com si hace falta.
+CSRF_TRUSTED_ORIGINS = [
+    "https://starpathai.mx",
+    "https://www.starpathai.mx",
+]
+_extra_csrf = os.environ.get("CSRF_TRUSTED_ORIGINS", "").strip()
+if _extra_csrf:
+    CSRF_TRUSTED_ORIGINS.extend(origin.strip() for origin in _extra_csrf.split(",") if origin.strip())
+
+
+# ATS: login y redirección para clientes de la plataforma
+LOGIN_URL = "/ats/plataforma/"
+LOGIN_REDIRECT_URL = "/ats/plataforma/dashboard/"
+# ATS: correo al que se notifica cuando un cliente solicita cambio de plan (activación manual / pago posterior)
+ATS_SUPPORT_EMAIL = os.environ.get("ATS_SUPPORT_EMAIL", "soporte@starpathai.mx")
+# ATS formulario público: validación de archivos (tamaño en bytes, extensiones para CV/archivos)
+ATS_FORM_PUBLIC_MAX_FILE_SIZE = int(os.environ.get("ATS_FORM_PUBLIC_MAX_FILE_SIZE", 10 * 1024 * 1024))  # 10 MB
+ATS_FORM_PUBLIC_ALLOWED_EXTENSIONS = [e.strip().lower() for e in os.environ.get("ATS_FORM_PUBLIC_ALLOWED_EXTENSIONS", "pdf,doc,docx").split(",") if e.strip()]
+# ATS formulario público: rate limit (máx envíos por IP por ventana)
+ATS_FORM_PUBLIC_RATE_LIMIT_COUNT = int(os.environ.get("ATS_FORM_PUBLIC_RATE_LIMIT_COUNT", 5))
+ATS_FORM_PUBLIC_RATE_LIMIT_SECONDS = int(os.environ.get("ATS_FORM_PUBLIC_RATE_LIMIT_SECONDS", 3600))  # 1 hora
+
+# ATS análisis de CV con IA (OpenAI). Si OPENAI_API_KEY está vacío, se usa evaluación stub.
+OPENAI_API_KEY = (os.environ.get("OPENAI_API_KEY") or "").strip()
+OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+# Cache para rate limiting (formulario público) y otros
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_CLASSES": [
@@ -161,3 +268,56 @@ REST_FRAMEWORK = {
         "chat": "10/min",      # SOLO para el endpoint del chat
     }
 }
+
+# -----------------------------------------------------------------------------
+# Logging: desde inicio de request hasta respuesta (consola + archivo opcional)
+# -----------------------------------------------------------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} [{levelname}] {name} {message}",
+            "style": "{",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "simple": {
+            "format": "{asctime} [{levelname}] {message}",
+            "style": "{",
+            "datefmt": "%H:%M:%S",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": BASE_DIR / "logs" / "starpath.log",
+            "formatter": "verbose",
+            "encoding": "utf-8",
+        },
+    },
+    "root": {
+        "level": "INFO",
+        "handlers": ["console"],
+    },
+    "loggers": {
+        "mi_app": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+    },
+}
+
+# Opcional: escribir también en logs/starpath.log (crea carpeta logs/ si no existe)
+_log_dir = BASE_DIR / "logs"
+if not _log_dir.exists():
+    try:
+        _log_dir.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
+if _log_dir.exists():
+    LOGGING["loggers"]["mi_app"]["handlers"] = ["console", "file"]

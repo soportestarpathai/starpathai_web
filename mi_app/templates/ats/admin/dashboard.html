@@ -1,0 +1,125 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}Administración ATS{% endblock %}
+{% block ats_header_title %}{{ ats_header_title|default:"Administración ATS" }}{% endblock %}
+
+{% block ats_extra_css %}
+  .ats-admin-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .ats-admin-table th, .ats-admin-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid rgba(11,28,45,0.08); }
+  .ats-admin-table th { font-weight: 700; color: var(--heading-color); background: rgba(0,196,201,0.06); }
+  .ats-admin-table tr:hover td { background: rgba(0,196,201,0.03); }
+  .ats-admin-table .plan-form { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .ats-admin-table select.form-select { width: auto; min-width: 120px; border-radius: 8px; font-size: 0.875rem; }
+  .ats-admin-table .btn-apply { border-radius: 8px; font-size: 0.8rem; padding: 0.35rem 0.75rem; }
+  .ats-admin-intro { margin-bottom: 1.5rem; }
+  .ats-admin-intro h2 { font-family: var(--ats-heading); font-size: 1.25rem; font-weight: 800; color: var(--heading-color); margin: 0 0 0.35rem; }
+  .ats-admin-intro p { color: var(--default-color); font-size: 0.9rem; opacity: 0.9; margin: 0; }
+  .ats-admin-card { background: var(--surface-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(11,28,45,0.06); border: 1px solid rgba(0,196,201,0.1); overflow: hidden; }
+  .ats-admin-card .table-wrap { overflow-x: auto; }
+{% endblock %}
+
+{% block ats_content %}
+  <div class="ats-admin-intro">
+    <h2>Administración ATS</h2>
+    <p>Gestiona clientes y activa planes tras validar el pago. Al aplicar un plan, el cliente recibirá una notificación.</p>
+  </div>
+
+  {% if pending_requests %}
+  <div class="ats-admin-card mb-3">
+    <div class="p-3 border-bottom" style="background: rgba(0,196,201,0.06);">
+      <strong><i class="bi bi-arrow-repeat me-2"></i>Solicitudes pendientes de cambio de plan ({{ pending_requests|length }})</strong>
+    </div>
+    <div class="table-wrap">
+      <table class="ats-admin-table mb-0">
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Solicitud</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in pending_requests %}
+          <tr>
+            <td>{{ req.client.company_name }}</td>
+            <td>{{ req.get_from_plan_display }} → {{ req.get_to_plan_display }}</td>
+            <td>{{ req.created_at|timesince }} atrás</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="small text-muted px-3 py-2 mb-0">Aplica el plan en la tabla de clientes más abajo para marcar como atendida.</p>
+  </div>
+  {% endif %}
+
+  <div class="ats-admin-card mb-3">
+    <div class="p-3 border-bottom d-flex flex-wrap align-items-center gap-2" style="background: rgba(0,196,201,0.04);">
+      <form method="get" action="{% url 'ats_admin_dashboard' %}" class="d-flex gap-2 flex-grow-1 flex-wrap">
+        <input type="search" name="q" value="{{ search_q }}" class="form-control form-control-sm" placeholder="Buscar por empresa, contacto o email..." style="max-width: 280px;">
+        <button type="submit" class="btn btn-sm btn-outline-primary">Buscar</button>
+        {% if search_q %}<a href="{% url 'ats_admin_dashboard' %}" class="btn btn-sm btn-outline-secondary">Limpiar</a>{% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="ats-admin-card">
+    <div class="table-wrap">
+      <table class="ats-admin-table">
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Contacto</th>
+            <th>Email</th>
+            <th>Plan actual</th>
+            <th>CVs (usados / límite)</th>
+            <th>Cambiar plan</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td>{{ row.client.company_name }}</td>
+              <td>{{ row.client.contact_name|default:"—" }}</td>
+              <td>{{ row.client.user.email }}</td>
+              <td>{% if row.subscription %}{{ row.subscription.get_plan_display }}{% else %}—{% endif %}</td>
+              <td>{% if row.subscription %}{{ row.subscription.cvs_used }} / {{ row.subscription.cvs_limit }}{% else %}—{% endif %}</td>
+              <td>
+                {% if row.subscription %}
+                  <form method="post" action="{% url 'ats_admin_change_plan' %}" class="plan-form d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="subscription_id" value="{{ row.subscription.id }}">
+                    <select name="plan" class="form-select form-select-sm">
+                      {% for value, label in plan_choices %}
+                        <option value="{{ value }}" {% if row.subscription.plan == value %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-apply">Aplicar</button>
+                  </form>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-4">No hay clientes ATS.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <nav class="p-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: rgba(11,28,45,0.02);">
+      <span class="small text-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} clientes)</span>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_q %}&q={{ search_q|urlencode }}{% endif %}">Anterior</a></li>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_q %}&q={{ search_q|urlencode }}{% endif %}">Siguiente</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+{% endblock %}

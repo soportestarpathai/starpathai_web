@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import logging
 import os
 import re
 import unicodedata
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from typing import List
+
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -23,11 +27,17 @@ def _kb_path() -> str:
 
 def load_kb() -> List[KBItem]:
     path = _kb_path()
+    logger.debug("load_kb path=%s", path)
     if not os.path.exists(path):
+        logger.warning("load_kb archivo no existe path=%s", path)
         return []
 
-    tree = ET.parse(path)
-    root = tree.getroot()
+    try:
+        tree = ET.parse(path)
+        root = tree.getroot()
+    except ET.ParseError as e:
+        logger.exception("load_kb error parseando XML path=%s: %s", path, e)
+        return []
 
     items: List[KBItem] = []
     for node in root.findall(".//item"):
@@ -37,6 +47,7 @@ def load_kb() -> List[KBItem]:
         tags = (node.findtext("tags") or "").strip()
         if title or body:
             items.append(KBItem(id=item_id, title=title, body=body, tags=tags))
+    logger.debug("load_kb cargados %s items", len(items))
     return items
 
 
@@ -91,10 +102,15 @@ def _expand_tokens(tokens: List[str]) -> List[str]:
 def search_kb(query: str, limit: int = 3) -> List[KBItem]:
     q = _norm(query)
     q_tokens = _expand_tokens(_tokenize(q))
+    logger.debug("search_kb query=%s tokens=%s limit=%s", query[:80], len(q_tokens), limit)
     if not q_tokens:
+        logger.debug("search_kb sin tokens válidos")
         return []
 
     kb = load_kb()
+    if not kb:
+        logger.debug("search_kb KB vacío")
+        return []
     scored: List[tuple[int, KBItem]] = []
 
     for it in kb:
@@ -133,13 +149,20 @@ def search_kb(query: str, limit: int = 3) -> List[KBItem]:
             scored.append((score, it))
 
     scored.sort(key=lambda x: x[0], reverse=True)
-    return [it for _, it in scored[:limit]]
+    result = [it for _, it in scored[:limit]]
+    logger.debug("search_kb resultado count=%s ids=%s", len(result), [it.id for it in result])
+    return result
+
 
 def get_item_by_id(item_id: str) -> KBItem | None:
     item_id = (item_id or "").strip()
     if not item_id:
+        logger.debug("get_item_by_id id vacío")
         return None
-    for it in load_kb():
+    kb = load_kb()
+    for it in kb:
         if it.id == item_id:
+            logger.debug("get_item_by_id encontrado id=%s", item_id)
             return it
+    logger.debug("get_item_by_id no encontrado id=%s", item_id)
     return None

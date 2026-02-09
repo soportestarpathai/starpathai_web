@@ -1,0 +1,440 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}Panel ATS{% endblock %}
+{% block ats_header_title %}{% if dashboard_section == 'candidatos' %}Candidatos{% elif dashboard_section == 'reclutamiento' %}Reclutamiento{% elif dashboard_section == 'cuenta' %}Mi cuenta{% else %}Panel ATS{% endif %}{% endblock %}
+
+{% block ats_extra_css %}
+  .dash-welcome {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0 1.25rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(11,28,45,0.08);
+  }
+  .dash-welcome h1 { font-family: var(--ats-heading); font-size: 1.35rem; font-weight: 800; margin: 0; color: var(--heading-color); }
+  .dash-welcome .company { color: var(--accent-color); font-weight: 700; }
+  .dash-welcome .sub { color: var(--default-color); font-size: 0.9rem; margin-top: 0.2rem; opacity: 0.9; }
+  .kpi-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .kpi-item {
+    background: var(--surface-color);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(0,196,201,0.1);
+    box-shadow: 0 2px 12px rgba(11,28,45,0.04);
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .kpi-item .val { font-family: var(--ats-heading); font-weight: 800; font-size: 1.35rem; line-height: 1.2; }
+  .kpi-item .lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--default-color); opacity: 0.85; margin-top: 0.2rem; }
+  .kpi-item.aptos .val { color: var(--success-color); }
+  .kpi-item.revision .val { color: #f0ad4e; }
+  .kpi-item.noaptos .val { color: #d9534f; }
+  .dash-section-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--heading-color); display: flex; align-items: center; gap: 0.5rem; }
+  .dash-filters-card {
+    background: var(--surface-color);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(0,196,201,0.1);
+    box-shadow: 0 4px 20px rgba(11,28,45,0.04);
+  }
+  .dash-filters-card .row { align-items: flex-end; }
+  .dash-filters-card .form-control, .dash-filters-card .form-select { border-radius: 10px; }
+  .dash-filters-card .btn { border-radius: 10px; font-weight: 600; }
+  .dash-chart-card {
+    background: var(--surface-color);
+    border-radius: 14px;
+    padding: 1.25rem;
+    border: 1px solid rgba(0,196,201,0.1);
+    box-shadow: 0 4px 20px rgba(11,28,45,0.04);
+    height: 100%;
+  }
+  .dash-chart-card h6 { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; }
+  .dash-chart-wrap { max-width: 200px; margin: 0 auto; }
+  .dash-table-wrap {
+    background: var(--surface-color);
+    border-radius: 14px;
+    border: 1px solid rgba(0,196,201,0.1);
+    box-shadow: 0 4px 20px rgba(11,28,45,0.04);
+    overflow: hidden;
+  }
+  .dash-table-wrap .table { margin-bottom: 0; }
+  .dash-table-wrap thead th {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--default-color); font-weight: 700; padding: 1rem 1.25rem;
+    background: rgba(0,196,201,0.06); border-bottom: 1px solid rgba(0,196,201,0.12);
+  }
+  .dash-table-wrap tbody td { padding: 1rem 1.25rem; vertical-align: middle; }
+  .dash-table-wrap tbody tr { transition: background 0.15s; }
+  .dash-table-wrap tbody tr:hover { background: rgba(0,196,201,0.04); }
+  .dash-table-wrap .candidate-name { font-weight: 700; color: var(--heading-color); }
+  .dash-table-wrap .candidate-email { font-size: 0.85rem; color: var(--default-color); opacity: 0.9; }
+  .badge-apto { background: var(--success-color); color: #fff; font-weight: 600; padding: 0.35em 0.65em; border-radius: 8px; }
+  .badge-revision { background: #f0ad4e; color: #fff; font-weight: 600; padding: 0.35em 0.65em; border-radius: 8px; }
+  .badge-no-apto { background: #d9534f; color: #fff; font-weight: 600; padding: 0.35em 0.65em; border-radius: 8px; }
+  .dash-table-wrap .btn-detail { border-radius: 10px; font-weight: 600; font-size: 0.85rem; padding: 0.4rem 0.85rem; }
+  .dash-empty { padding: 3rem 2rem; text-align: center; color: var(--default-color); }
+  .dash-empty i { font-size: 3rem; color: var(--accent-color); opacity: 0.4; margin-bottom: 1rem; display: block; }
+  @media (max-width: 767px) {
+    .dash-table-wrap thead th, .dash-table-wrap tbody td { padding: 0.75rem 0.5rem; font-size: 0.9rem; }
+  }
+  .billing-card { background: var(--surface-color); border-radius: 14px; padding: 1.5rem; box-shadow: 0 4px 20px rgba(11,28,45,0.04); border: 1px solid rgba(0,196,201,0.1); height: 100%; }
+  .progress-bar-custom { height: 10px; border-radius: 999px; background: rgba(11,28,45,0.08); overflow: hidden; }
+  .progress-bar-custom .fill { height: 100%; border-radius: 999px; background: var(--accent-color); transition: width 0.3s; }
+  .plan-card { transition: transform 0.2s, box-shadow 0.2s; }
+  .plan-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(11,28,45,0.08); }
+  .vacancy-card { background: var(--surface-color); border-radius: 14px; padding: 1.25rem; border: 1px solid rgba(0,196,201,0.12); margin-bottom: 1rem; box-shadow: 0 4px 20px rgba(11,28,45,0.04); }
+  /* Mi cuenta - sección */
+  .cuenta-section .cuenta-intro { margin-bottom: 1.75rem; }
+  .cuenta-section .cuenta-intro h2 { font-family: var(--ats-heading); font-size: 1.25rem; font-weight: 800; color: var(--heading-color); margin: 0 0 0.35rem; }
+  .cuenta-section .cuenta-intro p { color: var(--default-color); font-size: 0.9rem; opacity: 0.85; margin: 0; }
+  .cuenta-section .billing-card { padding: 1.35rem 1.5rem; }
+  .cuenta-section .billing-card h5 { font-size: 0.85rem; font-weight: 700; color: var(--heading-color); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+  .cuenta-section .billing-card h5 i { color: var(--accent-color); }
+  .cuenta-section .plan-incluye-card { padding: 1.35rem 1.5rem; border-left: 4px solid var(--accent-color); }
+  .cuenta-section .plan-incluye-card .cap-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+  .cuenta-section .plan-incluye-card .cap-list li { background: rgba(0,196,201,0.1); color: var(--heading-color); font-size: 0.8rem; font-weight: 500; padding: 0.35rem 0.75rem; border-radius: 999px; }
+  .cuenta-section .plan-change-title { font-family: var(--ats-heading); font-size: 1.1rem; font-weight: 800; color: var(--heading-color); margin: 1.5rem 0 0.5rem; }
+  .cuenta-section .plan-change-desc { font-size: 0.9rem; color: var(--default-color); opacity: 0.9; margin-bottom: 1.25rem; }
+  .cuenta-section .plan-card { padding: 1.5rem; display: flex; flex-direction: column; }
+  .cuenta-section .plan-card .plan-name-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+  .cuenta-section .plan-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--heading-color); margin: 0; }
+  .cuenta-section .plan-card .plan-desc { font-size: 0.85rem; color: var(--default-color); margin-bottom: 1rem; line-height: 1.4; }
+  .cuenta-section .plan-card .plan-price { font-size: 1.1rem; font-weight: 700; color: var(--heading-color); margin-bottom: 1rem; }
+  .cuenta-section .plan-card .plan-features { font-size: 0.85rem; color: var(--default-color); margin-bottom: 1.25rem; padding-left: 1.25rem; line-height: 1.5; }
+  .cuenta-section .plan-card .plan-features li { margin-bottom: 0.25rem; }
+  .cuenta-section .plan-card .plan-cta { margin-top: auto; }
+  .cuenta-section .plan-card .btn { border-radius: 10px; font-weight: 600; padding: 0.5rem 1rem; }
+  .cuenta-section .plan-card.border-primary { border-color: var(--accent-color) !important; box-shadow: 0 4px 20px rgba(0,196,201,0.12); }
+{% endblock %}
+
+{% block ats_content %}
+  <div class="dash-welcome" style="max-width: 1400px;">
+    <div>
+      <h1>Panel ATS <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Desde aquí ves candidatos, vacantes, envíos de formularios y tu cuenta. Usa las pestañas para cambiar de sección."></i></h1>
+      <p class="sub mb-0">
+        {% if ats_client %}
+          <span class="company">{{ ats_client.company_name }}</span>
+          {% if ats_client.contact_name %} · {{ ats_client.contact_name }}{% endif %}
+        {% else %}
+          {{ user.email }}
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  {% if dashboard_section == 'candidatos' %}
+    <div class="kpi-strip" style="max-width: 1400px;">
+      <div class="kpi-item">
+        <div class="val">{{ kpi_total }}</div>
+        <div class="lbl">Total</div>
+      </div>
+      <div class="kpi-item aptos">
+        <div class="val">{{ kpi_aptos }}</div>
+        <div class="lbl">Aptos</div>
+      </div>
+      <div class="kpi-item revision">
+        <div class="val">{{ kpi_revision }}</div>
+        <div class="lbl">En revisión</div>
+      </div>
+      <div class="kpi-item noaptos">
+        <div class="val">{{ kpi_no_aptos }}</div>
+        <div class="lbl">No aptos</div>
+      </div>
+      <div class="kpi-item">
+        <div class="val">{{ kpi_cvs_used }}<small class="text-muted fs-6">/{{ kpi_cvs_limit }}</small></div>
+        <div class="lbl">CVs IA</div>
+      </div>
+      {% if kpi_candidates_limit %}
+      <div class="kpi-item">
+        <div class="val">{{ kpi_total }}<small class="text-muted fs-6">/{{ kpi_candidates_limit }}</small></div>
+        <div class="lbl">Candidatos</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="dash-filters-card mb-3" style="max-width: 1400px;">
+      <form method="get" action="{% url 'ats_dashboard' %}" class="row g-2">
+        <input type="hidden" name="section" value="candidatos">
+        <div class="col-12 col-sm col-md-4">
+          <label class="form-label small text-muted mb-1">Buscar</label>
+          <input type="text" name="q" value="{{ filter_q }}" class="form-control form-control-sm" placeholder="Nombre o email...">
+        </div>
+        <div class="col-6 col-sm col-md-2">
+          <label class="form-label small text-muted mb-1">Estado</label>
+          <select name="status" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            <option value="APTO" {% if filter_status == 'APTO' %}selected{% endif %}>Apto</option>
+            <option value="REVISION" {% if filter_status == 'REVISION' %}selected{% endif %}>Revisión</option>
+            <option value="NO_APTO" {% if filter_status == 'NO_APTO' %}selected{% endif %}>No apto</option>
+          </select>
+        </div>
+        <div class="col-6 col-sm col-md-3">
+          <label class="form-label small text-muted mb-1">Vacante</label>
+          <select name="vacancy" class="form-select form-select-sm">
+            <option value="">Todas</option>
+            {% for v in vacancies %}
+              <option value="{{ v.id }}" {% if filter_vacancy == v.id|stringformat:'d' %}selected{% endif %}>{{ v.title }} ({{ v.candidates_count }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-sm col-md-2">
+          <label class="form-label small text-muted mb-1 d-none d-sm-block">&nbsp;</label>
+          <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+        </div>
+      </form>
+    </div>
+
+    <h2 class="dash-section-title" style="max-width: 1400px;"><i class="bi bi-people"></i>Candidatos <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Lista de postulantes. Filtra por estado o vacante. Haz clic en el nombre para ver detalle, subir CV o analizar con IA."></i>{% if subscription_can_export_candidates %}<span class="ms-2"><a href="{% url 'ats_candidate_export' %}?section=candidatos&amp;format=csv{% if filter_q %}&amp;q={{ filter_q|urlencode }}{% endif %}{% if filter_status %}&amp;status={{ filter_status|urlencode }}{% endif %}{% if filter_vacancy %}&amp;vacancy={{ filter_vacancy|urlencode }}{% endif %}" class="btn btn-sm btn-outline-primary rounded-pill"><i class="bi bi-download me-1"></i>CSV</a> <a href="{% url 'ats_candidate_export' %}?section=candidatos&amp;format=xlsx{% if filter_q %}&amp;q={{ filter_q|urlencode }}{% endif %}{% if filter_status %}&amp;status={{ filter_status|urlencode }}{% endif %}{% if filter_vacancy %}&amp;vacancy={{ filter_vacancy|urlencode }}{% endif %}" class="btn btn-sm btn-outline-primary rounded-pill"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a></span>{% endif %}</h2>
+    <div class="row g-3" style="max-width: 1400px;">
+      <div class="col-12 col-lg-8 order-2 order-lg-1">
+        <div class="dash-table-wrap">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Candidato</th>
+                  <th>Score</th>
+                  <th>Estado</th>
+                  <th class="d-none d-md-table-cell">Match</th>
+                  <th class="d-none d-lg-table-cell">Vacante</th>
+                  <th class="d-none d-lg-table-cell">Fecha</th>
+                  <th style="width: 120px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in candidates %}
+                  <tr>
+                    <td>
+                      <span class="candidate-name d-block">{{ c.name }}</span>
+                      {% if c.email %}<span class="candidate-email">{{ c.email }}</span>{% endif %}
+                    </td>
+                    <td><strong>{{ c.score|floatformat:0 }}%</strong></td>
+                    <td>
+                      {% if c.status == 'APTO' %}<span class="badge badge-apto">Apto</span>
+                      {% elif c.status == 'REVISION' %}<span class="badge badge-revision">Revisión</span>
+                      {% else %}<span class="badge badge-no-apto">No apto</span>{% endif %}
+                    </td>
+                    <td class="d-none d-md-table-cell">{% if c.match_percentage is not None %}{{ c.match_percentage|floatformat:0 }}%{% else %}—{% endif %}</td>
+                    <td class="d-none d-lg-table-cell">{% if c.vacancy %}{{ c.vacancy.title }}{% else %}—{% endif %}</td>
+                    <td class="d-none d-lg-table-cell"><small>{{ c.analysis_date|date:"d/m/Y" }}</small></td>
+                    <td><a href="{% url 'ats_candidate_detail' c.pk %}" class="btn btn-sm btn-primary btn-detail">Ver detalle</a></td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="7" class="dash-empty">
+                      <i class="bi bi-person-lines-fill"></i>
+                      <p class="mb-0">No hay candidatos con estos filtros.</p>
+                      <p class="small mt-1 mb-0">Cambia los criterios o recibe postulaciones desde tus formularios.</p>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-4 order-1 order-lg-2">
+        <div class="dash-chart-card">
+          <h6 class="mb-2">Por estado</h6>
+          <div class="dash-chart-wrap">
+            <canvas id="chartStatus" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if dashboard_section == 'reclutamiento' %}
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+      <div>
+        <h2 class="h5 fw-bold mb-2">Reclutamiento · Vacantes <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Crea vacantes (puestos) y asocia candidatos y formularios. Edita cada vacante para definir el perfil que usará la IA al analizar CVs."></i></h2>
+        <p class="text-muted small mb-0">Tus puestos de trabajo. Crea vacantes, asocia candidatos y formularios, y filtra por vacante en Candidatos.{% if kpi_vacancies_limit %} <strong>Vacantes: {{ kpi_vacancy_count }}/{{ kpi_vacancies_limit }}</strong>{% endif %}</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        {% if pending_submissions_count > 0 %}
+          <form method="post" action="{% url 'ats_backfill_candidates_from_submissions' %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-primary rounded-pill btn-sm">
+              <i class="bi bi-person-plus me-1"></i>Crear {{ pending_submissions_count }} candidato(s) desde envíos
+            </button>
+          </form>
+        {% endif %}
+        <a href="{% url 'ats_vacancy_create' %}" class="btn btn-primary rounded-pill"><i class="bi bi-plus-lg me-2"></i>Nueva vacante</a>
+      </div>
+    </div>
+
+    {% for v in vacancies %}
+      <div class="vacancy-card d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="flex-grow-1">
+          <h6 class="mb-1 fw-bold">{{ v.title }}</h6>
+          {% if v.description %}<p class="small text-muted mb-0">{{ v.description|truncatewords:25 }}</p>{% endif %}
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-secondary">{{ v.candidates_count }} candidato(s)</span>
+          <a href="{% url 'ats_vacancy_edit' v.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill">Editar</a>
+          <a href="{% url 'ats_dashboard' %}?section=candidatos&vacancy={{ v.id }}" class="btn btn-sm btn-outline-primary rounded-pill">Ver candidatos</a>
+          <form method="post" action="{% url 'ats_vacancy_delete' v.pk %}" class="d-inline" onsubmit="return atsConfirmSubmit(event, { title: '¿Eliminar esta vacante?', text: 'Los candidatos no se borran.', icon: 'warning', confirmButtonText: 'Sí, eliminar' });">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">Eliminar</button>
+          </form>
+        </div>
+      </div>
+    {% empty %}
+      <div class="ats-content-card p-5 text-center">
+        <i class="bi bi-briefcase display-4 text-muted d-block mb-3"></i>
+        <p class="text-muted mb-3">Aún no tienes vacantes. Crea puestos de trabajo para organizar candidatos y filtrar por vacante.</p>
+        <a href="{% url 'ats_vacancy_create' %}" class="btn btn-primary rounded-pill"><i class="bi bi-plus-lg me-2"></i>Crear primera vacante</a>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if dashboard_section == 'cuenta' %}
+  <div class="cuenta-section">
+    <div class="cuenta-intro">
+      <h2>Mi cuenta <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Tu plan actual, uso de CVs con IA y candidatos/vacantes. Solicita cambio de plan si necesitas más capacidad."></i></h2>
+      <p>Resumen de tu suscripción, uso y opciones para cambiar de plan.</p>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-sm-6 col-lg-3">
+        <div class="billing-card">
+          <h5><i class="bi bi-briefcase"></i> Plan actual</h5>
+          <p class="mb-0 fs-5 fw-bold text-dark">{{ subscription.get_plan_display }}</p>
+          <p class="text-muted small mt-1 mb-0">Cambiar abajo</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="billing-card">
+          <h5><i class="bi bi-file-earmark-text"></i> Escaneos</h5>
+          <p class="mb-1 fw-bold text-dark">{{ subscription.cvs_used }} <span class="fw-normal text-muted">/ {{ subscription.cvs_limit }}</span></p>
+          <div class="progress-bar-custom mt-2">
+            {% with pct=subscription.cvs_limit|default:1 %}
+            <div class="fill" style="width: {% widthratio subscription.cvs_used pct 100 %}%; max-width: 100%;"></div>
+            {% endwith %}
+          </div>
+          {% if not subscription.can_process_cv %}<p class="small text-danger mt-2 mb-0">Límite alcanzado</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="billing-card">
+          <h5><i class="bi bi-calendar-check"></i> Próximo pago</h5>
+          {% if subscription.next_payment_date %}
+            <p class="mb-0 fw-bold text-dark">{{ subscription.next_payment_date|date:"d/m/Y" }}</p>
+            {% if subscription.amount %}<p class="text-muted small mb-0">${{ subscription.amount }} MXN</p>{% endif %}
+          {% else %}<p class="mb-0 text-muted">Sin cobro</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="billing-card">
+          <h5><i class="bi bi-patch-check"></i> Estado</h5>
+          {% if subscription.active %}<p class="mb-0 fw-bold text-success">Activo</p>{% else %}<p class="mb-0 fw-bold text-danger">Inactivo</p>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="billing-card plan-incluye-card mb-4">
+      <h5 class="h6 fw-bold mb-2"><i class="bi bi-patch-check"></i> Tu plan incluye</h5>
+      <p class="small text-muted mb-3">Capacidades disponibles según tu plan actual.</p>
+      <ul class="cap-list">{% for cap in subscription_plan_capabilities %}<li>{{ cap }}</li>{% empty %}<li>—</li>{% endfor %}</ul>
+    </div>
+
+    <h2 class="plan-change-title">Cambiar de plan</h2>
+    <p class="plan-change-desc">Elige el plan que mejor se adapte a tu volumen. Al bajar de plan, el uso de escaneos se ajusta al nuevo límite. Los planes de pago se activan tras validación de soporte y pago.</p>
+    <div class="row g-4">
+      {% for plan in available_plans %}
+        <div class="col-md-4">
+          <div class="billing-card plan-card h-100 {% if subscription.plan == plan.id %}border-primary border-2{% endif %}">
+            <div class="plan-name-row">
+              <h3>{{ plan.name }}</h3>
+              {% if subscription.plan == plan.id %}<span class="badge bg-primary">Actual</span>{% endif %}
+            </div>
+            <p class="plan-desc">{{ plan.description }}</p>
+            <p class="plan-price">{% if plan.id == 'FREE' %}Gratis{% else %}${{ plan.amount_mxn }} MXN <span class="fw-normal fs-6 text-muted">/ mes</span>{% endif %}</p>
+            <ul class="plan-features">
+              {% for f in plan.features %}<li>{{ f }}</li>{% endfor %}
+            </ul>
+            <div class="plan-cta">
+              <form method="post" action="{% url 'ats_change_plan' %}" class="ats-plan-change-form" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}">
+                {% csrf_token %}
+                <input type="hidden" name="plan" value="{{ plan.id }}">
+                <button type="submit" class="btn btn-sm {% if subscription.plan == plan.id %}btn-outline-secondary disabled{% else %}btn-primary{% endif %}" {% if subscription.plan == plan.id %}disabled{% endif %}>
+                  {% if subscription.plan == plan.id %}Plan actual{% else %}Elegir este plan{% endif %}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="mt-4 pt-4 border-top">
+      <p class="small text-muted mb-2">¿Quieres dar de baja tu cuenta?</p>
+      <a href="{% url 'ats_request_account_deletion' %}" class="btn btn-sm btn-outline-secondary">Solicitar baja de cuenta</a>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block ats_extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  {% if dashboard_section == 'cuenta' %}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    (function() {
+      var forms = document.querySelectorAll('.ats-plan-change-form');
+      forms.forEach(function(form) {
+        var btn = form.querySelector('button[type="submit"]');
+        if (!btn || btn.disabled) return;
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var planName = form.getAttribute('data-plan-name') || 'este plan';
+          Swal.fire({
+            title: '¿Estás seguro?',
+            html: 'Se enviará una solicitud para cambiar a <strong>' + planName + '</strong>. Soporte validará y te contactará para gestionar el pago; una vez realizado, se activará tu nuevo plan.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#00C4C9',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, solicitar cambio',
+            cancelButtonText: 'Cancelar'
+          }).then(function(result) {
+            if (result.isConfirmed) form.submit();
+          });
+        });
+      });
+    })();
+  </script>
+  {% endif %}
+  <script>
+    (function() {
+      var ctx = document.getElementById('chartStatus');
+      if (!ctx) return;
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Aptos', 'En revisión', 'No aptos'],
+          datasets: [{
+            data: [{{ chart_aptos|default:0 }}, {{ chart_revision|default:0 }}, {{ chart_no_aptos|default:0 }}],
+            backgroundColor: ['#3DDC97', '#f0ad4e', '#d9534f'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } } }
+        }
+      });
+    })();
+  </script>
+{% endblock %}

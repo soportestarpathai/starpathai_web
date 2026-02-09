@@ -1,0 +1,341 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block ats_title %}Panel ATS{% endblock %} | Star Path</title>
+  <link href="{% static 'img/logo_star.png' %}" rel="icon">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root {
+      --ats-font: "Inter", sans-serif;
+      --ats-heading: "Plus Jakarta Sans", sans-serif;
+      --ats-bg: #f0f4f8;
+      --ats-sidebar-bg: #f0f4f8;
+      --ats-sidebar-width: 260px;
+      --ats-card-radius: 12px;
+      --ats-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      --ats-shadow-card: 0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -2px rgba(0,0,0,0.04);
+    }
+    body { font-family: var(--ats-font); background: var(--ats-bg); min-height: 100vh; margin: 0; }
+    .ats-app { background: var(--ats-bg); }
+    .ats-app { display: flex; min-height: 100vh; }
+    /* Sidebar */
+    .ats-sidebar {
+      width: var(--ats-sidebar-width);
+      background: var(--ats-sidebar-bg);
+      border-right: 1px solid rgba(11,28,45,0.1);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 1030;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .ats-sidebar .sidebar-brand {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      color: var(--heading-color);
+      font-family: var(--ats-heading);
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+    .ats-sidebar .sidebar-brand img { height: 36px; width: auto; }
+    .ats-sidebar .sidebar-brand span { opacity: 0.9; }
+    .ats-sidebar .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 0.75rem;
+    }
+    .ats-sidebar .nav-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--default-color); opacity: 0.75; padding: 0.5rem 1rem; margin-top: 0.5rem; }
+    .ats-sidebar .nav-label:first-child { margin-top: 0; }
+    .ats-sidebar .nav-item { margin-bottom: 0.2rem; }
+    .ats-sidebar .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 1rem;
+      border-radius: 8px;
+      color: var(--default-color);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: background 0.15s, color 0.15s;
+    }
+    .ats-sidebar .nav-link:hover { background: rgba(0,196,201,0.1); color: var(--accent-color); }
+    .ats-sidebar .nav-link.active { background: rgba(0,196,201,0.12); color: var(--accent-color); }
+    .ats-sidebar .nav-link i { font-size: 1.15rem; width: 22px; text-align: center; opacity: 0.9; }
+    .ats-sidebar .nav-divider { height: 1px; background: rgba(0,0,0,0.06); margin: 0.5rem 1rem; }
+    .ats-sidebar .nav-link.text-danger:hover { background: rgba(217,83,79,0.1); color: #b91c1c; }
+    /* Mobile sidebar overlay */
+    .ats-sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1029; }
+    .ats-sidebar-backdrop.show { display: block; }
+    @media (max-width: 991.98px) {
+      .ats-sidebar { transform: translateX(-100%); box-shadow: none; }
+      .ats-sidebar.show { transform: translateX(0); box-shadow: 8px 0 24px rgba(0,0,0,0.12); }
+    }
+    @media (min-width: 992px) {
+      .ats-sidebar-backdrop { display: none !important; }
+    }
+    /* Main wrapper - fondo gris en toda el área de contenido */
+    .ats-main-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; margin-left: 0; background: var(--ats-bg); }
+    @media (min-width: 992px) {
+      .ats-main-wrap { margin-left: var(--ats-sidebar-width); }
+    }
+    /* Top header - mismo estilo oscuro que antes */
+    .ats-topbar {
+      background: linear-gradient(135deg, var(--dark-bg) 0%, #0d2842 50%, #0a2038 100%);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 1010;
+      box-shadow: 0 4px 20px rgba(11,28,45,0.2);
+    }
+    .ats-topbar .sidebar-toggle {
+      width: 40px; height: 40px;
+      border: none; border-radius: 8px;
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.35rem;
+    }
+    .ats-topbar .sidebar-toggle:hover { background: rgba(255,255,255,0.22); color: #fff; }
+    @media (min-width: 992px) { .ats-topbar .sidebar-toggle { display: none; } }
+    .ats-topbar .page-title { font-family: var(--ats-heading); font-weight: 700; font-size: 1.15rem; color: #fff; margin: 0; background: transparent !important; border: none; }
+    .ats-topbar > div { background: transparent !important; }
+    .ats-topbar .form-control { background: rgba(255,255,255,0.12) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.25); }
+    .ats-topbar .form-control::placeholder { color: rgba(255,255,255,0.65); }
+    .ats-topbar .user-dropdown .btn {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-weight: 500;
+    }
+    .ats-topbar .user-dropdown .btn:hover { background: rgba(255,255,255,0.18); color: #fff; border-color: rgba(255,255,255,0.35); }
+    .ats-topbar .user-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      object-fit: cover; border: 2px solid rgba(255,255,255,0.35);
+    }
+    .ats-topbar .user-avatar-ph { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: #fff; }
+    .ats-topbar .user-info { text-align: left; }
+    .ats-topbar .user-info .name { font-size: 0.875rem; font-weight: 600; display: block; color: #fff; }
+    .ats-topbar .user-info .role { font-size: 0.75rem; color: rgba(255,255,255,0.7); }
+    @media (max-width: 575px) {
+      .ats-topbar .user-info { display: none; }
+    }
+    /* Content - texto oscuro sobre fondo claro siempre */
+    .ats-content { flex: 1; padding: 1.5rem; color: var(--default-color); background: var(--ats-bg); }
+    .ats-content .form-control, .ats-content .form-select, .ats-content .form-check-label { color: var(--default-color); }
+    .ats-content .form-label { color: var(--heading-color); }
+    @media (min-width: 768px) { .ats-content { padding: 1.75rem 2rem; } }
+    .ats-content-card {
+      background: var(--surface-color);
+      border-radius: var(--ats-card-radius);
+      box-shadow: var(--ats-shadow-card);
+      border: 1px solid rgba(0,196,201,0.1);
+      overflow: hidden;
+    }
+    .ats-footer { padding: 0.75rem 1.5rem; border-top: 1px solid rgba(11,28,45,0.08); background: var(--surface-color); font-size: 0.8rem; color: var(--default-color); }
+    .ats-footer p { margin: 0; }
+    {% block ats_extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+  <div class="ats-app">
+    <div class="ats-sidebar-backdrop" id="atsSidebarBackdrop" aria-hidden="true"></div>
+    <aside class="ats-sidebar" id="atsSidebar">
+      <a href="{% if ats_client %}{% url 'ats_dashboard' %}{% elif user.is_staff %}{% url 'ats_admin_dashboard' %}{% else %}{% url 'ats_dashboard' %}{% endif %}" class="sidebar-brand">
+        <img src="{% static 'img/logo_star.png' %}" alt="Star Path">
+        <span>Star Path <span class="opacity-75 fw-normal" style="font-size: 0.9rem;">ATS</span></span>
+      </a>
+      <nav class="sidebar-nav">
+        {% if ats_client %}
+        <div class="nav-label">Menú</div>
+        <div class="nav-item"><a href="{% url 'ats_dashboard' %}?section=candidatos" class="nav-link {% if ats_page == 'candidatos' %}active{% endif %}"><i class="bi bi-people"></i> Candidatos</a></div>
+        <div class="nav-item"><a href="{% url 'ats_dashboard' %}?section=reclutamiento" class="nav-link {% if ats_page == 'reclutamiento' %}active{% endif %}"><i class="bi bi-briefcase"></i> Reclutamiento</a></div>
+        <div class="nav-item"><a href="{% url 'ats_form_list' %}" class="nav-link {% if ats_page == 'formularios' %}active{% endif %}"><i class="bi bi-ui-checks"></i> Formularios</a></div>
+        <div class="nav-item"><a href="{% url 'ats_dashboard' %}?section=cuenta" class="nav-link {% if ats_page == 'cuenta' %}active{% endif %}"><i class="bi bi-credit-card"></i> Mi cuenta</a></div>
+        <div class="nav-item"><a href="{% url 'ats_notification_panel' %}" class="nav-link {% if ats_page == 'notificaciones' %}active{% endif %}"><i class="bi bi-bell"></i> Notificaciones</a></div>
+        <div class="nav-item"><a href="{% url 'ats_email_config' %}" class="nav-link {% if ats_page == 'correo' %}active{% endif %}"><i class="bi bi-envelope"></i> Config. correo</a></div>
+        <div class="nav-item"><a href="{% url 'ats_cv_analysis_config' %}" class="nav-link {% if ats_page == 'analisis_cv' %}active{% endif %}"><i class="bi bi-cpu"></i> Config. análisis CV</a></div>
+        {% if user.is_staff %}
+        <div class="nav-divider"></div>
+        <div class="nav-label">Administración</div>
+        <div class="nav-item"><a href="{% url 'ats_admin_dashboard' %}" class="nav-link {% if ats_page == 'administracion' %}active{% endif %}"><i class="bi bi-gear-wide-connected"></i> Administración ATS</a></div>
+        {% endif %}
+        {% elif user.is_staff %}
+        <div class="nav-label">Administración</div>
+        <div class="nav-item"><a href="{% url 'ats_admin_dashboard' %}" class="nav-link {% if ats_page == 'administracion' %}active{% endif %}"><i class="bi bi-gear-wide-connected"></i> Administración ATS</a></div>
+        <div class="nav-divider"></div>
+        <div class="nav-item"><a href="{% url 'ats_staff_account' %}" class="nav-link {% if ats_page == 'mi_cuenta_staff' %}active{% endif %}"><i class="bi bi-credit-card"></i> Mi cuenta</a></div>
+        <div class="nav-item"><a href="{% url 'ats_producto' %}" class="nav-link"><i class="bi bi-box-arrow-up-right"></i> Ver producto ATS</a></div>
+        {% endif %}
+        <div class="nav-divider"></div>
+        <div class="nav-label">Cuenta</div>
+        {% if ats_client %}
+        <div class="nav-item"><a href="{% url 'ats_profile_config' %}" class="nav-link {% if ats_page == 'perfil' %}active{% endif %}"><i class="bi bi-person-gear"></i> Configurar cuenta</a></div>
+        {% endif %}
+        <div class="nav-item"><a href="{% url 'ats_logout' %}" class="nav-link text-danger"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a></div>
+      </nav>
+    </aside>
+
+    <div class="ats-main-wrap">
+      <header class="ats-topbar">
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="sidebar-toggle" id="atsSidebarToggle" aria-label="Abrir menú"><i class="bi bi-list"></i></button>
+          <h1 class="page-title">{% block ats_header_title %}Panel ATS{% endblock %}</h1>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          {% if ats_notifications is not None or ats_admin_notifications is not None %}
+          <div class="dropdown">
+            <button type="button" class="btn btn-link text-white p-2 position-relative" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
+              <i class="bi bi-bell fs-5"></i>
+              {% if ats_notifications is not None and ats_unread_count > 0 or ats_admin_notifications is not None and ats_admin_unread_count > 0 %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">{% if ats_notifications is not None %}{% if ats_unread_count > 99 %}99+{% else %}{{ ats_unread_count }}{% endif %}{% else %}{% if ats_admin_unread_count > 99 %}99+{% else %}{{ ats_admin_unread_count }}{% endif %}{% endif %}</span>
+              {% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-2 py-0 ats-notif-list" style="min-width: 340px; max-height: 380px; overflow-y: auto;">
+              {% if ats_notifications is not None %}
+              <li class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center gap-2" style="line-height: 1.4; min-height: 2.25rem; background: rgba(0,196,201,0.06);">
+                <span class="fw-semibold text-dark d-flex align-items-center">Notificaciones</span>
+                <a href="{% url 'ats_notification_panel' %}" class="small text-primary text-decoration-none fw-medium flex-shrink-0">Ver todas</a>
+              </li>
+              {% for n in ats_notifications %}
+              <li class="border-bottom" style="border-color: rgba(0,0,0,0.05) !important;">
+                <a class="dropdown-item py-2 d-flex align-items-start gap-2 {% if not n.read %}bg-white{% endif %}" href="{% url 'ats_notification_go' n.pk %}" style="{% if not n.read %}background: rgba(0,196,201,0.08) !important;{% endif %}">
+                  <span class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0,196,201,0.12); color: var(--accent-color);"><i class="bi bi-bell-fill small"></i></span>
+                  <span class="flex-grow-1 min-w-0">
+                    <span class="d-block fw-semibold text-dark">{{ n.title }}</span>
+                    {% if n.message %}<span class="small text-muted d-block text-truncate">{{ n.message }}</span>{% endif %}
+                    <span class="small text-muted">{{ n.created_at|timesince }} atrás</span>
+                  </span>
+                  {% if not n.read %}<span class="rounded-circle flex-shrink-0" style="width: 8px; height: 8px; background: var(--accent-color); margin-top: 0.5rem;"></span>{% endif %}
+                </a>
+              </li>
+              {% empty %}
+              <li class="px-3 py-4 text-center text-muted small">No hay notificaciones.</li>
+              {% endfor %}
+              {% if ats_unread_count > 0 and ats_notifications %}
+              <li class="border-top mt-1">
+                <form method="post" action="{% url 'ats_notification_mark_all_read' %}" class="p-2">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-secondary w-100">Marcar todas como leídas</button>
+                </form>
+              </li>
+              {% endif %}
+              {% else %}
+              <li class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center gap-2" style="line-height: 1.4; min-height: 2.25rem; background: rgba(0,196,201,0.06);">
+                <span class="fw-semibold text-dark d-flex align-items-center">Solicitudes de cambio de plan</span>
+                <a href="{% url 'ats_admin_dashboard' %}" class="small text-primary text-decoration-none fw-medium flex-shrink-0">Ver todas</a>
+              </li>
+              {% for req in ats_admin_notifications %}
+              <li class="border-bottom" style="border-color: rgba(0,0,0,0.05) !important;">
+                <a class="dropdown-item py-2 d-flex align-items-start gap-2" href="{% url 'ats_admin_dashboard' %}">
+                  <span class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0,196,201,0.12); color: var(--accent-color);"><i class="bi bi-arrow-repeat small"></i></span>
+                  <span class="flex-grow-1 min-w-0">
+                    <span class="d-block fw-semibold text-dark">{{ req.client.company_name }}</span>
+                    <span class="small text-muted">Solicitud: {{ req.get_from_plan_display }} → {{ req.get_to_plan_display }}</span>
+                    <span class="small text-muted">{{ req.created_at|timesince }} atrás</span>
+                  </span>
+                </a>
+              </li>
+              {% empty %}
+              <li class="px-3 py-4 text-center text-muted small">No hay solicitudes pendientes.</li>
+              {% endfor %}
+              {% endif %}
+            </ul>
+          </div>
+          {% endif %}
+          <div class="dropdown user-dropdown">
+          <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            {% if ats_client and ats_client.avatar %}
+              <img src="{{ ats_client.avatar.url }}" alt="" class="user-avatar">
+            {% else %}
+              <div class="user-avatar-ph"><i class="bi bi-person"></i></div>
+            {% endif %}
+            <span class="user-info">
+              <span class="name">{% if ats_client %}{{ ats_client.company_name }}{% else %}{{ user.email }}{% endif %}</span>
+              <span class="role">{% if ats_client.contact_name %}{{ ats_client.contact_name }}{% elif user.is_staff %}Administrador{% else %}Mi cuenta{% endif %}</span>
+            </span>
+            <i class="bi bi-chevron-down ms-1 opacity-75 text-white"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-2 py-2" style="min-width: 200px;">
+            {% if ats_client %}
+            <li><a class="dropdown-item py-2" href="{% url 'ats_dashboard' %}?section=cuenta"><i class="bi bi-credit-card me-2"></i>Mi cuenta</a></li>
+            <li><a class="dropdown-item py-2" href="{% url 'ats_profile_config' %}"><i class="bi bi-person-gear me-2"></i>Configurar cuenta</a></li>
+            <li><a class="dropdown-item py-2" href="{% url 'ats_cv_analysis_config' %}"><i class="bi bi-cpu me-2"></i>Config. análisis CV</a></li>
+            {% else %}
+            <li><a class="dropdown-item py-2" href="{% url 'ats_staff_account' %}"><i class="bi bi-person me-2"></i>Mi cuenta</a></li>
+            {% endif %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item py-2 text-danger" href="{% url 'ats_logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</a></li>
+          </ul>
+          </div>
+        </div>
+      </header>
+
+      <main class="ats-content">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3 rounded-2 shadow-sm">{{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+        {% block ats_content %}{% endblock %}
+      </main>
+
+      <footer class="ats-footer">
+        <p>© <span id="year"></span> <strong class="text-dark">Star Path</strong> · ATS</p>
+      </footer>
+    </div>
+  </div>
+
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+  <script>
+  window.atsConfirmSubmit = function(ev, opts) {
+    ev.preventDefault();
+    var form = ev.target;
+    Swal.fire(Object.assign({ showCancelButton: true, confirmButtonText: 'Sí', cancelButtonText: 'Cancelar', icon: 'question' }, opts || {})).then(function(r) { if (r.isConfirmed) form.submit(); });
+    return false;
+  };
+  </script>
+  <script>
+  (function() {
+    var sidebar = document.getElementById('atsSidebar');
+    var backdrop = document.getElementById('atsSidebarBackdrop');
+    var toggle = document.getElementById('atsSidebarToggle');
+    function open() { sidebar.classList.add('show'); backdrop.classList.add('show'); document.body.style.overflow = 'hidden'; }
+    function close() { sidebar.classList.remove('show'); backdrop.classList.remove('show'); document.body.style.overflow = ''; }
+    if (toggle) toggle.addEventListener('click', function() { sidebar.classList.contains('show') ? close() : open(); });
+    if (backdrop) backdrop.addEventListener('click', close);
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close(); });
+  })();
+  </script>
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script>
+  (function(){ var t=document.querySelectorAll('[data-bs-toggle="tooltip"]'); t.forEach(function(el){ try { new bootstrap.Tooltip(el); } catch(e) {} }); })();
+  </script>
+  {% block ats_extra_js %}{% endblock %}
+</body>
+</html>

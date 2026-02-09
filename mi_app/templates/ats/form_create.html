@@ -1,0 +1,50 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}Nuevo formulario{% endblock %}
+{% block ats_header_title %}Nuevo formulario{% endblock %}
+
+{% block ats_extra_css %}
+  .create-card {
+    background: var(--surface-color);
+    border-radius: 16px;
+    border: 1px solid rgba(0,196,201,0.12);
+    padding: 1.5rem;
+    max-width: 560px;
+    box-shadow: 0 6px 20px rgba(11,28,45,0.04);
+  }
+  @media (min-width: 576px) { .create-card { padding: 2rem; } }
+{% endblock %}
+
+{% block ats_content %}
+  <div class="mb-3"><a href="{% url 'ats_form_list' %}" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Volver a formularios</a></div>
+
+  <div class="create-card">
+    <h1 class="h4 mb-4 fw-bold">Nuevo formulario</h1>
+    <form method="post" action="">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label fw-bold">Nombre del formulario</label>
+        {{ form.name }}
+        {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Descripción (instrucciones para el candidato)</label>
+        {{ form.description }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Vacante asociada (opcional)</label>
+        {{ form.vacancy }}
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-bold">Vista del formulario (grilla)</label>
+        {{ form.layout }}
+        <p class="small text-muted mb-0 mt-1">Cómo se verán los campos en el enlace público: una, dos o tres columnas.</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-plus-lg me-1"></i>Crear y añadir campos</button>
+        <a href="{% url 'ats_form_list' %}" class="btn btn-outline-secondary rounded-pill">Cancelar</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

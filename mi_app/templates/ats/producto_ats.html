@@ -1,0 +1,550 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATS (Applicant Tracking System) - Identificación de Talento | Star Path</title>
+  <meta name="description" content="Ven y prueba nuestro ATS (Applicant Tracking System) de Low Code. Formularios dinámicos, CVs con OpenAI, match con tu vacante.">
+  <link href="{% static 'img/logo_star.png' %}" rel="icon">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Poppins:wght@400;600;700;800&family=Raleway:wght@400;600&display=swap" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+  <style>
+    /* ATS page – mejoras visuales respetando paleta */
+    .ats-hero {
+      min-height: 75vh;
+      background: linear-gradient(135deg, var(--dark-bg) 0%, #0d2842 50%, #0B1C2D 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .ats-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,196,201,0.15), transparent),
+                  radial-gradient(ellipse 60% 40% at 100% 80%, rgba(61,220,151,0.08), transparent);
+      pointer-events: none;
+    }
+    .ats-hero .container { position: relative; z-index: 1; }
+    .ats-hero .ats-badge {
+      display: inline-block;
+      background: rgba(0,196,201,0.2);
+      color: var(--accent-color);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 0.5rem 1.25rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0,196,201,0.4);
+      margin-bottom: 1.5rem;
+    }
+    .ats-hero h1 {
+      font-size: clamp(1.85rem, 4vw, 2.75rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+    }
+    .ats-hero h1 .ats-highlight { color: var(--accent-color); }
+    .ats-hero .ats-full-name {
+      font-size: 1rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: 0.04em;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+    .ats-hero .lead {
+      font-size: 1.15rem;
+      color: rgba(255,255,255,0.88);
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .ats-hero .cta-btn {
+      background: var(--accent-color) !important;
+      color: #fff !important;
+      border: none;
+      padding: 0.9rem 2.25rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      border-radius: 999px;
+      box-shadow: 0 8px 30px rgba(0,196,201,0.4);
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .ats-hero .cta-btn:hover {
+      color: #fff !important;
+      background: color-mix(in srgb, var(--accent-color), white 8%) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,196,201,0.5);
+    }
+
+    .ats-features .ats-card {
+      background: var(--surface-color);
+      border-radius: 20px;
+      padding: 2rem 1.5rem;
+      height: 100%;
+      border: 1px solid rgba(11,28,45,0.08);
+      box-shadow: 0 10px 40px rgba(11,28,45,0.06);
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    }
+    .ats-features .ats-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 50px rgba(0,196,201,0.12);
+      border-color: rgba(0,196,201,0.25);
+    }
+    .ats-features .ats-card .ats-card-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 1.25rem;
+      background: rgba(0,196,201,0.12);
+      color: var(--accent-color);
+      transition: background 0.25s, color 0.25s;
+    }
+    .ats-features .ats-card:hover .ats-card-icon {
+      background: var(--accent-color);
+      color: #fff;
+    }
+    .ats-features .ats-card h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--heading-color);
+      margin-bottom: 0.75rem;
+    }
+    .ats-features .ats-card p {
+      color: var(--default-color);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin: 0;
+      text-align: justify;
+    }
+    .ats-features .ats-card:nth-child(2) .ats-card-icon { background: rgba(61,220,151,0.12); color: var(--success-color); }
+    .ats-features .ats-card:nth-child(2):hover .ats-card-icon { background: var(--success-color); color: #fff; }
+    .ats-features .ats-card:nth-child(3) .ats-card-icon { background: rgba(11,28,45,0.08); color: var(--dark-bg); }
+    .ats-features .ats-card:nth-child(3):hover .ats-card-icon { background: var(--dark-bg); color: #fff; }
+    .ats-features .ats-card:nth-child(4) .ats-card-icon { background: rgba(0,196,201,0.12); color: var(--accent-color); }
+
+    .ats-strip {
+      background: linear-gradient(90deg, var(--dark-bg) 0%, #0d2842 100%);
+      color: #fff;
+      padding: 3rem 0;
+    }
+    .ats-strip .ats-strip-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .ats-strip .ats-strip-item i {
+      font-size: 1.75rem;
+      color: var(--accent-color);
+    }
+    .ats-strip .ats-strip-item span { font-weight: 600; font-size: 1.05rem; }
+
+    /* Botón "Probar la plataforma ATS" – más estilo */
+    .ats-btn-probar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      background: linear-gradient(135deg, var(--accent-color), #00a8ad) !important;
+      color: #fff !important;
+      border: none;
+      padding: 1rem 2.25rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      border-radius: 999px;
+      box-shadow: 0 10px 35px rgba(0,196,201,0.4), 0 0 0 1px rgba(255,255,255,0.15) inset;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .ats-btn-probar:hover {
+      color: #fff !important;
+      background: linear-gradient(135deg, #00d4da, var(--accent-color)) !important;
+      transform: translateY(-3px);
+      box-shadow: 0 16px 45px rgba(0,196,201,0.45), 0 0 0 1px rgba(255,255,255,0.2) inset;
+    }
+    .ats-btn-probar i { font-size: 1.1em; }
+
+    /* Sección "¿Listo para probar?" – diseño mejorado */
+    .ats-cta {
+      background: linear-gradient(160deg, var(--dark-bg) 0%, #0d2842 50%, #0B1C2D 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .ats-cta::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0,196,201,0.12), transparent 60%);
+      pointer-events: none;
+    }
+    .ats-cta .container { position: relative; z-index: 1; }
+    .ats-cta .ats-cta-box {
+      background: rgba(255,255,255,0.04);
+      border-radius: 24px;
+      padding: 3.5rem 3rem;
+      border: 1px solid rgba(0,196,201,0.25);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.05) inset;
+    }
+    .ats-cta .ats-cta-box .ats-cta-label {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--accent-color);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+    }
+    .ats-cta .ats-cta-box h2 {
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .ats-cta .ats-cta-box .ats-cta-desc {
+      color: rgba(255,255,255,0.8);
+      font-size: 1.05rem;
+      margin-bottom: 1.75rem;
+    }
+    .ats-cta .ats-cta-box .cta-btn {
+      background: var(--accent-color) !important;
+      color: #fff !important;
+      border: none;
+      padding: 1rem 2.5rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      border-radius: 999px;
+      box-shadow: 0 10px 35px rgba(0,196,201,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .ats-cta .ats-cta-box .cta-btn:hover {
+      color: #fff !important;
+      background: color-mix(in srgb, var(--accent-color), white 10%) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 14px 45px rgba(0,196,201,0.5);
+    }
+
+    /* Footer ATS */
+    .ats-footer .footer-top { padding-top: 3.5rem; padding-bottom: 2rem; }
+    .ats-footer .footer-about .logo { text-decoration: none; color: inherit; }
+    .ats-footer .footer-about .sitename { color: var(--heading-color); font-weight: 700; }
+    .ats-footer .footer-tagline { font-size: 0.95rem; line-height: 1.6; opacity: 0.9; }
+    .ats-footer .footer-contact p { margin-bottom: 0.35rem; font-size: 0.9rem; }
+    .ats-footer .footer-contact i { margin-right: 0.5rem; opacity: 0.85; }
+    .ats-footer .footer-links h4 {
+      font-size: 1rem; font-weight: 700; color: var(--heading-color);
+      margin-bottom: 1rem; padding-bottom: 0.5rem;
+    }
+    .ats-footer .footer-links ul { list-style: none; padding: 0; margin: 0; }
+    .ats-footer .footer-links ul li { margin-bottom: 0.5rem; }
+    .ats-footer .footer-links ul a {
+      color: var(--default-color); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .ats-footer .footer-links ul a:hover { color: var(--accent-color); }
+    .ats-footer .footer-ats-desc {
+      font-size: 0.9rem; line-height: 1.55; opacity: 0.9;
+      margin-bottom: 1rem;
+    }
+    .ats-footer .footer-cta .btn { border-radius: 999px; font-weight: 600; }
+    .ats-footer .copyright {
+      padding-top: 1.5rem; padding-bottom: 1.5rem;
+      border-top: 1px solid rgba(11,28,45,0.08);
+    }
+    .ats-footer .copyright p { margin-bottom: 0.35rem; font-size: 0.9rem; }
+    .ats-footer .credits { font-size: 0.85rem; }
+    .ats-footer .credits a { color: var(--accent-color); text-decoration: none; }
+    .ats-footer .credits a:hover { text-decoration: underline; }
+    .ats-footer .social-links a {
+      width: 38px; height: 38px; border-radius: 12px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(0,196,201,0.1); color: var(--heading-color);
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+    }
+    .ats-footer .social-links a:hover {
+      background: var(--accent-color); color: #fff; transform: translateY(-2px);
+    }
+
+    /* Planes */
+    .ats-plans { background: rgba(0,196,201,0.04); }
+    .ats-plan-card {
+      background: var(--surface-color);
+      border: 1px solid rgba(11,28,45,0.1);
+      box-shadow: 0 10px 40px rgba(11,28,45,0.06);
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .ats-plan-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(11,28,45,0.1);
+    }
+    .ats-plan-featured {
+      border-width: 2px !important;
+      box-shadow: 0 12px 45px rgba(0,196,201,0.15);
+    }
+    .ats-plan-name { font-weight: 700; color: var(--heading-color); }
+    .ats-plan-price .h4 { color: var(--heading-color); }
+    .ats-plan-features li { color: var(--default-color); }
+  </style>
+</head>
+<body class="index-page">
+  <header id="header" class="header sticky-top">
+    <div class="topbar d-flex align-items-center">
+      <div class="container d-flex justify-content-center justify-content-md-between">
+        <div class="contact-info d-flex align-items-center">
+          <i class="bi bi-envelope d-flex align-items-center"><a href="mailto:soporte@starpathai.mx">soporte@starpathai.mx</a></i>
+          <i class="bi bi-phone d-flex align-items-center ms-4"><span>+52 5540448996</span></i>
+        </div>
+        <div class="social-links d-none d-md-flex align-items-center">
+          <a href="#" aria-label="X"><i class="bi bi-twitter-x"></i></a>
+          <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="branding d-flex align-items-center">
+      <div class="container position-relative d-flex align-items-center justify-content-between">
+        <a href="{% url 'home' %}" class="logo d-flex align-items-center gap-3 me-auto">
+          <img src="{% static 'img/logo_star.png' %}" alt="Star Path" style="height:80px;width:auto;">
+        </a>
+        <nav id="navmenu" class="navmenu">
+          <ul>
+            <li><a href="{% url 'home' %}">Inicio</a></li>
+            <li><a href="{% url 'ats_producto' %}" class="active">ATS</a></li>
+            <li><a href="{% url 'ats_producto' %}#planes">Planes</a></li>
+            <li><a href="{% url 'home' %}#contact">Contacto</a></li>
+          </ul>
+          <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+        </nav>
+        <a class="cta-btn d-none d-sm-block" href="{% url 'ats_plataforma' %}">Ir a la plataforma</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Hero ATS -->
+    <section class="ats-hero section d-flex align-items-center">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-10 text-center" data-aos="fade-up">
+            <span class="ats-badge">LOW CODE · IDENTIFICACIÓN DE TALENTO</span>
+            <h1 class="mb-2">Ven y prueba nuestro <span class="ats-highlight">ATS</span></h1>
+            <p class="ats-full-name">Applicant Tracking System</p>
+            <p class="lead mb-5">
+              Formularios dinámicos, orquestación de correos y procesamiento de CVs con OpenAI. 
+              Match automático con lo que tu empresa está solicitando.
+            </p>
+            <a href="{% url 'ats_plataforma' %}" class="cta-btn btn btn-lg">Acceder a la plataforma</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Strip de beneficios -->
+    <section class="ats-strip">
+      <div class="container">
+        <div class="row g-4 text-center">
+          <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="0">
+            <div class="ats-strip-item">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Formularios dinámicos</span>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="100">
+            <div class="ats-strip-item">
+              <i class="fa-solid fa-envelope-circle-check"></i>
+              <span>Correos orquestados</span>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="200">
+            <div class="ats-strip-item">
+              <i class="fa-solid fa-robot"></i>
+              <span>CVs con OpenAI</span>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="300">
+            <div class="ats-strip-item">
+              <i class="fa-solid fa-bullseye"></i>
+              <span>Match con vacantes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Qué incluye -->
+    <section class="section ats-features">
+      <div class="container">
+        <div class="section-title" data-aos="fade-up">
+          <h2>Qué incluye la plataforma</h2>
+          <p><span class="text-muted small">Applicant Tracking System</span> — Todo lo que necesitas para captar, procesar y hacer match de candidatos con tus vacantes.</p>
+        </div>
+        <div class="row g-4">
+          <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+            <div class="ats-card">
+              <div class="ats-card-icon"><i class="fa-solid fa-file-lines"></i></div>
+              <h3>Formularios dinámicos</h3>
+              <p>Edita formularios automáticos desde HTML para captar CVs y datos de candidatos sin tocar código.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+            <div class="ats-card">
+              <div class="ats-card-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+              <h3>Correos orquestados</h3>
+              <p>Conecta correos externos para leer CVs entrantes y procesarlos de forma automática.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+            <div class="ats-card">
+              <div class="ats-card-icon"><i class="fa-solid fa-robot"></i></div>
+              <h3>CVs con OpenAI</h3>
+              <p>Procesa currículos con IA: extrae experiencia, habilidades y perfil para un match inteligente.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
+            <div class="ats-card">
+              <div class="ats-card-icon"><i class="fa-solid fa-bullseye"></i></div>
+              <h3>Match con vacantes</h3>
+              <p>Compara candidatos con lo que la empresa solicita y prioriza los mejores fits.</p>
+            </div>
+          </div>
+        </div>
+        <div class="text-center mt-5" data-aos="fade-up">
+          <a href="{% url 'ats_plataforma' %}" class="ats-btn-probar btn btn-lg px-5">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Probar la plataforma ATS
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Planes -->
+    <section class="section ats-plans" id="planes">
+      <div class="container">
+        <div class="section-title text-center mb-5" data-aos="fade-up">
+          <h2>Planes</h2>
+          <p class="text-muted">Elige el que se adapte a tu equipo. Gratuito para probar; Pro y Enterprise con candidatos y vacantes ilimitados.</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+          {% for plan in plans %}
+          <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+            <div class="ats-plan-card rounded-4 h-100 d-flex flex-column {% if plan.id == 'PRO' %}ats-plan-featured border-primary{% endif %}">
+              <div class="ats-plan-header p-4 pb-0">
+                <h3 class="ats-plan-name h5 mb-2">{{ plan.name }}</h3>
+                <p class="ats-plan-desc small text-muted mb-3">{{ plan.description }}</p>
+                <div class="ats-plan-price mb-3">
+                  {% if plan.amount_mxn == 0 %}
+                    <span class="h4 fw-bold text-dark mb-0">$0</span>
+                    <span class="text-muted small">/ mes</span>
+                  {% else %}
+                    <span class="h4 fw-bold text-dark mb-0">${{ plan.amount_mxn|floatformat:0 }}</span>
+                    <span class="text-muted small"> MXN / mes</span>
+                  {% endif %}
+                </div>
+              </div>
+              <ul class="ats-plan-features list-unstyled px-4 mb-4 flex-grow-1">
+                {% for feat in plan.features %}
+                <li class="d-flex align-items-center gap-2 mb-2 small"><i class="bi bi-check2 text-success"></i> {{ feat }}</li>
+                {% endfor %}
+              </ul>
+              <div class="ats-plan-cta p-4 pt-0">
+                <a href="{% url 'ats_plataforma' %}" class="btn {% if plan.id == 'PRO' %}btn-primary{% else %}btn-outline-primary{% endif %} w-100 rounded-pill fw-600">
+                  {% if plan.amount_mxn == 0 %}Probar gratis{% else %}Elegir plan{% endif %}
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA final: ¿Listo para probar? -->
+    <section class="section ats-cta">
+      <div class="container" data-aos="fade-up">
+        <div class="ats-cta-box text-center">
+          <span class="ats-cta-label">Plataforma ATS</span>
+          <h2 class="mb-2">¿Listo para probar?</h2>
+          <p class="ats-cta-desc mb-0">Accede a la plataforma y conoce la identificación de talento con Low Code e IA.</p>
+          <a href="{% url 'ats_plataforma' %}" class="cta-btn btn btn-lg px-5 mt-3">
+            <i class="fa-solid fa-rocket me-2"></i>Ir a la plataforma ATS
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="footer" class="footer light-background ats-footer">
+    <div class="container footer-top">
+      <div class="row gy-4">
+        <div class="col-lg-4 col-md-6 footer-about">
+          <a href="{% url 'home' %}" class="logo d-flex align-items-center gap-2">
+            <img src="{% static 'img/logo_star.png' %}" alt="Star Path" style="height:48px;width:auto;">
+            <span class="sitename">Star Path</span>
+          </a>
+          <p class="mt-3 footer-tagline">
+            Diseñamos, automatizamos y operamos soluciones tecnológicas para escalar tu operación con control y resultados medibles.
+          </p>
+          <div class="footer-contact pt-2">
+            <p><i class="bi bi-geo-alt"></i> Ciudad de México · Atención remota y presencial</p>
+            <p><i class="bi bi-telephone"></i> +52 55 4044 8996</p>
+            <p class="mb-0"><i class="bi bi-envelope"></i> soporte@starpathai.mx</p>
+          </div>
+          <div class="social-links d-flex mt-4 gap-2">
+            <a href="#" aria-label="X"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-3 footer-links">
+          <h4>Navegación</h4>
+          <ul>
+            <li><a href="{% url 'home' %}">Inicio</a></li>
+            <li><a href="{% url 'ats_producto' %}">ATS</a></li>
+            <li><a href="{% url 'ats_plataforma' %}">Plataforma ATS</a></li>
+            <li><a href="{% url 'home' %}#contact">Contacto</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-3 col-md-4 footer-links">
+          <h4>ATS</h4>
+          <p class="footer-ats-desc">
+            <strong>Applicant Tracking System.</strong> Identificación de talento con formularios dinámicos, correos orquestados, CVs con OpenAI y match con vacantes.
+          </p>
+          <div class="footer-cta">
+            <a href="{% url 'ats_plataforma' %}" class="btn btn-primary btn-sm">Ir a la plataforma</a>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 footer-links">
+          <h4>Star Path</h4>
+          <ul>
+            <li><a href="{% url 'home' %}#about">Quiénes Somos</a></li>
+            <li><a href="{% url 'home' %}#services">Servicios</a></li>
+            <li><a href="{% url 'home' %}#departments">Metodología FLOW</a></li>
+            <li><a href="{% url 'home' %}#contact">Contacto</a></li>
+          </ul>
+          <p class="mt-3 mb-0 small"><strong>Partner Oficial:</strong> EVE 360</p>
+        </div>
+      </div>
+    </div>
+    <div class="container copyright text-center">
+      <p>© <span id="year"></span> <strong class="px-1 sitename">Star Path</strong> <span>Todos los derechos reservados.</span></p>
+      <div class="credits">
+        <a href="{% url 'home' %}#contact">Soporte</a> · <a href="#">Aviso de Privacidad</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'vendor/aos/aos.js' %}"></script>
+  <script>AOS.init({ duration: 600 });</script>
+  <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

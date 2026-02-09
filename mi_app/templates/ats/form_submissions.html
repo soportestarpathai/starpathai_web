@@ -1,0 +1,106 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}Envíos · {{ ats_form.name }}{% endblock %}
+{% block ats_header_title %}Envíos{% endblock %}
+
+{% block ats_extra_css %}
+  .sub-card {
+    background: var(--surface-color);
+    border-radius: 16px;
+    border: 1px solid rgba(0,196,201,0.12);
+    padding: 1.35rem 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 6px 24px rgba(11,28,45,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .sub-card:hover { box-shadow: 0 10px 36px rgba(11,28,45,0.08); }
+  @media (min-width: 768px) { .sub-card:hover { transform: translateY(-1px); } }
+  .sub-card .sub-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-card .sub-email {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--heading-color);
+  }
+  .sub-card .sub-email i { color: var(--accent-color); }
+  .sub-card .sub-email.text-muted { font-weight: 500; }
+  .sub-card .sub-date { font-size: 0.85rem; color: #6c757d; }
+  .sub-card .data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem 1.5rem;
+  }
+  .sub-card .data-item { padding: 0.35rem 0; }
+  .sub-card .data-item label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #6c757d; margin-bottom: 0.2rem; display: block; font-weight: 600; }
+  .sub-card .data-item span { font-size: 0.95rem; word-break: break-word; }
+  .sub-card .files-wrap { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.06); }
+  .file-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.45rem 0.75rem; background: rgba(0,196,201,0.1); border-radius: 10px;
+    color: var(--accent-color); text-decoration: none; font-size: 0.875rem; font-weight: 600;
+    transition: background 0.2s;
+  }
+  .file-link:hover { background: rgba(0,196,201,0.18); color: var(--accent-color); }
+  @media (max-width: 576px) { .sub-card .data-grid { grid-template-columns: 1fr; } }
+{% endblock %}
+
+{% block ats_content %}
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1 fw-bold">Envíos: {{ ats_form.name }}</h1>
+      <p class="text-muted small mb-0">{{ submissions|length }} respuesta(s) · <a href="{% url 'ats_form_edit' ats_form.pk %}" class="text-decoration-none">Editar formulario</a> para activar «Solicitar correo» o «Solicitar CV»</p>
+    </div>
+    <a href="{% url 'ats_form_list' %}" class="btn btn-outline-primary rounded-pill btn-sm"><i class="bi bi-arrow-left me-1"></i>Volver a formularios</a>
+  </div>
+
+  {% for sub in submissions %}
+    <div class="sub-card">
+      <div class="sub-header">
+        <span class="sub-email {% if not sub.submitter_email %}text-muted{% endif %}">
+          <i class="bi bi-envelope"></i>
+          {% if sub.submitter_email %}{{ sub.submitter_email }}{% else %}No indicado{% endif %}
+        </span>
+        <span class="sub-date"><i class="bi bi-clock me-1"></i>{{ sub.submitted_at|date:"d/m/Y H:i" }}</span>
+      </div>
+      <div class="data-grid">
+        {% for key, value in sub.payload.items %}
+        <div class="data-item">
+          <label>{{ key }}</label>
+          <span>{% if value %}{{ value }}{% else %}—{% endif %}</span>
+        </div>
+        {% empty %}
+        <p class="text-muted small mb-0">Sin datos en el envío.</p>
+        {% endfor %}
+      </div>
+      {% if sub.files.all %}
+      <div class="files-wrap">
+        <strong class="small d-block mb-2">Archivos adjuntos</strong>
+        <div class="d-flex flex-wrap gap-2">
+          {% for f in sub.files.all %}
+          <a href="{{ f.file.url }}" target="_blank" rel="noopener" class="file-link"><i class="bi bi-file-earmark-arrow-down"></i> {{ f.original_name|default:"Archivo" }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  {% empty %}
+    <div class="ats-content-card p-5 text-center rounded-3">
+      <i class="bi bi-inbox display-4 text-muted d-block mb-3"></i>
+      <p class="text-muted mb-2">Aún no hay envíos para este formulario.</p>
+      <p class="small text-muted mb-0">Comparte el enlace del formulario para recibir postulaciones.</p>
+    </div>
+  {% endfor %}
+
+  <p class="mt-4 mb-0"><a href="{% url 'ats_form_list' %}" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Volver a formularios</a></p>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}Configurar cuenta{% endblock %}
+{% block ats_header_title %}Configurar cuenta{% endblock %}
+
+{% block ats_extra_css %}
+  .profile-config-wrap { max-width: 640px; margin: 0 auto; }
+  .profile-config-wrap .page-intro { text-align: center; margin-bottom: 2rem; }
+  .profile-config-wrap .page-intro h1 { font-family: var(--ats-heading); font-weight: 800; }
+  .profile-config-wrap .section-card {
+    background: var(--surface-color);
+    border-radius: var(--ats-card-radius);
+    border: 1px solid rgba(0,196,201,0.12);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 6px 24px rgba(11,28,45,0.05);
+    transition: box-shadow 0.2s;
+  }
+  .profile-config-wrap .section-card:hover { box-shadow: 0 10px 36px rgba(11,28,45,0.08); }
+  .avatar-wrap {
+    width: 140px; height: 140px; border-radius: 50%;
+    overflow: hidden; background: rgba(0,196,201,0.12);
+    border: 3px solid rgba(0,196,201,0.35);
+    margin: 0 auto 1rem;
+    transition: border-color 0.2s;
+  }
+  .profile-config-wrap .section-card:hover .avatar-wrap { border-color: var(--accent-color); }
+  .avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar-wrap .placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 3rem; }
+  .avatar-upload { text-align: center; margin-bottom: 1.5rem; }
+  .avatar-upload label.avatar-label { cursor: pointer; display: inline-block; }
+  .avatar-upload .btn-avatar { padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.9rem; font-weight: 600; }
+  .avatar-upload input[type="file"] { max-width: 220px; margin: 0.5rem auto 0; font-size: 0.85rem; }
+  .profile-config-wrap .form-actions { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+{% endblock %}
+
+{% block ats_content %}
+  <div class="profile-config-wrap">
+    <div class="page-intro">
+      <h1 class="h4 mb-2">Configurar cuenta</h1>
+      <p class="text-muted mb-0">Actualiza tu foto de perfil, nombre de contacto y datos de la empresa.</p>
+    </div>
+
+    <div class="section-card">
+      <form method="post" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="avatar-upload">
+          <label for="id_avatar" class="avatar-label">
+            <div class="avatar-wrap">
+              {% if ats_client and ats_client.avatar %}
+                <img src="{{ ats_client.avatar.url }}" alt="Foto de perfil">
+              {% else %}
+                <div class="placeholder"><i class="bi bi-person-fill"></i></div>
+              {% endif %}
+            </div>
+            <span class="btn btn-outline-primary btn-avatar d-inline-block mt-2"><i class="bi bi-camera me-1"></i>Cambiar foto</span>
+          </label>
+          <input type="file" name="avatar" id="id_avatar" accept="image/*" class="form-control form-control-sm d-block mx-auto">
+        </div>
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Nombre del contacto</label>
+            {{ form.contact_name }}
+            {% if form.contact_name.errors %}<div class="text-danger small mt-1">{{ form.contact_name.errors }}</div>{% endif %}
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Teléfono</label>
+            {{ form.contact_phone }}
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Nombre de la empresa</label>
+            {{ form.company_name }}
+            {% if form.company_name.errors %}<div class="text-danger small mt-1">{{ form.company_name.errors }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-check-lg me-1"></i>Guardar cambios</button>
+          <a href="{% url 'ats_dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

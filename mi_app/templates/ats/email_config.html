@@ -1,0 +1,97 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_title %}Configuración de correo{% endblock %}
+{% block ats_header_title %}Configuración de correo{% endblock %}
+
+{% block ats_extra_css %}
+  .email-config-wrap { max-width: 720px; margin: 0 auto; color: var(--default-color); }
+  .email-config-wrap .page-intro { text-align: center; margin-bottom: 2rem; }
+  .email-config-wrap .page-intro h1 { font-family: var(--ats-heading); font-weight: 800; color: var(--heading-color); }
+  .email-config-wrap .page-intro p { color: var(--default-color); }
+  .email-config-wrap .section-card {
+    background: var(--surface-color);
+    border-radius: var(--ats-card-radius);
+    border: 1px solid rgba(0,196,201,0.12);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 6px 24px rgba(11,28,45,0.05);
+    transition: box-shadow 0.2s;
+  }
+  .email-config-wrap .section-card:hover { box-shadow: 0 10px 36px rgba(11,28,45,0.08); }
+  .email-config-wrap .section-card h2 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--heading-color); }
+  .email-config-wrap .section-card h2 i { color: var(--accent-color); }
+  .email-config-wrap .section-card .form-label { color: var(--heading-color); }
+  .email-config-wrap .section-card .form-text { color: var(--default-color); opacity: 0.9; }
+  .email-config-wrap .form-actions { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+  @media (min-width: 576px) {
+    .email-config-wrap .section-card .row .col-md-6 { padding-right: 0.75rem; }
+  }
+{% endblock %}
+
+{% block ats_content %}
+  <div class="email-config-wrap">
+    <div class="page-intro">
+      <h1 class="h4 mb-2">Configuración de correo <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Correo donde recibes avisos y correo desde el que se envían mensajes a candidatos (ej. apto/rechazo)."></i></h1>
+      <p class="text-muted mb-0">Indica dónde recibir notificaciones y con qué correo enviar. También se usa para el análisis de CVs con IA.</p>
+    </div>
+
+    <form method="post" action="">
+      {% csrf_token %}
+      <div class="section-card">
+        <h2 class="h6"><i class="bi bi-bell"></i>Recepción de notificaciones</h2>
+        <div class="mb-0">
+          <label class="form-label fw-semibold">Correo de notificaciones</label>
+          {{ form.notification_email }}
+          <div class="form-text">{{ form.notification_email.help_text }}</div>
+          {% if form.notification_email.errors %}<div class="text-danger small mt-1">{{ form.notification_email.errors }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h2 class="h6"><i class="bi bi-envelope-send"></i>Correo de la empresa (remitente)</h2>
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Correo de envío</label>
+            {{ form.company_from_email }}
+            <div class="form-text small">{{ form.company_from_email.help_text }}</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Nombre del remitente</label>
+            {{ form.company_from_name }}
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h2 class="h6"><i class="bi bi-gear"></i>Conectar tu correo (SMTP)</h2>
+        <p class="small text-muted mb-3">Opcional. Para enviar desde tu propio servidor de correo.</p>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold">Servidor SMTP</label>
+            {{ form.smtp_host }}
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold">Puerto</label>
+            {{ form.smtp_port }}
+          </div>
+          <div class="col-12 col-md-4 d-flex align-items-end pb-2 pb-md-0">
+            <div class="form-check">
+              {{ form.smtp_use_tls }}
+              <label class="form-check-label fw-semibold" for="{{ form.smtp_use_tls.id_for_label }}">Usar TLS</label>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold">Usuario SMTP</label>
+            {{ form.smtp_user }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-check-lg me-1"></i>Guardar configuración</button>
+        <a href="{% url 'ats_dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">Volver al panel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
