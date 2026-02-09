@@ -25,6 +25,20 @@
     <p>Gestiona clientes y activa planes tras validar el pago. Al aplicar un plan, el cliente recibirá una notificación.</p>
   </div>
 
+  <div class="ats-admin-card mb-3">
+    <div class="p-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2" style="background: rgba(0,196,201,0.06);">
+      <strong><i class="bi bi-cpu me-2"></i>Uso de IA (análisis de CV)</strong>
+      {% if langsmith_configured %}
+      <a href="https://smith.langchain.com" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">Ver trazas en LangSmith</a>
+      {% endif %}
+    </div>
+    <div class="p-3">
+      <p class="mb-1"><strong>Este mes:</strong> {{ llm_usage_this_month }} tokens en {{ llm_usage_this_month_runs }} análisis.</p>
+      <p class="mb-0 text-muted small"><strong>Total (todo el tiempo):</strong> {{ llm_usage_all_time }} tokens en {{ llm_usage_all_time_runs }} análisis.</p>
+      <p class="small mt-2 mb-0">Los registros detallados por cliente y candidato están en el <a href="{% url 'admin:mi_app_llmusagelog_changelist' %}">admin de Django → Uso IA (tokens)</a>.</p>
+    </div>
+  </div>
+
   {% if pending_requests %}
   <div class="ats-admin-card mb-3">
     <div class="p-3 border-bottom" style="background: rgba(0,196,201,0.06);">

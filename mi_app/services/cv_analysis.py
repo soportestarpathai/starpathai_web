@@ -105,14 +105,15 @@ def get_profile_config_for_candidate(candidate) -> dict:
     }
 
 
-def _analyze_with_openai(raw_text: str, profile_config: dict) -> dict | None:
+def _analyze_with_openai(raw_text: str, profile_config: dict) -> tuple[dict | None, dict | None]:
     """
-    Llama a la API de OpenAI para analizar el CV. Retorna el dict de resultado o None si falla.
+    Llama a la API de OpenAI para analizar el CV.
+    Retorna (dict de resultado, dict de uso con prompt_tokens, completion_tokens, total_tokens, model) o (None, None) si falla.
     """
     from django.conf import settings as django_settings
     api_key = getattr(django_settings, "OPENAI_API_KEY", None) or os.environ.get("OPENAI_API_KEY", "").strip()
     if not api_key:
-        return None
+        return None, None
     model = getattr(django_settings, "OPENAI_MODEL", "gpt-4o-mini")
     profile = profile_config.get("profile_summary") or "Perfil general"
     desired = profile_config.get("desired_skills") or []
@@ -155,7 +156,7 @@ Responde con un JSON que tenga exactamente estas claves:
         )
         content = (response.choices[0].message.content or "").strip()
         if not content:
-            return None
+            return None, None
         if "```" in content:
             for part in content.split("```"):
                 part = part.strip()
@@ -186,16 +187,26 @@ Responde con un JSON que tenga exactamente estas claves:
             if mp is not None:
                 mp = max(0.0, min(100.0, float(mp)))
             skills.append({"skill": skill_name, "level": level, "match_percentage": mp})
-        return {
+        result = {
             "score": round(score, 1),
             "status": status,
             "explanation": explanation or f"Evaluación respecto a {vacancy_title}: {profile[:80]}...",
             "skills": skills,
             "match_percentage": round(score, 1) if match_percentage is None else match_percentage,
         }
+        usage = None
+        if getattr(response, "usage", None):
+            u = response.usage
+            usage = {
+                "prompt_tokens": getattr(u, "prompt_tokens", 0) or 0,
+                "completion_tokens": getattr(u, "completion_tokens", 0) or 0,
+                "total_tokens": getattr(u, "total_tokens", 0) or 0,
+                "model": model,
+            }
+        return result, usage
     except Exception as e:
         logger.warning("OpenAI CV analysis failed: %s", e)
-        return None
+        return None, None
 
 
 def _analyze_cv_stub(raw_text: str, profile_config: dict) -> dict:
@@ -228,9 +239,10 @@ def _analyze_cv_stub(raw_text: str, profile_config: dict) -> dict:
     }
 
 
-def analyze_cv_with_ai(raw_text: str, profile_config: dict) -> dict:
+def analyze_cv_with_ai(raw_text: str, profile_config: dict) -> tuple[dict, dict | None]:
     """
     Analiza el texto del CV con IA según el perfil/vacante buscado.
+    Retorna (resultado, uso de tokens o None si stub/error).
     Si OPENAI_API_KEY está configurada, usa OpenAI; si no, usa evaluación stub.
     """
     if not raw_text or not raw_text.strip():
@@ -240,11 +252,47 @@ def analyze_cv_with_ai(raw_text: str, profile_config: dict) -> dict:
             "explanation": "No se pudo extraer texto del CV. Asegúrate de que el archivo sea PDF o DOCX legible.",
             "skills": [],
             "match_percentage": None,
-        }
-    result = _analyze_with_openai(raw_text, profile_config)
+        }, None
+    result, usage = _analyze_with_openai(raw_text, profile_config)
     if result is not None:
-        return result
-    return _analyze_cv_stub(raw_text, profile_config)
+        return result, usage
+    return _analyze_cv_stub(raw_text, profile_config), None
+
+
+def _send_langsmith_trace_if_enabled(profile_config: dict, raw_text_len: int, result: dict, usage: dict, candidate) -> None:
+    """
+    Si LANGSMITH_API_KEY está configurada, envía una traza del análisis a LangSmith
+    para poder orquestar y ver consumo desde el dashboard de LangSmith.
+    """
+    api_key = os.environ.get("LANGSMITH_API_KEY", "").strip()
+    if not api_key:
+        return
+    try:
+        from langsmith.run_trees import RunTree
+        run = RunTree(
+            name="cv_analysis",
+            run_type="chain",
+            project_name=os.environ.get("LANGSMITH_PROJECT", "ats-cv"),
+            inputs={
+                "profile_summary": (profile_config.get("profile_summary") or "")[:300],
+                "vacancy_title": (profile_config.get("vacancy_title") or "")[:100],
+                "text_length": raw_text_len,
+                "client_id": candidate.client_id,
+                "candidate_id": candidate.pk,
+            },
+            extra={
+                "usage": usage,
+                "client": getattr(candidate.client, "company_name", ""),
+            },
+        )
+        run.end(outputs={
+            "score": result.get("score"),
+            "status": result.get("status"),
+            "total_tokens": usage.get("total_tokens"),
+        })
+        run.post()
+    except Exception as e:
+        logger.warning("LangSmith trace failed (non-blocking): %s", e)
 
 
 def run_cv_analysis_and_save(candidate) -> dict:
@@ -270,7 +318,7 @@ def run_cv_analysis_and_save(candidate) -> dict:
 
     profile_config = get_profile_config_for_candidate(candidate)
     raw_text = extract_text_from_cv(file_path, os.path.basename(candidate.cv_file.name))
-    result = analyze_cv_with_ai(raw_text, profile_config)
+    result, usage = analyze_cv_with_ai(raw_text, profile_config)
 
     # Actualizar candidato: score referente al perfil/vacante, estado, explicación, texto crudo, fecha
     candidate.raw_text = raw_text[:65535] if raw_text else ""  # por si el campo tiene límite
@@ -299,6 +347,25 @@ def run_cv_analysis_and_save(candidate) -> dict:
             skill=skill_name,
             level=level,
             match_percentage=match_pct,
+        )
+
+    # Registrar uso de tokens (para admin y LangSmith)
+    if usage:
+        from mi_app.models import LLMUsageLog
+        LLMUsageLog.objects.create(
+            client=candidate.client,
+            candidate=candidate,
+            prompt_tokens=usage.get("prompt_tokens", 0) or 0,
+            completion_tokens=usage.get("completion_tokens", 0) or 0,
+            total_tokens=usage.get("total_tokens", 0) or 0,
+            model=(usage.get("model") or "")[:64],
+        )
+        _send_langsmith_trace_if_enabled(
+            profile_config=profile_config,
+            raw_text_len=len(raw_text),
+            result=result,
+            usage=usage,
+            candidate=candidate,
         )
 
     return {"ok": True, "candidate": candidate}

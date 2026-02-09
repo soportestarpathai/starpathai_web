@@ -328,6 +328,38 @@ class SkillEvaluation(models.Model):
         return f"{self.candidate.name} — {self.skill} ({self.level}%)"
 
 
+class LLMUsageLog(models.Model):
+    """
+    Registro de uso de IA por análisis de CV: tokens consumidos por cliente/candidato.
+    Permite ver consumo desde el admin ATS y opcionalmente trazar en LangSmith.
+    """
+    client = models.ForeignKey(
+        ATSClient,
+        on_delete=models.CASCADE,
+        related_name="llm_usage_logs",
+    )
+    candidate = models.ForeignKey(
+        Candidate,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="llm_usage_logs",
+    )
+    prompt_tokens = models.PositiveIntegerField("Tokens entrada", default=0)
+    completion_tokens = models.PositiveIntegerField("Tokens salida", default=0)
+    total_tokens = models.PositiveIntegerField("Total tokens", default=0)
+    model = models.CharField("Modelo", max_length=64, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Uso IA (tokens)"
+        verbose_name_plural = "Uso IA (tokens)"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.client.company_name} — {self.total_tokens} tokens ({self.created_at.date()})"
+
+
 # --- Formularios (crear, enviar, recibir respuestas) ---
 
 class ATSForm(models.Model):

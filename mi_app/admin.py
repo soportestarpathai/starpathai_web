@@ -9,6 +9,7 @@ from .models import (
     CVAnalysisConfig,
     Candidate,
     SkillEvaluation,
+    LLMUsageLog,
     ATSForm,
     ATSFormField,
     ATSFormSubmission,
@@ -80,6 +81,15 @@ class CVAnalysisConfigAdmin(admin.ModelAdmin):
 class SkillEvaluationAdmin(admin.ModelAdmin):
     list_display = ("candidate", "skill", "level", "match_percentage")
     list_filter = ("candidate__client",)
+
+
+@admin.register(LLMUsageLog)
+class LLMUsageLogAdmin(admin.ModelAdmin):
+    list_display = ("client", "candidate", "total_tokens", "prompt_tokens", "completion_tokens", "model", "created_at")
+    list_filter = ("client", "model", "created_at")
+    search_fields = ("client__company_name",)
+    readonly_fields = ("created_at",)
+    date_hierarchy = "created_at"
 
 
 @admin.register(ATSClientEmailConfig)

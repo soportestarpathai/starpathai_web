@@ -36,7 +36,8 @@ from mi_app.views.ats.forms import (
     ATSVacancyForm,
     CVAnalysisConfigForm,
 )
-from django.db.models import Count, Q  # Count for annotate, Q for filter
+from django.db.models import Count, Q, Sum  # Count for annotate, Q for filter
+from datetime import timedelta
 
 from mi_app.models import (
     ATSClient,
@@ -53,6 +54,7 @@ from mi_app.models import (
     ATSClientEmailConfig,
     ATSNotification,
     PlanChangeRequest,
+    LLMUsageLog,
 )
 from mi_app.ats_plans import (
     get_all_plans,
@@ -1292,12 +1294,28 @@ class ATSAdminDashboardView(StaffRequiredMixin, View):
             .select_related("client")
             .order_by("-created_at")[:20]
         )
+        # Uso de IA (tokens): totales para mostrar en admin y enlace a LangSmith
+        now = timezone.now()
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        llm_usage_this_month = LLMUsageLog.objects.filter(created_at__gte=month_start).aggregate(
+            total=Sum("total_tokens"), runs=Count("id")
+        )
+        llm_usage_all_time = LLMUsageLog.objects.aggregate(total=Sum("total_tokens"), runs=Count("id"))
+        import os
+        langsmith_configured = bool(os.environ.get("LANGSMITH_API_KEY", "").strip())
+        langsmith_project = os.environ.get("LANGSMITH_PROJECT", "ats-cv")
         return render(request, self.template_name, {
             "rows": rows,
             "page_obj": page_obj,
             "search_q": search_q,
             "plan_choices": plan_choices,
             "pending_requests": pending_requests,
+            "llm_usage_this_month": llm_usage_this_month.get("total") or 0,
+            "llm_usage_this_month_runs": llm_usage_this_month.get("runs") or 0,
+            "llm_usage_all_time": llm_usage_all_time.get("total") or 0,
+            "llm_usage_all_time_runs": llm_usage_all_time.get("runs") or 0,
+            "langsmith_configured": langsmith_configured,
+            "langsmith_project": langsmith_project,
             "ats_page": "administracion",
             "ats_client": getattr(request.user, "ats_client", None),
             "ats_header_title": "Administración ATS",
