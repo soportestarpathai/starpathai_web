@@ -59,6 +59,20 @@ OPENAI_MODEL=gpt-4o-mini
 
 **Importante:** no subas la clave a Git. En producción usa variables de entorno del hosting. Sin `OPENAI_API_KEY`, el análisis sigue funcionando con una evaluación automática básica.
 
+### API de extracción de documentos (INE, comprobante)
+
+El endpoint `POST /api/documents/extract/` requiere autenticación por API key:
+
+```env
+DOCUMENTS_API_KEY=tu-clave-secreta-para-documentos
+```
+
+El cliente debe enviar la clave en el header:
+- `Authorization: Bearer tu-clave-secreta-para-documentos`
+- o `X-API-Key: tu-clave-secreta-para-documentos`
+
+Genera una clave segura con: `python -c "import secrets; print(secrets.token_urlsafe(32))"`
+
 ### Seguridad (producción)
 
 ```env

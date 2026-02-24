@@ -256,7 +256,12 @@ ATS_FORM_PUBLIC_RATE_LIMIT_SECONDS = int(os.environ.get("ATS_FORM_PUBLIC_RATE_LI
 
 # ATS análisis de CV con IA (OpenAI). Si OPENAI_API_KEY está vacío, se usa evaluación stub.
 OPENAI_API_KEY = (os.environ.get("OPENAI_API_KEY") or "").strip()
+# Extracción de documentos (INE, comprobante). Si está vacío, usa OPENAI_API_KEY como fallback.
+OPENAI_API_KEY_DOCUMENTS = (os.environ.get("OPENAI_API_KEY_DOCUMENTS") or "").strip() or OPENAI_API_KEY
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+# API key para proteger el endpoint de extracción de documentos. Obligatorio.
+DOCUMENTS_API_KEY = (os.environ.get("DOCUMENTS_API_KEY") or "").strip()
 
 # Cache para rate limiting (formulario público) y otros
 CACHES = {
@@ -272,9 +277,10 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.ScopedRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "20/min",      # usuarios no autenticados
-        "user": "60/min",      # usuarios autenticados
-        "chat": "10/min",      # SOLO para el endpoint del chat
+        "anon": "20/min",       # usuarios no autenticados
+        "user": "60/min",       # usuarios autenticados
+        "chat": "10/min",       # SOLO para el endpoint del chat
+        "documents": "10/min",  # extracción de documentos (INE, comprobante)
     }
 }
 

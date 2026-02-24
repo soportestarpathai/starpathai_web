@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
 from mi_app.views.landing_page.landing_page_views import LandingPage
 from mi_app.views.chatbot.chatbot_api import ChatAPIView
+from mi_app.views.documents.document_extract_api import DocumentExtractAPIView
 from mi_app.views.chatbot.services.kb_api import KBItemAPIView
 from mi_app.views.ats.ats_views import (
     ATSProductoView,
@@ -109,6 +110,7 @@ urlpatterns = [
     path("ats/plataforma/administracion/cambiar-password/", ATSPasswordChangeView.as_view(), name="ats_password_change"),
     path("api/chat/", ChatAPIView.as_view(), name="api_chat"),
     path("api/kb/item/<str:item_id>/", KBItemAPIView.as_view(), name="api_kb_item"),
+    path("api/documents/extract/", DocumentExtractAPIView.as_view(), name="api_documents_extract"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
