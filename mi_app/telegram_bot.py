@@ -1,0 +1,497 @@
+"""
+Bot de Telegram para Órbita — postulación conversacional.
+
+Flujo:
+  /start <form_uuid>  → muestra la vacante y pregunta si quiere postularse
+  "Sí, iniciar"       → crea FormChatSession, pregunta campo por campo
+  Cada respuesta       → guarda en session.answers, avanza paso
+  Al terminar          → crea ATSFormSubmission + Candidate (si aplica)
+"""
+import logging
+import uuid as _uuid
+
+from asgiref.sync import sync_to_async
+from django.conf import settings
+from django.urls import reverse
+from django.utils import timezone
+
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Update,
+)
+from telegram.ext import (
+    Application,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    filters,
+)
+
+logger = logging.getLogger(__name__)
+
+CHOOSING, ANSWERING = range(2)
+
+
+def _get_form(uuid_str):
+    from mi_app.models import ATSForm
+    try:
+        return ATSForm.objects.select_related("vacancy", "client").get(
+            uuid=uuid_str, is_active=True
+        )
+    except (ATSForm.DoesNotExist, ValueError):
+        return None
+
+
+def _build_steps(ats_form):
+    from mi_app.views.ats.form_chat_views import _build_steps as _bs
+    return _bs(ats_form)
+
+
+def _create_session(ats_form, steps, telegram_user_id):
+    from mi_app.models import FormChatSession
+    session = FormChatSession(
+        form=ats_form,
+        session_uuid=_uuid.uuid4(),
+        status=FormChatSession.STATUS_STARTED,
+        current_step=0,
+        total_steps=len(steps),
+        source=FormChatSession.SOURCE_TELEGRAM,
+        ip_address=None,
+    )
+    session.save()
+    return session
+
+
+def _save_answer(session, step, value, ats_form):
+    from mi_app.models import FormChatSession
+    from mi_app.views.ats.form_chat_views import _build_steps
+
+    answers = session.answers or {}
+    answers[step["id"]] = value
+    session.answers = answers
+    session.current_step = min(session.current_step + 1, session.total_steps)
+    session.status = FormChatSession.STATUS_IN_PROGRESS
+
+    val_str = str(value).strip()
+    if step["id"] == "submitter_email" or (
+        step["type"] == "email" and val_str and "@" in val_str
+    ):
+        session.candidate_email = val_str
+
+    name_keywords = {"nombre", "name", "nombre_completo", "nombre completo", "candidato"}
+    if not session.candidate_name:
+        label_lower = step["label"].lower()
+        if any(kw in label_lower for kw in name_keywords):
+            session.candidate_name = val_str[:200]
+        elif step["type"] in ("text", "textarea") and session.current_step <= 1 and "@" not in val_str and len(val_str) < 80:
+            session.candidate_name = val_str[:200]
+
+    is_last = session.current_step >= session.total_steps
+    if is_last:
+        session.status = FormChatSession.STATUS_COMPLETED
+        session.completed_at = timezone.now()
+
+    session.save()
+    return is_last
+
+
+def _finalize(ats_form, session):
+    """Replica la lógica de FormChatAnswerAPI._finalize_submission sin request."""
+    from mi_app.models import (
+        ATSFormSubmission, ATSFormSubmissionFile, ATSFormField,
+        ATSNotification, FormChatSession,
+    )
+    from mi_app.ats_notifications import notify_ats_client
+
+    session = FormChatSession.objects.get(pk=session.pk)
+    answers = session.answers or {}
+    pending_files = answers.pop("_pending_files", {})
+    logger.info("telegram_bot _finalize: pending_files=%s", list(pending_files.keys()))
+    steps = _build_steps(ats_form)
+
+    payload = {}
+    submitter_email = session.candidate_email or ""
+    for step in steps:
+        val = answers.get(step["id"], "")
+        if val and step["type"] != "file":
+            payload[step["label"]] = val
+        elif val and step["type"] == "file":
+            payload[step["label"]] = val
+        if step["type"] == "email" and val and not submitter_email:
+            submitter_email = val
+
+    submission = ATSFormSubmission.objects.create(
+        form=ats_form,
+        payload=payload,
+        submitter_email=submitter_email,
+    )
+    session.submission = submission
+    session.save(update_fields=["submission"])
+
+    from django.core.files.storage import default_storage
+    from django.core.files import File
+    for step_id, file_info in pending_files.items():
+        field_obj = None
+        if step_id.startswith("field_"):
+            try:
+                field_obj = ATSFormField.objects.get(pk=int(step_id.replace("field_", "")))
+            except (ATSFormField.DoesNotExist, ValueError):
+                pass
+        try:
+            saved_file = default_storage.open(file_info["path"])
+            sub_file = ATSFormSubmissionFile(
+                submission=submission,
+                form_field=field_obj,
+                original_name=file_info["name"],
+            )
+            sub_file.file.save(file_info["name"], File(saved_file), save=True)
+            saved_file.close()
+            logger.info("telegram_bot: attached file %s to submission %s", file_info["name"], submission.pk)
+        except Exception as e:
+            logger.warning("telegram_bot: could not attach file %s: %s", file_info.get("path"), e)
+
+    if ats_form.vacancy_id:
+        from mi_app.views.ats.ats_views import _create_candidate_from_submission
+        _create_candidate_from_submission(submission, payload, submitter_email)
+        if submission.candidate_id:
+            notify_ats_client(
+                ats_form.client,
+                ATSNotification.TYPE_CANDIDATE,
+                "Nuevo candidato (Telegram)",
+                message=f"{submission.candidate.name} — Telegram «{ats_form.name}».",
+                link=reverse("ats_candidate_detail", args=[submission.candidate.pk]),
+            )
+    else:
+        notify_ats_client(
+            ats_form.client,
+            ATSNotification.TYPE_SUBMISSION,
+            "Nuevo envío (Telegram)",
+            message=f"Telegram «{ats_form.name}»: {submitter_email or 'Sin correo'}.",
+            link=reverse("ats_form_submissions", args=[ats_form.pk]),
+        )
+    logger.info("telegram_bot: session completed form=%s session=%s", ats_form.pk, session.session_uuid)
+
+
+# ──────────────────────────── Handlers ────────────────────────────
+
+async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    args = context.args
+    if not args:
+        await update.message.reply_text(
+            "👋 ¡Hola! Soy *Órbita*, tu asistente de reclutamiento.\n\n"
+            "Para postularte a una vacante necesitas el enlace que te compartieron.\n"
+            "Usa: `/start <código>`",
+            parse_mode="Markdown",
+        )
+        return ConversationHandler.END
+
+    form_uuid = args[0]
+    ats_form = await sync_to_async(_get_form)(form_uuid)
+    if not ats_form:
+        await update.message.reply_text(
+            "❌ No encontré esa vacante o el formulario no está activo.\n"
+            "Verifica el enlace e intenta de nuevo.",
+        )
+        return ConversationHandler.END
+
+    context.user_data["form_uuid"] = form_uuid
+    context.user_data["ats_form_id"] = ats_form.pk
+
+    vacancy = ats_form.vacancy
+    if vacancy:
+        text = (
+            f"🏢 *{vacancy.title}*\n\n"
+            f"{vacancy.description[:1500] if vacancy.description else 'Sin descripción disponible.'}\n\n"
+            "─────────────────────\n"
+            "¿Te interesa esta vacante? Presiona el botón para iniciar tu postulación."
+        )
+    else:
+        text = (
+            f"📋 *{ats_form.name}*\n\n"
+            f"{ats_form.description[:1000] if ats_form.description else ''}\n\n"
+            "¿Listo para completar tu postulación? Presiona el botón para comenzar."
+        )
+
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🚀 Iniciar postulación", callback_data="apply_yes")],
+        [InlineKeyboardButton("❌ No, gracias", callback_data="apply_no")],
+    ])
+
+    await update.message.reply_text(text, parse_mode="Markdown", reply_markup=keyboard)
+    return CHOOSING
+
+
+async def apply_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "apply_no":
+        await query.edit_message_text(
+            "👋 ¡Sin problema! Si cambias de opinión, vuelve a usar el enlace.\n"
+            "¡Mucho éxito! 🍀"
+        )
+        return ConversationHandler.END
+
+    form_uuid = context.user_data.get("form_uuid")
+    ats_form = await sync_to_async(_get_form)(form_uuid)
+    if not ats_form:
+        await query.edit_message_text("❌ Formulario no disponible.")
+        return ConversationHandler.END
+
+    steps = await sync_to_async(_build_steps)(ats_form)
+    if not steps:
+        await query.edit_message_text("⚠️ Este formulario no tiene campos configurados.")
+        return ConversationHandler.END
+
+    session = await sync_to_async(_create_session)(ats_form, steps, update.effective_user.id)
+
+    context.user_data["session_id"] = session.pk
+    context.user_data["steps"] = steps
+    context.user_data["current_step"] = 0
+
+    step = steps[0]
+    total = len(steps)
+    msg = _format_question(step, 1, total)
+
+    await query.edit_message_text(
+        "✅ *¡Perfecto! Comencemos tu postulación.*\n\n"
+        "Te haré algunas preguntas. Responde una a la vez.\n"
+        "Si un campo es tipo archivo, puedes omitirlo escribiendo `omitir`.\n\n"
+        "─────────────────────\n\n" + msg,
+        parse_mode="Markdown",
+    )
+    return ANSWERING
+
+
+def _format_question(step, num, total):
+    emoji_map = {
+        "text": "📝",
+        "email": "📧",
+        "phone": "📱",
+        "textarea": "📄",
+        "file": "📎",
+    }
+    emoji = emoji_map.get(step["type"], "📝")
+    required = " *(obligatorio)*" if step.get("required") else " _(opcional)_"
+    hint = ""
+    if step["placeholder"]:
+        hint = f"\n💡 _Ej: {step['placeholder']}_"
+    if step["type"] == "file":
+        hint = "\n💡 _Envía un archivo PDF/DOC o escribe_ `omitir`"
+
+    return (
+        f"{emoji} *Pregunta {num}/{total}*\n"
+        f"{step['label']}{required}{hint}"
+    )
+
+
+async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    steps = context.user_data.get("steps", [])
+    idx = context.user_data.get("current_step", 0)
+    session_id = context.user_data.get("session_id")
+    form_uuid = context.user_data.get("form_uuid")
+
+    if idx >= len(steps) or not session_id:
+        await update.message.reply_text("⚠️ No hay una sesión activa. Usa /start para comenzar.")
+        return ConversationHandler.END
+
+    step = steps[idx]
+    value = (update.message.text or "").strip()
+
+    if step["type"] == "file":
+        if value.lower() in ("omitir", "skip", "no", "no tengo"):
+            value = ""
+        else:
+            await update.message.reply_text(
+                "📎 Por favor, envía el archivo directamente (arrástralo o usa el clip 📎).\n"
+                "Si no tienes el archivo, escribe `omitir`."
+            )
+            return ANSWERING
+
+    if step["type"] == "email" and value and "@" not in value:
+        await update.message.reply_text("⚠️ Introduce un correo electrónico válido.")
+        return ANSWERING
+
+    if step.get("required") and not value:
+        await update.message.reply_text("⚠️ Este campo es obligatorio. Por favor, responde.")
+        return ANSWERING
+
+    from mi_app.models import FormChatSession
+    session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
+
+    ats_form = await sync_to_async(_get_form)(form_uuid)
+    is_last = await sync_to_async(_save_answer)(session, step, value, ats_form)
+
+    if is_last:
+        await sync_to_async(_finalize)(ats_form, session)
+        name = session.candidate_name or "candidato"
+        await update.message.reply_text(
+            f"🎉 *¡Postulación completada!*\n\n"
+            f"Gracias, {name}. Tu información ha sido enviada correctamente.\n\n"
+            "El equipo de reclutamiento revisará tu perfil y se pondrá en contacto contigo.\n\n"
+            "¡Mucho éxito! 🍀✨",
+            parse_mode="Markdown",
+        )
+        return ConversationHandler.END
+
+    next_idx = idx + 1
+    context.user_data["current_step"] = next_idx
+
+    pct = round((next_idx / len(steps)) * 100)
+    bar_filled = round(pct / 10)
+    bar = "▓" * bar_filled + "░" * (10 - bar_filled)
+
+    next_step = steps[next_idx]
+    msg = (
+        f"✅ Respuesta guardada.\n"
+        f"Progreso: `[{bar}]` {pct}%\n\n"
+        + _format_question(next_step, next_idx + 1, len(steps))
+    )
+    await update.message.reply_text(msg, parse_mode="Markdown")
+    return ANSWERING
+
+
+async def _download_and_store_file(update, context, session, step_id):
+    """Descarga el archivo de Telegram y lo guarda en default_storage."""
+    from django.core.files.base import ContentFile
+    from django.core.files.storage import default_storage
+    from mi_app.models import FormChatSession
+
+    doc = update.message.document
+    if not doc:
+        return None, None
+
+    file_name = doc.file_name or "archivo"
+    logger.info("telegram_bot: downloading file %s (size=%s)", file_name, doc.file_size)
+
+    tg_file = await context.bot.get_file(doc.file_id)
+    file_bytes = await tg_file.download_as_bytearray()
+    logger.info("telegram_bot: downloaded %d bytes", len(file_bytes))
+
+    save_dir = f"ats/chat_uploads/{session.session_uuid}"
+    saved_path = await sync_to_async(default_storage.save)(
+        f"{save_dir}/{file_name}",
+        ContentFile(bytes(file_bytes)),
+    )
+    logger.info("telegram_bot: file saved to %s", saved_path)
+
+    session = await sync_to_async(
+        lambda: FormChatSession.objects.get(pk=session.pk)
+    )()
+    answers = session.answers or {}
+    pending_files = answers.get("_pending_files", {})
+    pending_files[step_id] = {"path": saved_path, "name": file_name}
+    answers["_pending_files"] = pending_files
+    answers[step_id] = file_name
+    session.answers = answers
+    await sync_to_async(session.save)(update_fields=["answers"])
+    logger.info("telegram_bot: pending_files keys=%s", list(answers.get("_pending_files", {}).keys()))
+
+    return file_name, saved_path
+
+
+async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle file uploads for file-type steps."""
+    steps = context.user_data.get("steps", [])
+    idx = context.user_data.get("current_step", 0)
+    session_id = context.user_data.get("session_id")
+    form_uuid = context.user_data.get("form_uuid")
+
+    if idx >= len(steps) or not session_id:
+        await update.message.reply_text("⚠️ No hay una sesión activa.")
+        return ConversationHandler.END
+
+    step = steps[idx]
+    if step["type"] != "file":
+        await update.message.reply_text(
+            "📝 En este paso necesito una respuesta de texto, no un archivo.\n"
+            "Por favor, escribe tu respuesta."
+        )
+        return ANSWERING
+
+    from mi_app.models import FormChatSession
+    session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
+    ats_form = await sync_to_async(_get_form)(form_uuid)
+
+    file_name, saved_path = await _download_and_store_file(
+        update, context, session, step["id"]
+    )
+    if not file_name:
+        await update.message.reply_text("⚠️ No pude recibir el archivo. Intenta de nuevo.")
+        return ANSWERING
+
+    session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
+    session.current_step = min(session.current_step + 1, session.total_steps)
+    session.status = FormChatSession.STATUS_IN_PROGRESS
+
+    is_last = session.current_step >= session.total_steps
+    if is_last:
+        session.status = FormChatSession.STATUS_COMPLETED
+        session.completed_at = timezone.now()
+    await sync_to_async(session.save)()
+
+    if is_last:
+        await sync_to_async(_finalize)(ats_form, session)
+        name = session.candidate_name or "candidato"
+        await update.message.reply_text(
+            f"🎉 *¡Postulación completada!*\n\n"
+            f"Gracias, {name}. Tu información ha sido enviada correctamente.\n\n"
+            "El equipo de reclutamiento revisará tu perfil y se pondrá en contacto contigo.\n\n"
+            "¡Mucho éxito! 🍀✨",
+            parse_mode="Markdown",
+        )
+        return ConversationHandler.END
+
+    next_idx = idx + 1
+    context.user_data["current_step"] = next_idx
+
+    pct = round((next_idx / len(steps)) * 100)
+    bar_filled = round(pct / 10)
+    bar = "▓" * bar_filled + "░" * (10 - bar_filled)
+
+    next_step = steps[next_idx]
+    msg = (
+        f"✅ Archivo recibido: _{file_name}_\n"
+        f"Progreso: `[{bar}]` {pct}%\n\n"
+        + _format_question(next_step, next_idx + 1, len(steps))
+    )
+    await update.message.reply_text(msg, parse_mode="Markdown")
+    return ANSWERING
+
+
+async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
+    await update.message.reply_text(
+        "❌ Postulación cancelada.\n"
+        "Si quieres empezar de nuevo, usa el enlace que te compartieron."
+    )
+    return ConversationHandler.END
+
+
+def build_application():
+    """Construye la aplicación de Telegram con todos los handlers."""
+    token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
+    if not token:
+        raise ValueError("TELEGRAM_BOT_TOKEN no configurado en settings/env.")
+
+    app = Application.builder().token(token).build()
+
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("start", cmd_start)],
+        states={
+            CHOOSING: [CallbackQueryHandler(apply_callback)],
+            ANSWERING: [
+                MessageHandler(filters.Document.ALL, handle_file),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_answer),
+            ],
+        },
+        fallbacks=[CommandHandler("cancel", cmd_cancel)],
+        per_user=True,
+        per_chat=True,
+    )
+
+    app.add_handler(conv_handler)
+    return app

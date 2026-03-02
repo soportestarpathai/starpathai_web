@@ -5,74 +5,215 @@
 {% block ats_header_title %}Configuración de correo{% endblock %}
 
 {% block ats_extra_css %}
-  .email-config-wrap { max-width: 720px; margin: 0 auto; color: var(--default-color); }
-  .email-config-wrap .page-intro { text-align: center; margin-bottom: 2rem; }
-  .email-config-wrap .page-intro h1 { font-family: var(--ats-heading); font-weight: 800; color: var(--heading-color); }
-  .email-config-wrap .page-intro p { color: var(--default-color); }
-  .email-config-wrap .section-card {
-    background: var(--surface-color);
-    border-radius: var(--ats-card-radius);
-    border: 1px solid rgba(0,196,201,0.12);
-    padding: 1.5rem 1.75rem;
-    margin-bottom: 1.25rem;
-    box-shadow: 0 6px 24px rgba(11,28,45,0.05);
-    transition: box-shadow 0.2s;
+  .ec-hero {
+    background: linear-gradient(135deg,#0b1c2d 0%,#162d4a 50%,#1a3a5c 100%);
+    border-radius: 18px;
+    padding: 2.25rem 2rem;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
   }
-  .email-config-wrap .section-card:hover { box-shadow: 0 10px 36px rgba(11,28,45,0.08); }
-  .email-config-wrap .section-card h2 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--heading-color); }
-  .email-config-wrap .section-card h2 i { color: var(--accent-color); }
-  .email-config-wrap .section-card .form-label { color: var(--heading-color); }
-  .email-config-wrap .section-card .form-text { color: var(--default-color); opacity: 0.9; }
-  .email-config-wrap .form-actions { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
-  @media (min-width: 576px) {
-    .email-config-wrap .section-card .row .col-md-6 { padding-right: 0.75rem; }
+  .ec-hero::before {
+    content: '';
+    position: absolute;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(0,196,201,.18) 0%, transparent 70%);
+    top: -80px; right: -60px;
+    pointer-events: none;
+  }
+  .ec-hero-left { position: relative; z-index: 1; }
+  .ec-hero h1 {
+    font-family: var(--ats-heading);
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 .3rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  .ec-hero h1 .hero-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: rgba(0,196,201,.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    color: #00c4c9;
+  }
+  .ec-hero .sub { color: rgba(255,255,255,.65); font-size: .9rem; margin: 0; }
+  .ec-hero-right { position: relative; z-index: 1; }
+  .ec-hero-right .btn { border-radius: 10px; font-weight: 600; font-size: .85rem; background: rgba(255,255,255,.08); color: rgba(255,255,255,.8); border: 1px solid rgba(255,255,255,.12); }
+
+  .ec-wrap { max-width: 740px; margin: 0 auto; }
+
+  .ec-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid rgba(11,28,45,.06);
+    padding: 1.75rem 1.85rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 6px 28px rgba(11,28,45,.05);
+    transition: box-shadow .25s, transform .25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .ec-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #00c4c9, #00e5a0);
+    opacity: 0;
+    transition: opacity .25s;
+  }
+  .ec-card:hover { box-shadow: 0 10px 40px rgba(11,28,45,.08); transform: translateY(-2px); }
+  .ec-card:hover::before { opacity: 1; }
+
+  .ec-card-head {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    margin-bottom: 1.15rem;
+  }
+  .ec-card-head .ic {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+  }
+  .ec-card-head .ic.notif { background: linear-gradient(135deg, rgba(99,102,241,.12), rgba(99,102,241,.05)); color: #6366f1; }
+  .ec-card-head .ic.send { background: linear-gradient(135deg, rgba(0,196,201,.12), rgba(0,229,160,.05)); color: #00a0a4; }
+  .ec-card-head .ic.smtp { background: linear-gradient(135deg, rgba(245,158,11,.12), rgba(245,158,11,.05)); color: #f59e0b; }
+  .ec-card-head h2 {
+    font-family: var(--ats-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--heading-color);
+    margin: 0;
+  }
+  .ec-card-head .tag {
+    font-size: .68rem;
+    font-weight: 600;
+    padding: .15rem .5rem;
+    border-radius: 6px;
+    background: rgba(245,158,11,.1);
+    color: #b45309;
+    margin-left: auto;
+  }
+
+  .ec-card .form-label { font-weight: 600; font-size: .88rem; color: var(--heading-color); }
+  .ec-card .form-control { border-radius: 10px; border: 1px solid rgba(11,28,45,.12); padding: .6rem .9rem; font-size: .9rem; transition: border-color .2s, box-shadow .2s; }
+  .ec-card .form-control:focus { border-color: #00c4c9; box-shadow: 0 0 0 3px rgba(0,196,201,.12); }
+  .ec-card .form-text { font-size: .78rem; color: var(--default-color); opacity: .8; }
+  .ec-card .form-check-input:checked { background-color: #00c4c9; border-color: #00c4c9; }
+
+  .ec-actions {
+    margin-top: 1.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    justify-content: center;
+  }
+  .ec-actions .btn-save {
+    background: linear-gradient(135deg, #00c4c9, #00b09b);
+    border: none; color: #fff;
+    border-radius: 12px;
+    padding: .65rem 2rem;
+    font-weight: 700;
+    font-size: .92rem;
+    transition: all .2s;
+  }
+  .ec-actions .btn-save:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,196,201,.3); }
+  .ec-actions .btn-back {
+    background: transparent;
+    border: 1px solid rgba(11,28,45,.15);
+    color: var(--default-color);
+    border-radius: 12px;
+    padding: .65rem 1.75rem;
+    font-weight: 600;
+    font-size: .92rem;
+    transition: all .2s;
+  }
+  .ec-actions .btn-back:hover { background: rgba(11,28,45,.04); }
+
+  @media (max-width: 767.98px) {
+    .ec-hero { padding: 1.5rem 1.25rem; border-radius: 14px; }
+    .ec-hero h1 { font-size: 1.2rem; }
+    .ec-card { padding: 1.25rem; border-radius: 14px; }
   }
 {% endblock %}
 
 {% block ats_content %}
-  <div class="email-config-wrap">
-    <div class="page-intro">
-      <h1 class="h4 mb-2">Configuración de correo <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Correo donde recibes avisos y correo desde el que se envían mensajes a candidatos (ej. apto/rechazo)."></i></h1>
-      <p class="text-muted mb-0">Indica dónde recibir notificaciones y con qué correo enviar. También se usa para el análisis de CVs con IA.</p>
-    </div>
+<div style="max-width:800px; margin:0 auto;">
 
+  <div class="ec-hero">
+    <div class="ec-hero-left">
+      <h1>
+        <span class="hero-icon"><i class="bi bi-envelope-paper-fill"></i></span>
+        Configuración de correo
+      </h1>
+      <p class="sub">Gestiona dónde recibes notificaciones y cómo se envían correos a candidatos</p>
+    </div>
+    <div class="ec-hero-right">
+      <a href="{% url 'ats_dashboard' %}" class="btn btn-sm"><i class="bi bi-arrow-left me-1"></i>Panel</a>
+    </div>
+  </div>
+
+  <div class="ec-wrap">
     <form method="post" action="">
       {% csrf_token %}
-      <div class="section-card">
-        <h2 class="h6"><i class="bi bi-bell"></i>Recepción de notificaciones</h2>
+
+      <div class="ec-card">
+        <div class="ec-card-head">
+          <div class="ic notif"><i class="bi bi-bell-fill"></i></div>
+          <h2>Recepción de notificaciones</h2>
+        </div>
         <div class="mb-0">
-          <label class="form-label fw-semibold">Correo de notificaciones</label>
+          <label class="form-label">Correo de notificaciones</label>
           {{ form.notification_email }}
           <div class="form-text">{{ form.notification_email.help_text }}</div>
           {% if form.notification_email.errors %}<div class="text-danger small mt-1">{{ form.notification_email.errors }}</div>{% endif %}
         </div>
       </div>
 
-      <div class="section-card">
-        <h2 class="h6"><i class="bi bi-envelope-send"></i>Correo de la empresa (remitente)</h2>
+      <div class="ec-card">
+        <div class="ec-card-head">
+          <div class="ic send"><i class="bi bi-send-fill"></i></div>
+          <h2>Correo de la empresa (remitente)</h2>
+        </div>
         <div class="row g-3">
           <div class="col-12 col-md-6">
-            <label class="form-label fw-semibold">Correo de envío</label>
+            <label class="form-label">Correo de envío</label>
             {{ form.company_from_email }}
-            <div class="form-text small">{{ form.company_from_email.help_text }}</div>
+            <div class="form-text">{{ form.company_from_email.help_text }}</div>
           </div>
           <div class="col-12 col-md-6">
-            <label class="form-label fw-semibold">Nombre del remitente</label>
+            <label class="form-label">Nombre del remitente</label>
             {{ form.company_from_name }}
           </div>
         </div>
       </div>
 
-      <div class="section-card">
-        <h2 class="h6"><i class="bi bi-gear"></i>Conectar tu correo (SMTP)</h2>
-        <p class="small text-muted mb-3">Opcional. Para enviar desde tu propio servidor de correo.</p>
+      <div class="ec-card">
+        <div class="ec-card-head">
+          <div class="ic smtp"><i class="bi bi-gear-fill"></i></div>
+          <h2>Conectar tu correo (SMTP)</h2>
+          <span class="tag">Opcional</span>
+        </div>
+        <p class="text-muted small mb-3" style="margin-top:-.25rem;">Para enviar desde tu propio servidor de correo.</p>
         <div class="row g-3">
           <div class="col-12">
-            <label class="form-label fw-semibold">Servidor SMTP</label>
+            <label class="form-label">Servidor SMTP</label>
             {{ form.smtp_host }}
           </div>
           <div class="col-12 col-md-4">
-            <label class="form-label fw-semibold">Puerto</label>
+            <label class="form-label">Puerto</label>
             {{ form.smtp_port }}
           </div>
           <div class="col-12 col-md-4 d-flex align-items-end pb-2 pb-md-0">
@@ -82,16 +223,17 @@
             </div>
           </div>
           <div class="col-12 col-md-4">
-            <label class="form-label fw-semibold">Usuario SMTP</label>
+            <label class="form-label">Usuario SMTP</label>
             {{ form.smtp_user }}
           </div>
         </div>
       </div>
 
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-check-lg me-1"></i>Guardar configuración</button>
-        <a href="{% url 'ats_dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">Volver al panel</a>
+      <div class="ec-actions">
+        <button type="submit" class="btn btn-save"><i class="bi bi-check-lg me-1"></i>Guardar configuración</button>
+        <a href="{% url 'ats_dashboard' %}" class="btn btn-back">Cancelar</a>
       </div>
     </form>
   </div>
+</div>
 {% endblock %}

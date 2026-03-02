@@ -1,0 +1,400 @@
+{% extends "ats/base_ats.html" %}
+{% load static %}
+
+{% block ats_header_title %}Notificaciones y solicitudes{% endblock %}
+
+{% block ats_extra_css %}
+:root {
+  --adm-bg: #f8fafc;
+  --heading-color: #0B1C2D;
+}
+.anot-wrap { max-width: 960px; margin: 0 auto; }
+
+/* Tabs */
+.anot-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0;
+}
+.anot-tab {
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #64748b;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  margin-bottom: -2px;
+}
+.anot-tab:hover { color: var(--heading-color); }
+.anot-tab.active {
+  color: #00C4C9;
+  border-bottom-color: #00C4C9;
+}
+.anot-tab .tab-badge {
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  padding: 0 5px;
+}
+
+/* Cards */
+.anot-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+.anot-card-head {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--heading-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.anot-card-head i { color: #00C4C9; }
+
+/* Request item */
+.req-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+  transition: background 0.15s;
+}
+.req-item:last-child { border-bottom: none; }
+.req-item:hover { background: rgba(0,196,201,0.02); }
+.req-icon {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+.req-icon.pending { background: rgba(245,158,11,0.1); color: #D97706; }
+.req-icon.done { background: rgba(34,197,94,0.1); color: #16a34a; }
+.req-icon.notify { background: rgba(99,102,241,0.1); color: #6366f1; }
+.req-info { flex: 1; min-width: 0; }
+.req-info .req-title {
+  font-weight: 700;
+  color: var(--heading-color);
+  font-size: 0.9rem;
+}
+.req-info .req-detail {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+.req-info .req-time {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+.plan-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.plan-pill.free { background: rgba(148,163,184,0.12); color: #64748b; }
+.plan-pill.pro { background: rgba(99,102,241,0.1); color: #6366f1; }
+.plan-pill.enterprise { background: rgba(245,158,11,0.1); color: #D97706; }
+.req-actions { flex-shrink: 0; display: flex; gap: 0.5rem; }
+.btn-attend {
+  background: linear-gradient(135deg, #00C4C9, #00E5A0);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,196,201,0.2);
+  transition: all 0.2s;
+}
+.btn-attend:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,196,201,0.3);
+}
+
+/* Notification form */
+.anot-notify-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.25rem;
+}
+.anot-notify-form .form-label {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #475569;
+  margin-bottom: 0.25rem;
+}
+.anot-notify-form .form-control,
+.anot-notify-form .form-select {
+  border-radius: 10px;
+  font-size: 0.85rem;
+  border: 1.5px solid #e2e8f0;
+  padding: 0.5rem 0.85rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.anot-notify-form .form-control:focus,
+.anot-notify-form .form-select:focus {
+  border-color: #00C4C9;
+  box-shadow: 0 0 0 3px rgba(0,196,201,0.08);
+}
+.anot-notify-form textarea { min-height: 80px; resize: vertical; }
+.btn-send-notify {
+  background: linear-gradient(135deg, #00C4C9, #00E5A0);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.6rem 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 3px 12px rgba(0,196,201,0.2);
+  transition: all 0.2s;
+  align-self: flex-start;
+  cursor: pointer;
+}
+.btn-send-notify:hover {
+  box-shadow: 0 5px 18px rgba(0,196,201,0.3);
+  transform: translateY(-1px);
+}
+
+/* Empty state */
+.anot-empty {
+  text-align: center;
+  padding: 2.5rem 1.25rem;
+  color: #94a3b8;
+}
+.anot-empty i { font-size: 2rem; margin-bottom: 0.5rem; display: block; opacity: 0.4; }
+.anot-empty span { font-size: 0.85rem; }
+
+/* Pagination */
+.anot-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 1.25rem;
+}
+.anot-pagination a, .anot-pagination span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid #e2e8f0;
+}
+.anot-pagination a:hover { background: rgba(0,196,201,0.08); color: #00C4C9; border-color: #00C4C9; }
+.anot-pagination .active-page { background: #00C4C9; color: #fff; border-color: #00C4C9; }
+
+@media (max-width: 767.98px) {
+  .req-item { flex-wrap: wrap; }
+  .req-actions { width: 100%; margin-top: 0.5rem; }
+  .anot-tabs { overflow-x: auto; }
+}
+{% endblock %}
+
+{% block ats_content %}
+<div class="anot-wrap">
+
+  <!-- Tabs -->
+  <div class="anot-tabs">
+    <a href="?tab=solicitudes" class="anot-tab {% if tab == 'solicitudes' %}active{% endif %}">
+      <i class="bi bi-arrow-repeat"></i> Solicitudes
+      {% if pending_requests %}<span class="tab-badge">{{ pending_requests|length }}</span>{% endif %}
+    </a>
+    <a href="?tab=historial" class="anot-tab {% if tab == 'historial' %}active{% endif %}">
+      <i class="bi bi-clock-history"></i> Historial
+    </a>
+    <a href="?tab=enviar" class="anot-tab {% if tab == 'enviar' %}active{% endif %}">
+      <i class="bi bi-send"></i> Enviar notificación
+    </a>
+  </div>
+
+  <!-- ═══════ TAB: Solicitudes pendientes ═══════ -->
+  {% if tab == "solicitudes" %}
+  <div class="anot-card">
+    <div class="anot-card-head">
+      <i class="bi bi-exclamation-triangle" style="color:#D97706;"></i>
+      Solicitudes pendientes de cambio de plan
+      {% if pending_requests %}
+      <span style="margin-left:auto;background:rgba(245,158,11,0.1);color:#D97706;font-size:0.72rem;font-weight:800;padding:2px 10px;border-radius:8px;">{{ pending_requests|length }} pendiente{{ pending_requests|length|pluralize:"s" }}</span>
+      {% endif %}
+    </div>
+    {% for req in pending_requests %}
+    <div class="req-item">
+      <div class="req-icon pending"><i class="bi bi-hourglass-split"></i></div>
+      <div class="req-info">
+        <div class="req-title">{{ req.client.company_name }}</div>
+        <div class="req-detail">
+          <span class="plan-pill {% if req.from_plan == 'FREE' %}free{% elif req.from_plan == 'PRO' %}pro{% else %}enterprise{% endif %}">{{ req.get_from_plan_display }}</span>
+          <i class="bi bi-arrow-right" style="color:#94a3b8;margin:0 4px;font-size:0.7rem;"></i>
+          <span class="plan-pill {% if req.to_plan == 'FREE' %}free{% elif req.to_plan == 'PRO' %}pro{% else %}enterprise{% endif %}">{{ req.get_to_plan_display }}</span>
+        </div>
+        <div class="req-detail" style="margin-top:3px;">
+          <i class="bi bi-envelope" style="font-size:0.72rem;"></i> {{ req.client.user.email }}
+          {% if req.client.contact_phone %} &middot; <i class="bi bi-telephone" style="font-size:0.72rem;"></i> {{ req.client.contact_phone }}{% endif %}
+        </div>
+        <div class="req-time"><i class="bi bi-clock"></i> {{ req.created_at|timesince }} atrás</div>
+      </div>
+      <div class="req-actions">
+        <form method="post" action="{% url 'ats_admin_mark_request_done' %}">
+          {% csrf_token %}
+          <input type="hidden" name="request_id" value="{{ req.pk }}">
+          <button type="submit" class="btn-attend" onclick="return confirm('¿Marcar esta solicitud como atendida?');">
+            <i class="bi bi-check2-circle"></i> Atendida
+          </button>
+        </form>
+      </div>
+    </div>
+    {% empty %}
+    <div class="anot-empty">
+      <i class="bi bi-check-circle"></i>
+      <span>No hay solicitudes pendientes. ¡Todo al día!</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ═══════ TAB: Historial ═══════ -->
+  {% if tab == "historial" %}
+  <div class="anot-card">
+    <div class="anot-card-head">
+      <i class="bi bi-clock-history"></i> Historial de solicitudes atendidas
+    </div>
+    {% for req in history_page %}
+    <div class="req-item">
+      <div class="req-icon done"><i class="bi bi-check-circle"></i></div>
+      <div class="req-info">
+        <div class="req-title">{{ req.client.company_name }}</div>
+        <div class="req-detail">
+          <span class="plan-pill {% if req.from_plan == 'FREE' %}free{% elif req.from_plan == 'PRO' %}pro{% else %}enterprise{% endif %}">{{ req.get_from_plan_display }}</span>
+          <i class="bi bi-arrow-right" style="color:#94a3b8;margin:0 4px;font-size:0.7rem;"></i>
+          <span class="plan-pill {% if req.to_plan == 'FREE' %}free{% elif req.to_plan == 'PRO' %}pro{% else %}enterprise{% endif %}">{{ req.get_to_plan_display }}</span>
+        </div>
+        <div class="req-time"><i class="bi bi-clock"></i> {{ req.created_at|timesince }} atrás</div>
+      </div>
+      <span style="font-size:0.72rem;font-weight:700;color:#16a34a;background:rgba(34,197,94,0.08);padding:3px 10px;border-radius:6px;">Atendida</span>
+    </div>
+    {% empty %}
+    <div class="anot-empty">
+      <i class="bi bi-inbox"></i>
+      <span>Sin historial de solicitudes aún.</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% if history_page.has_other_pages %}
+  <div class="anot-pagination">
+    {% if history_page.has_previous %}
+    <a href="?tab=historial&hp={{ history_page.previous_page_number }}">&laquo;</a>
+    {% endif %}
+    {% for num in history_page.paginator.page_range %}
+    {% if history_page.number == num %}
+    <span class="active-page">{{ num }}</span>
+    {% elif num > history_page.number|add:"-3" and num < history_page.number|add:"3" %}
+    <a href="?tab=historial&hp={{ num }}">{{ num }}</a>
+    {% endif %}
+    {% endfor %}
+    {% if history_page.has_next %}
+    <a href="?tab=historial&hp={{ history_page.next_page_number }}">&raquo;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <!-- ═══════ TAB: Enviar notificación ═══════ -->
+  {% if tab == "enviar" %}
+  <div class="anot-card">
+    <div class="anot-card-head">
+      <i class="bi bi-bell" style="color:#6366f1;"></i> Enviar notificación a clientes
+    </div>
+    <form method="post" action="{% url 'ats_admin_send_notification' %}" class="anot-notify-form" id="notifyForm">
+      {% csrf_token %}
+      <div>
+        <label class="form-label">Destinatario</label>
+        <select name="target" class="form-select" required>
+          <option value="all">📢 Todos los clientes</option>
+          {% for c in all_clients_for_notify %}
+          <option value="{{ c.id }}">{{ c.company_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Título de la notificación</label>
+        <input type="text" name="title" class="form-control" placeholder="Ej: Actualización de plataforma" required maxlength="200">
+      </div>
+      <div>
+        <label class="form-label">Mensaje <span style="font-weight:400;color:#94a3b8;">(opcional)</span></label>
+        <textarea name="message" class="form-control" placeholder="Escribe un mensaje detallado que verán los clientes..." rows="4"></textarea>
+      </div>
+      <button type="submit" class="btn-send-notify" onclick="return atsConfirmNotify(event);">
+        <i class="bi bi-send"></i> Enviar notificación
+      </button>
+    </form>
+  </div>
+
+  <div class="anot-card" style="background:rgba(99,102,241,0.03);">
+    <div style="padding:1rem 1.25rem; font-size:0.82rem; color:#64748b; display:flex; align-items:center; gap:0.5rem;">
+      <i class="bi bi-info-circle" style="color:#6366f1;"></i>
+      La notificación aparecerá en la campanita del cliente y, si tiene correo de notificaciones configurado, también recibirá un email.
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function atsConfirmNotify(e) {
+  e.preventDefault();
+  var form = document.getElementById('notifyForm');
+  var target = form.querySelector('[name=target]');
+  var label = target.options[target.selectedIndex].text;
+  Swal.fire({
+    title: '¿Enviar notificación?',
+    html: 'Se enviará una notificación a <strong>' + label + '</strong>.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#00C4C9',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Enviar',
+    cancelButtonText: 'Cancelar'
+  }).then(function(result) {
+    if (result.isConfirmed) { form.submit(); }
+  });
+  return false;
+}
+</script>
+{% endblock %}

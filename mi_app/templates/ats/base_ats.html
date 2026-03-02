@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block ats_title %}Panel ATS{% endblock %} | Star Path</title>
+  <title>{% block ats_title %}Órbita{% endblock %} | Star Path</title>
   <link href="{% static 'img/logo_star.png' %}" rel="icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -15,89 +15,161 @@
     :root {
       --ats-font: "Inter", sans-serif;
       --ats-heading: "Plus Jakarta Sans", sans-serif;
-      --ats-bg: #f0f4f8;
-      --ats-sidebar-bg: #f0f4f8;
-      --ats-sidebar-width: 260px;
-      --ats-card-radius: 12px;
-      --ats-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      --ats-shadow-card: 0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -2px rgba(0,0,0,0.04);
+      --ats-bg: #f4f6fb;
+      --ats-sidebar-bg: #ffffff;
+      --ats-sidebar-width: 264px;
+      --ats-card-radius: 14px;
+      --ats-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      --ats-shadow-card: 0 1px 4px rgba(11,28,45,0.04), 0 8px 24px rgba(11,28,45,0.04);
+      --ats-accent: #00C4C9;
+      --ats-accent-soft: rgba(0,196,201,0.08);
+      --ats-transition: cubic-bezier(0.4,0,0.2,1);
     }
-    body { font-family: var(--ats-font); background: var(--ats-bg); min-height: 100vh; margin: 0; }
-    .ats-app { background: var(--ats-bg); }
-    .ats-app { display: flex; min-height: 100vh; }
-    /* Sidebar */
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: var(--ats-font); background: var(--ats-bg); min-height: 100vh; margin: 0; -webkit-font-smoothing: antialiased; }
+    .ats-app { display: flex; min-height: 100vh; background: var(--ats-bg); }
+
+    /* ─── Sidebar ─── */
     .ats-sidebar {
       width: var(--ats-sidebar-width);
-      background: var(--ats-sidebar-bg);
-      border-right: 1px solid rgba(11,28,45,0.1);
+      background: linear-gradient(180deg, #0b1c2d 0%, #0f2438 40%, #0d1f33 100%);
+      border-right: 1px solid rgba(255,255,255,0.06);
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
       position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
+      top: 0; left: 0; bottom: 0;
       z-index: 1030;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform 0.25s var(--ats-transition), box-shadow 0.25s var(--ats-transition);
+      box-shadow: 2px 0 20px rgba(0,0,0,0.15);
     }
     .ats-sidebar .sidebar-brand {
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
+      padding: 1.25rem 1.35rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.7rem;
       text-decoration: none;
-      color: var(--heading-color);
+      color: #fff;
       font-family: var(--ats-heading);
       font-weight: 800;
       font-size: 1.1rem;
+      transition: all 0.2s;
+      position: relative;
     }
-    .ats-sidebar .sidebar-brand img { height: 36px; width: auto; }
-    .ats-sidebar .sidebar-brand span { opacity: 0.9; }
+    .ats-sidebar .sidebar-brand::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 1.35rem; right: 1.35rem;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,196,201,0.3), transparent);
+    }
+    .ats-sidebar .sidebar-brand:hover { color: #00c4c9; }
+    .ats-sidebar .sidebar-brand img { height: 34px; width: auto; filter: brightness(1.1); }
+    .ats-sidebar .sidebar-brand .brand-sub {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.4);
+    }
     .ats-sidebar .sidebar-nav {
       flex: 1;
       overflow-y: auto;
       padding: 1rem 0.75rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.08) transparent;
     }
-    .ats-sidebar .nav-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--default-color); opacity: 0.75; padding: 0.5rem 1rem; margin-top: 0.5rem; }
+    .ats-sidebar .sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .ats-sidebar .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+    .ats-sidebar .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .ats-sidebar .nav-label {
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.3); padding: 0.65rem 0.85rem 0.35rem; margin-top: 0.5rem;
+      font-weight: 700;
+    }
     .ats-sidebar .nav-label:first-child { margin-top: 0; }
-    .ats-sidebar .nav-item { margin-bottom: 0.2rem; }
+    .ats-sidebar .nav-item { margin-bottom: 2px; }
     .ats-sidebar .nav-link {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.65rem 1rem;
-      border-radius: 8px;
-      color: var(--default-color);
+      padding: 0.6rem 0.85rem;
+      border-radius: 10px;
+      color: rgba(255,255,255,0.6);
       text-decoration: none;
       font-weight: 500;
-      font-size: 0.9rem;
-      transition: background 0.15s, color 0.15s;
+      font-size: 0.86rem;
+      transition: all 0.2s var(--ats-transition);
+      position: relative;
     }
-    .ats-sidebar .nav-link:hover { background: rgba(0,196,201,0.1); color: var(--accent-color); }
-    .ats-sidebar .nav-link.active { background: rgba(0,196,201,0.12); color: var(--accent-color); }
-    .ats-sidebar .nav-link i { font-size: 1.15rem; width: 22px; text-align: center; opacity: 0.9; }
-    .ats-sidebar .nav-divider { height: 1px; background: rgba(0,0,0,0.06); margin: 0.5rem 1rem; }
-    .ats-sidebar .nav-link.text-danger:hover { background: rgba(217,83,79,0.1); color: #b91c1c; }
+    .ats-sidebar .nav-link:hover {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.95);
+    }
+    .ats-sidebar .nav-link.active {
+      background: linear-gradient(135deg, rgba(0,196,201,0.15) 0%, rgba(0,229,160,0.08) 100%);
+      color: #00c4c9;
+      font-weight: 600;
+    }
+    .ats-sidebar .nav-link.active::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 60%; border-radius: 0 4px 4px 0;
+      background: linear-gradient(180deg, #00c4c9, #00e5a0);
+      box-shadow: 0 0 8px rgba(0,196,201,0.4);
+    }
+    .ats-sidebar .nav-link i {
+      font-size: 1.05rem; width: 22px; text-align: center;
+      opacity: 0.7; transition: all 0.2s;
+    }
+    .sidebar-badge {
+      margin-left: auto;
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      min-width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      padding: 0 6px;
+      line-height: 1;
+      box-shadow: 0 2px 6px rgba(239,68,68,0.3);
+      animation: badgePulse 2s ease-in-out infinite;
+    }
+    @keyframes badgePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .ats-sidebar .nav-link:hover i { opacity: 1; color: #00c4c9; }
+    .ats-sidebar .nav-link.active i { opacity: 1; color: #00c4c9; }
+    .ats-sidebar .nav-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 0.6rem 0.85rem; }
+    .ats-sidebar .nav-link.text-danger { color: rgba(239,68,68,0.75) !important; }
+    .ats-sidebar .nav-link.text-danger:hover { background: rgba(239,68,68,0.1); color: #ef4444 !important; }
+    .ats-sidebar .nav-link.text-danger i { color: inherit !important; }
+
     /* Mobile sidebar overlay */
-    .ats-sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1029; }
+    .ats-sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1029; backdrop-filter: blur(4px); transition: opacity 0.25s; }
     .ats-sidebar-backdrop.show { display: block; }
     @media (max-width: 991.98px) {
       .ats-sidebar { transform: translateX(-100%); box-shadow: none; }
-      .ats-sidebar.show { transform: translateX(0); box-shadow: 8px 0 24px rgba(0,0,0,0.12); }
+      .ats-sidebar.show { transform: translateX(0); box-shadow: 8px 0 40px rgba(0,0,0,0.25); }
     }
     @media (min-width: 992px) {
       .ats-sidebar-backdrop { display: none !important; }
     }
-    /* Main wrapper - fondo gris en toda el área de contenido */
+
+    /* ─── Main wrap ─── */
     .ats-main-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; margin-left: 0; background: var(--ats-bg); }
     @media (min-width: 992px) {
       .ats-main-wrap { margin-left: var(--ats-sidebar-width); }
     }
-    /* Top header - mismo estilo oscuro que antes */
+
+    /* ─── Topbar ─── */
     .ats-topbar {
-      background: linear-gradient(135deg, var(--dark-bg) 0%, #0d2842 50%, #0a2038 100%);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(135deg, #0B1C2D 0%, #0f2a45 50%, #0d2440 100%);
       padding: 0.75rem 1.5rem;
       display: flex;
       align-items: center;
@@ -106,57 +178,118 @@
       position: sticky;
       top: 0;
       z-index: 1010;
-      box-shadow: 0 4px 20px rgba(11,28,45,0.2);
+      box-shadow: 0 1px 12px rgba(11,28,45,0.18);
     }
     .ats-topbar .sidebar-toggle {
-      width: 40px; height: 40px;
-      border: none; border-radius: 8px;
-      background: rgba(255,255,255,0.12);
-      color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.35rem;
-    }
-    .ats-topbar .sidebar-toggle:hover { background: rgba(255,255,255,0.22); color: #fff; }
-    @media (min-width: 992px) { .ats-topbar .sidebar-toggle { display: none; } }
-    .ats-topbar .page-title { font-family: var(--ats-heading); font-weight: 700; font-size: 1.15rem; color: #fff; margin: 0; background: transparent !important; border: none; }
-    .ats-topbar > div { background: transparent !important; }
-    .ats-topbar .form-control { background: rgba(255,255,255,0.12) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.25); }
-    .ats-topbar .form-control::placeholder { color: rgba(255,255,255,0.65); }
-    .ats-topbar .user-dropdown .btn {
-      display: flex; align-items: center; gap: 0.6rem;
-      padding: 0.4rem 0.75rem;
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 10px;
+      width: 38px; height: 38px;
+      border: none; border-radius: 10px;
       background: rgba(255,255,255,0.1);
       color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+      transition: background 0.18s;
+    }
+    .ats-topbar .sidebar-toggle:hover { background: rgba(255,255,255,0.2); }
+    @media (min-width: 992px) { .ats-topbar .sidebar-toggle { display: none; } }
+    .ats-topbar .page-title { font-family: var(--ats-heading); font-weight: 700; font-size: 1.1rem; color: #fff; margin: 0; background: transparent !important; border: none; }
+    .ats-topbar > div { background: transparent !important; }
+    .ats-topbar .form-control { background: rgba(255,255,255,0.1) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; }
+    .ats-topbar .form-control::placeholder { color: rgba(255,255,255,0.55); }
+    .ats-topbar .user-dropdown .btn {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.35rem 0.7rem;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
       font-weight: 500;
+      transition: all 0.18s;
     }
-    .ats-topbar .user-dropdown .btn:hover { background: rgba(255,255,255,0.18); color: #fff; border-color: rgba(255,255,255,0.35); }
+    .ats-topbar .user-dropdown .btn:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
     .ats-topbar .user-avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      object-fit: cover; border: 2px solid rgba(255,255,255,0.35);
+      width: 34px; height: 34px; border-radius: 50%;
+      object-fit: cover; border: 2px solid rgba(255,255,255,0.3);
     }
-    .ats-topbar .user-avatar-ph { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: #fff; }
+    .ats-topbar .user-avatar-ph { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.9rem; }
     .ats-topbar .user-info { text-align: left; }
-    .ats-topbar .user-info .name { font-size: 0.875rem; font-weight: 600; display: block; color: #fff; }
-    .ats-topbar .user-info .role { font-size: 0.75rem; color: rgba(255,255,255,0.7); }
+    .ats-topbar .user-info .name { font-size: 0.85rem; font-weight: 600; display: block; color: #fff; }
+    .ats-topbar .user-info .role { font-size: 0.72rem; color: rgba(255,255,255,0.65); }
     @media (max-width: 575px) {
       .ats-topbar .user-info { display: none; }
     }
-    /* Content - texto oscuro sobre fondo claro siempre */
+
+    /* ─── Content area ─── */
     .ats-content { flex: 1; padding: 1.5rem; color: var(--default-color); background: var(--ats-bg); }
     .ats-content .form-control, .ats-content .form-select, .ats-content .form-check-label { color: var(--default-color); }
-    .ats-content .form-label { color: var(--heading-color); }
-    @media (min-width: 768px) { .ats-content { padding: 1.75rem 2rem; } }
+    .ats-content .form-label { color: var(--heading-color); font-weight: 600; font-size: 0.875rem; }
+    .ats-content .form-control, .ats-content .form-select { border-radius: 10px; border-color: rgba(11,28,45,0.12); transition: border-color 0.18s, box-shadow 0.18s; }
+    .ats-content .form-control:focus, .ats-content .form-select:focus { border-color: var(--ats-accent); box-shadow: 0 0 0 3px rgba(0,196,201,0.12); }
+    @media (min-width: 768px) { .ats-content { padding: 1.75rem 2.25rem; } }
     .ats-content-card {
       background: var(--surface-color);
       border-radius: var(--ats-card-radius);
       box-shadow: var(--ats-shadow-card);
-      border: 1px solid rgba(0,196,201,0.1);
+      border: 1px solid rgba(11,28,45,0.06);
       overflow: hidden;
+      transition: box-shadow 0.2s var(--ats-transition);
     }
-    .ats-footer { padding: 0.75rem 1.5rem; border-top: 1px solid rgba(11,28,45,0.08); background: var(--surface-color); font-size: 0.8rem; color: var(--default-color); }
+    .ats-content-card:hover { box-shadow: 0 2px 8px rgba(11,28,45,0.06), 0 12px 32px rgba(11,28,45,0.06); }
+
+    /* ─── Alerts ─── */
+    .ats-content .alert { border-radius: 12px; border: none; font-size: 0.9rem; }
+
+    /* ─── Buttons global ─── */
+    .ats-content .btn-primary { background: var(--ats-accent); border-color: var(--ats-accent); font-weight: 600; border-radius: 10px; transition: all 0.18s; }
+    .ats-content .btn-primary:hover { background: #00b3b8; border-color: #00b3b8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,196,201,0.3); }
+    .ats-content .btn-outline-primary { color: var(--ats-accent); border-color: var(--ats-accent); border-radius: 10px; font-weight: 600; }
+    .ats-content .btn-outline-primary:hover { background: var(--ats-accent); border-color: var(--ats-accent); color: #fff; }
+
+    /* ─── Footer ─── */
+    .ats-footer { padding: 0.75rem 1.5rem; border-top: 1px solid rgba(11,28,45,0.06); background: var(--surface-color); font-size: 0.78rem; color: #8896a6; }
     .ats-footer p { margin: 0; }
+
+    /* ─── Notification dropdown ─── */
+    .ats-notif-list { border-radius: 14px !important; border: 1px solid rgba(11,28,45,0.06) !important; }
+
+    /* ─── Toast alerts ─── */
+    .ats-toast {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.85rem 1.15rem; margin-bottom: 0.75rem; border-radius: 14px;
+      background: #fff; border: 1px solid rgba(11,28,45,0.06);
+      box-shadow: 0 4px 16px rgba(11,28,45,0.06), 0 12px 32px rgba(11,28,45,0.04);
+      position: relative; overflow: hidden;
+      animation: toastSlideIn 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    @keyframes toastSlideIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+    .ats-toast-icon { font-size: 1.25rem; flex-shrink: 0; display: flex; align-items: center; }
+    .ats-toast-body { flex: 1; font-size: 0.88rem; font-weight: 600; color: var(--heading-color, #1a202c); }
+    .ats-toast-close {
+      background: none; border: none; cursor: pointer; color: #a0aec0; font-size: 0.85rem;
+      padding: 0.25rem; border-radius: 6px; transition: all 0.15s; flex-shrink: 0;
+    }
+    .ats-toast-close:hover { background: rgba(11,28,45,0.05); color: #4a5568; }
+    .ats-toast-timer {
+      position: absolute; bottom: 0; left: 0; height: 3px; border-radius: 0 0 14px 14px;
+      animation: toastTimer 4.5s linear forwards;
+    }
+    @keyframes toastTimer { from { width: 100%; } to { width: 0%; } }
+
+    .ats-toast-success { border-left: 4px solid #10b981; }
+    .ats-toast-success .ats-toast-icon { color: #10b981; }
+    .ats-toast-success .ats-toast-timer { background: linear-gradient(90deg, #10b981, #34d399); }
+
+    .ats-toast-error, .ats-toast-danger { border-left: 4px solid #ef4444; }
+    .ats-toast-error .ats-toast-icon, .ats-toast-danger .ats-toast-icon { color: #ef4444; }
+    .ats-toast-error .ats-toast-timer, .ats-toast-danger .ats-toast-timer { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+    .ats-toast-warning { border-left: 4px solid #f59e0b; }
+    .ats-toast-warning .ats-toast-icon { color: #f59e0b; }
+    .ats-toast-warning .ats-toast-timer { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+    .ats-toast-info { border-left: 4px solid #6366f1; }
+    .ats-toast-info .ats-toast-icon { color: #6366f1; }
+    .ats-toast-info .ats-toast-timer { background: linear-gradient(90deg, #6366f1, #818cf8); }
+
     {% block ats_extra_css %}{% endblock %}
   </style>
 </head>
@@ -166,7 +299,7 @@
     <aside class="ats-sidebar" id="atsSidebar">
       <a href="{% if ats_client %}{% url 'ats_dashboard' %}{% elif user.is_staff %}{% url 'ats_admin_dashboard' %}{% else %}{% url 'ats_dashboard' %}{% endif %}" class="sidebar-brand">
         <img src="{% static 'img/logo_star.png' %}" alt="Star Path">
-        <span>Star Path <span class="opacity-75 fw-normal" style="font-size: 0.9rem;">ATS</span></span>
+        <span>Órbita <span class="brand-sub">by Star Path</span></span>
       </a>
       <nav class="sidebar-nav">
         {% if ats_client %}
@@ -181,14 +314,38 @@
         {% if user.is_staff %}
         <div class="nav-divider"></div>
         <div class="nav-label">Administración</div>
-        <div class="nav-item"><a href="{% url 'ats_admin_dashboard' %}" class="nav-link {% if ats_page == 'administracion' %}active{% endif %}"><i class="bi bi-gear-wide-connected"></i> Administración ATS</a></div>
+        <div class="nav-item"><a href="{% url 'ats_admin_dashboard' %}" class="nav-link {% if ats_page == 'administracion' %}active{% endif %}"><i class="bi bi-gear-wide-connected"></i> Panel general</a></div>
+        <div class="nav-item">
+          <a href="{% url 'ats_admin_notifications' %}?tab=solicitudes" class="nav-link {% if ats_page == 'admin_notificaciones' %}active{% endif %}">
+            <i class="bi bi-arrow-repeat"></i> Solicitudes
+            {% if ats_admin_unread_count %}<span class="sidebar-badge">{{ ats_admin_unread_count }}</span>{% endif %}
+          </a>
+        </div>
+        <div class="nav-item"><a href="{% url 'ats_admin_dashboard' %}#reportes" class="nav-link"><i class="bi bi-bar-chart-line"></i> Reportes</a></div>
+        <div class="nav-item">
+          <a href="{% url 'ats_admin_notifications' %}?tab=enviar" class="nav-link {% if ats_page == 'admin_notificaciones' and tab == 'enviar' %}active{% endif %}">
+            <i class="bi bi-bell"></i> Notificaciones
+          </a>
+        </div>
         {% endif %}
         {% elif user.is_staff %}
         <div class="nav-label">Administración</div>
-        <div class="nav-item"><a href="{% url 'ats_admin_dashboard' %}" class="nav-link {% if ats_page == 'administracion' %}active{% endif %}"><i class="bi bi-gear-wide-connected"></i> Administración ATS</a></div>
+        <div class="nav-item"><a href="{% url 'ats_admin_dashboard' %}" class="nav-link {% if ats_page == 'administracion' %}active{% endif %}"><i class="bi bi-gear-wide-connected"></i> Panel general</a></div>
+        <div class="nav-item">
+          <a href="{% url 'ats_admin_notifications' %}?tab=solicitudes" class="nav-link {% if ats_page == 'admin_notificaciones' %}active{% endif %}">
+            <i class="bi bi-arrow-repeat"></i> Solicitudes
+            {% if ats_admin_unread_count %}<span class="sidebar-badge">{{ ats_admin_unread_count }}</span>{% endif %}
+          </a>
+        </div>
+        <div class="nav-item"><a href="{% url 'ats_admin_dashboard' %}#reportes" class="nav-link"><i class="bi bi-bar-chart-line"></i> Reportes</a></div>
+        <div class="nav-item">
+          <a href="{% url 'ats_admin_notifications' %}?tab=enviar" class="nav-link">
+            <i class="bi bi-bell"></i> Notificaciones
+          </a>
+        </div>
         <div class="nav-divider"></div>
         <div class="nav-item"><a href="{% url 'ats_staff_account' %}" class="nav-link {% if ats_page == 'mi_cuenta_staff' %}active{% endif %}"><i class="bi bi-credit-card"></i> Mi cuenta</a></div>
-        <div class="nav-item"><a href="{% url 'ats_producto' %}" class="nav-link"><i class="bi bi-box-arrow-up-right"></i> Ver producto ATS</a></div>
+        <div class="nav-item"><a href="{% url 'ats_producto' %}" class="nav-link"><i class="bi bi-box-arrow-up-right"></i> Ver producto Órbita</a></div>
         {% endif %}
         <div class="nav-divider"></div>
         <div class="nav-label">Cuenta</div>
@@ -203,7 +360,7 @@
       <header class="ats-topbar">
         <div class="d-flex align-items-center gap-2">
           <button type="button" class="sidebar-toggle" id="atsSidebarToggle" aria-label="Abrir menú"><i class="bi bi-list"></i></button>
-          <h1 class="page-title">{% block ats_header_title %}Panel ATS{% endblock %}</h1>
+          <h1 class="page-title">{% block ats_header_title %}Órbita{% endblock %}</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
           {% if ats_notifications is not None or ats_admin_notifications is not None %}
@@ -246,15 +403,15 @@
               {% else %}
               <li class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center gap-2" style="line-height: 1.4; min-height: 2.25rem; background: rgba(0,196,201,0.06);">
                 <span class="fw-semibold text-dark d-flex align-items-center">Solicitudes de cambio de plan</span>
-                <a href="{% url 'ats_admin_dashboard' %}" class="small text-primary text-decoration-none fw-medium flex-shrink-0">Ver todas</a>
+                <a href="{% url 'ats_admin_notifications' %}?tab=solicitudes" class="small text-primary text-decoration-none fw-medium flex-shrink-0">Ver todas</a>
               </li>
               {% for req in ats_admin_notifications %}
               <li class="border-bottom" style="border-color: rgba(0,0,0,0.05) !important;">
-                <a class="dropdown-item py-2 d-flex align-items-start gap-2" href="{% url 'ats_admin_dashboard' %}">
-                  <span class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0,196,201,0.12); color: var(--accent-color);"><i class="bi bi-arrow-repeat small"></i></span>
+                <a class="dropdown-item py-2 d-flex align-items-start gap-2" href="{% url 'ats_admin_notifications' %}?tab=solicitudes">
+                  <span class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 36px; height: 36px; background: rgba(245,158,11,0.12); color: #D97706;"><i class="bi bi-arrow-repeat small"></i></span>
                   <span class="flex-grow-1 min-w-0">
                     <span class="d-block fw-semibold text-dark">{{ req.client.company_name }}</span>
-                    <span class="small text-muted">Solicitud: {{ req.get_from_plan_display }} → {{ req.get_to_plan_display }}</span>
+                    <span class="small text-muted">{{ req.get_from_plan_display }} → {{ req.get_to_plan_display }}</span>
                     <span class="small text-muted">{{ req.created_at|timesince }} atrás</span>
                   </span>
                 </a>
@@ -262,6 +419,11 @@
               {% empty %}
               <li class="px-3 py-4 text-center text-muted small">No hay solicitudes pendientes.</li>
               {% endfor %}
+              <li class="border-top">
+                <a href="{% url 'ats_admin_notifications' %}" class="dropdown-item py-2 text-center small fw-semibold" style="color:#00C4C9;">
+                  <i class="bi bi-grid-3x3-gap"></i> Ver panel completo de notificaciones
+                </a>
+              </li>
               {% endif %}
             </ul>
           </div>
@@ -297,8 +459,16 @@
       <main class="ats-content">
         {% if messages %}
           {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3 rounded-2 shadow-sm">{{ message }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="ats-toast ats-toast-{{ message.tags }}" role="alert">
+              <div class="ats-toast-icon">
+                {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill"></i>
+                {% elif message.tags == 'error' or message.tags == 'danger' %}<i class="bi bi-exclamation-triangle-fill"></i>
+                {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-circle-fill"></i>
+                {% else %}<i class="bi bi-info-circle-fill"></i>{% endif %}
+              </div>
+              <div class="ats-toast-body">{{ message }}</div>
+              <button type="button" class="ats-toast-close" onclick="this.closest('.ats-toast').remove()"><i class="bi bi-x-lg"></i></button>
+              <div class="ats-toast-timer"></div>
             </div>
           {% endfor %}
         {% endif %}
@@ -306,7 +476,7 @@
       </main>
 
       <footer class="ats-footer">
-        <p>© <span id="year"></span> <strong class="text-dark">Star Path</strong> · ATS</p>
+        <p>© <span id="year"></span> <strong class="text-dark">Star Path</strong> · Órbita</p>
       </footer>
     </div>
   </div>
@@ -319,6 +489,16 @@
     Swal.fire(Object.assign({ showCancelButton: true, confirmButtonText: 'Sí', cancelButtonText: 'Cancelar', icon: 'question' }, opts || {})).then(function(r) { if (r.isConfirmed) form.submit(); });
     return false;
   };
+  (function(){
+    document.querySelectorAll('.ats-toast').forEach(function(t){
+      setTimeout(function(){
+        t.style.transition = 'opacity 0.4s, transform 0.4s';
+        t.style.opacity = '0';
+        t.style.transform = 'translateY(-8px)';
+        setTimeout(function(){ t.remove(); }, 400);
+      }, 4500);
+    });
+  })();
   </script>
   <script>
   (function() {

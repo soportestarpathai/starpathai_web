@@ -75,10 +75,10 @@ def notify_ats_client(client, notification_type, title, message="", link="", req
         if full_url:
             email_body += f"Ver: {full_url}\n"
         elif dashboard:
-            email_body += f"Panel ATS: {dashboard}\n"
+            email_body += f"Panel Órbita: {dashboard}\n"
 
         send_mail(
-            subject=f"[Star Path ATS] {title}",
+            subject=f"[Órbita] {title}",
             message=email_body,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[to_email],
@@ -118,13 +118,13 @@ def notify_support_plan_change(user, ats_client, old_plan_id, new_plan_id):
     user_email_raw = getattr(user, "email", "") or "—"
     user_email = html.escape(user_email_raw)
 
-    subject = "[Star Path ATS] Solicitud de cambio de plan - validar y activar desde admin"
-    body_plain = f"""Un cliente ha solicitado cambio de plan en el ATS. El plan NO se ha cambiado aún.
+    subject = "[Órbita] Solicitud de cambio de plan - validar y activar desde admin"
+    body_plain = f"""Un cliente ha solicitado cambio de plan en Órbita. El plan NO se ha cambiado aún.
 
 Acción requerida:
 1. Validar la solicitud.
 2. Gestionar el pago externo con el cliente.
-3. Una vez cobrado, activar el nuevo plan desde el administrador de Django (Suscripciones ATS / Subscription).
+3. Una vez cobrado, activar el nuevo plan desde el administrador de Django (Suscripciones Órbita / Subscription).
 
 Datos del cliente:
 - Empresa: {company}
@@ -144,7 +144,7 @@ Plan solicitado: {new_name} ({new_plan_id})
   <div style="max-width: 520px; margin: 0 auto; background:#fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
     <div style="background: linear-gradient(135deg, #0B1C2D 0%, #122d47 100%); color: #fff; padding: 20px 24px;">
       <h1 style="margin: 0; font-size: 1.25rem; font-weight: 700;">Solicitud de cambio de plan</h1>
-      <p style="margin: 6px 0 0; font-size: 0.9rem; opacity: 0.9;">Star Path ATS - Validar y activar desde admin</p>
+      <p style="margin: 6px 0 0; font-size: 0.9rem; opacity: 0.9;">Órbita — Validar y activar desde admin</p>
     </div>
     <div style="padding: 24px;">
       <p style="margin: 0 0 20px; color: #444; line-height: 1.5;">Un cliente ha solicitado cambio de plan. El plan <strong>no</strong> se ha cambiado aún.</p>
@@ -153,7 +153,7 @@ Plan solicitado: {new_name} ({new_plan_id})
         <ol style="margin: 0; padding-left: 20px; color: #444;">
           <li>Validar la solicitud.</li>
           <li>Gestionar el pago externo con el cliente.</li>
-          <li>Una vez cobrado, activar el nuevo plan desde el administrador (Suscripciones ATS).</li>
+          <li>Una vez cobrado, activar el nuevo plan desde el administrador (Suscripciones Órbita).</li>
         </ol>
       </div>
       <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
@@ -173,7 +173,7 @@ Plan solicitado: {new_name} ({new_plan_id})
         </div>
       </div>
     </div>
-    <div style="padding: 14px 24px; background: #f8fafc; font-size: 0.8rem; color: #666; border-top: 1px solid #eee;">Star Path ATS</div>
+    <div style="padding: 14px 24px; background: #f8fafc; font-size: 0.8rem; color: #666; border-top: 1px solid #eee;">Órbita — Star Path</div>
   </div>
 </body>
 </html>
@@ -203,8 +203,8 @@ def notify_support_account_deletion_request(ats_client):
     company = html.escape(ats_client.company_name if ats_client else "—")
     contact = html.escape(ats_client.contact_name or "—")
     user_email = html.escape(getattr(ats_client.user, "email", "") or "—")
-    subject = "[Star Path ATS] Solicitud de baja de cuenta"
-    body_plain = f"""Un cliente ha solicitado la baja de su cuenta ATS.
+    subject = "[Órbita] Solicitud de baja de cuenta"
+    body_plain = f"""Un cliente ha solicitado la baja de su cuenta en Órbita.
 
 Empresa: {company}
 Contacto: {contact}
@@ -214,7 +214,7 @@ Proceder con la baja/eliminación desde el administrador si corresponde.
 """
     body_html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family: sans-serif; padding: 20px;">
 <h1 style="font-size: 1.2rem;">Solicitud de baja de cuenta</h1>
-<p>Un cliente ha solicitado la baja de su cuenta ATS.</p>
+<p>Un cliente ha solicitado la baja de su cuenta en Órbita.</p>
 <table style="border-collapse: collapse;">
 <tr><td style="padding: 6px 12px 6px 0; font-weight: 700;">Empresa</td><td>{company}</td></tr>
 <tr><td style="padding: 6px 12px 6px 0; font-weight: 700;">Contacto</td><td>{contact}</td></tr>
@@ -248,7 +248,7 @@ def send_email_to_candidate(client, candidate, email_type, custom_message=None):
     if not to_email or "@" not in to_email:
         return False
     from_email = settings.DEFAULT_FROM_EMAIL
-    from_name = "Star Path ATS"
+    from_name = "Órbita"
     try:
         config = getattr(client, "email_config", None)
         if config and getattr(config, "company_from_email", None) and config.company_from_email.strip():

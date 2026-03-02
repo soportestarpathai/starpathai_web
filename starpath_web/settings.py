@@ -254,6 +254,9 @@ ATS_FORM_PUBLIC_ALLOWED_EXTENSIONS = [e.strip().lower() for e in os.environ.get(
 ATS_FORM_PUBLIC_RATE_LIMIT_COUNT = int(os.environ.get("ATS_FORM_PUBLIC_RATE_LIMIT_COUNT", 5))
 ATS_FORM_PUBLIC_RATE_LIMIT_SECONDS = int(os.environ.get("ATS_FORM_PUBLIC_RATE_LIMIT_SECONDS", 3600))  # 1 hora
 
+# Telegram Bot
+TELEGRAM_BOT_TOKEN = (os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip()
+
 # ATS análisis de CV con IA (OpenAI). Si OPENAI_API_KEY está vacío, se usa evaluación stub.
 OPENAI_API_KEY = (os.environ.get("OPENAI_API_KEY") or "").strip()
 # Extracción de documentos (INE, comprobante). Si está vacío, usa OPENAI_API_KEY como fallback.

@@ -4,35 +4,424 @@
 {% block ats_title %}{% if is_edit %}Editar vacante{% else %}Nueva vacante{% endif %}{% endblock %}
 {% block ats_header_title %}Vacante{% endblock %}
 
+{% block ats_extra_css %}
+  .vf-hero {
+    background: linear-gradient(135deg, #0b1c2d 0%, #1a2f45 50%, #0b1c2d 100%);
+    border-radius: 18px; padding: 2rem 2.25rem; color: #fff; margin-bottom: 2rem;
+    position: relative; overflow: hidden;
+  }
+  .vf-hero::before {
+    content: ""; position: absolute; top: -40%; right: -10%; width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(0,196,201,0.15) 0%, transparent 70%); border-radius: 50%;
+  }
+  .vf-hero .vf-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(0,196,201,0.15); border: 1px solid rgba(0,196,201,0.3);
+    border-radius: 50px; padding: 0.3rem 0.85rem; font-size: 0.75rem; font-weight: 600;
+    color: var(--ats-accent); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .vf-hero h1 { font-family: var(--ats-heading); font-size: 1.6rem; font-weight: 800; margin-bottom: 0.25rem; position: relative; color: #fff; }
+  .vf-hero .vf-sub { color: rgba(255,255,255,0.55); font-size: 0.88rem; position: relative; }
+
+  .vf-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; }
+  @media (max-width: 700px) { .vf-actions { grid-template-columns: 1fr; } }
+
+  .vf-action-card {
+    background: #fff; border-radius: 16px; padding: 1.75rem;
+    border: 2px solid transparent; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(11,28,45,0.05);
+    transition: all 0.25s var(--ats-transition); position: relative; overflow: hidden;
+  }
+  .vf-action-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(11,28,45,0.1); }
+  .vf-action-card.card-desc { border-color: rgba(0,196,201,0.2); }
+  .vf-action-card.card-desc:hover { border-color: var(--ats-accent); }
+  .vf-action-card.card-ai { border-color: rgba(139,92,246,0.2); }
+  .vf-action-card.card-ai:hover { border-color: #8b5cf6; }
+
+  .vf-action-card .card-icon {
+    width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center;
+    justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;
+  }
+  .card-desc .card-icon { background: linear-gradient(135deg, rgba(0,196,201,0.12), rgba(0,196,201,0.04)); color: var(--ats-accent); }
+  .card-ai .card-icon { background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(139,92,246,0.04)); color: #8b5cf6; }
+  .vf-action-card h3 { font-family: var(--ats-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .vf-action-card p { font-size: 0.85rem; color: #8896a6; margin-bottom: 0.75rem; line-height: 1.45; }
+  .card-status {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.65rem;
+    border-radius: 50px;
+  }
+  .status-filled { background: rgba(16,185,129,0.1); color: #059669; }
+  .status-empty { background: rgba(245,158,11,0.1); color: #d97706; }
+  .status-on { background: rgba(139,92,246,0.1); color: #7c3aed; }
+  .status-off { background: rgba(107,114,128,0.1); color: #6b7280; }
+
+  /* ─── Preview ─── */
+  .vf-preview {
+    background: #fff; border-radius: 16px; padding: 2rem;
+    box-shadow: 0 4px 20px rgba(11,28,45,0.05); margin-bottom: 2rem;
+  }
+  .vf-preview h2 { font-family: var(--ats-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; }
+  .preview-section { margin-bottom: 1.25rem; }
+  .preview-section h4 {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #8896a6; font-weight: 700; margin-bottom: 0.5rem;
+  }
+  .preview-section .preview-text { font-size: 0.92rem; color: #374151; line-height: 1.65; white-space: pre-line; }
+  .preview-skills { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .preview-skill-tag {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.78rem; font-weight: 600;
+    background: linear-gradient(135deg, rgba(0,196,201,0.08), rgba(0,196,201,0.04));
+    color: #0e7490; border: 1px solid rgba(0,196,201,0.15);
+  }
+  .preview-ai-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.4rem 0.85rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600;
+  }
+  .ai-badge-on { background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(139,92,246,0.05)); color: #7c3aed; border: 1px solid rgba(139,92,246,0.2); }
+  .ai-badge-off { background: rgba(107,114,128,0.08); color: #6b7280; border: 1px solid rgba(107,114,128,0.15); }
+  .preview-empty { color: #d1d5db; font-style: italic; font-size: 0.88rem; }
+
+  /* ─── Modals ─── */
+  .modal-content { border-radius: 20px; border: none; box-shadow: 0 20px 60px rgba(11,28,45,0.2); }
+  .modal-header { border-bottom: 1px solid rgba(0,0,0,0.06); padding: 1.5rem 1.75rem 1.15rem; }
+  .modal-header .modal-title { font-family: var(--ats-heading); font-weight: 700; font-size: 1.15rem; }
+  .modal-body { padding: 1.5rem 1.75rem; }
+  .modal-footer { border-top: 1px solid rgba(0,0,0,0.06); padding: 1rem 1.75rem 1.25rem; }
+
+  .modal-header.modal-desc { background: linear-gradient(135deg, rgba(0,196,201,0.06), transparent); }
+  .modal-header.modal-desc .modal-icon { color: var(--ats-accent); }
+  .modal-header.modal-ai { background: linear-gradient(135deg, rgba(139,92,246,0.06), transparent); }
+  .modal-header.modal-ai .modal-icon { color: #8b5cf6; }
+  .modal-icon { font-size: 1.35rem; margin-right: 0.5rem; }
+
+  .field-group { margin-bottom: 1.25rem; }
+  .field-group label {
+    font-size: 0.8rem; font-weight: 700; color: #374151; margin-bottom: 0.4rem; display: block;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .field-group .form-text { font-size: 0.78rem; color: #9ca3af; margin-top: 0.3rem; }
+  .field-group textarea.form-control { border-radius: 12px; border-color: rgba(0,0,0,0.1); transition: border-color 0.2s, box-shadow 0.2s; }
+  .field-group textarea.form-control:focus { border-color: var(--ats-accent); box-shadow: 0 0 0 3px rgba(0,196,201,0.12); }
+  .field-group input.form-control { border-radius: 12px; border-color: rgba(0,0,0,0.1); }
+  .field-group input.form-control:focus { border-color: var(--ats-accent); box-shadow: 0 0 0 3px rgba(0,196,201,0.12); }
+
+  /* AI toggle */
+  .ai-toggle-wrap {
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(135deg, rgba(139,92,246,0.04), rgba(139,92,246,0.02));
+    border: 1px solid rgba(139,92,246,0.12); border-radius: 14px; padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .ai-toggle-info h4 { font-family: var(--ats-heading); font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; }
+  .ai-toggle-info p { font-size: 0.82rem; color: #8896a6; margin-bottom: 0; }
+  .form-switch .form-check-input { width: 3rem; height: 1.5rem; cursor: pointer; }
+  .form-switch .form-check-input:checked { background-color: #8b5cf6; border-color: #8b5cf6; }
+
+  .ai-profile-section { transition: opacity 0.3s, max-height 0.3s; overflow: hidden; }
+  .ai-profile-section.collapsed { opacity: 0.4; max-height: 80px; pointer-events: none; }
+  .ai-profile-section.expanded { opacity: 1; max-height: 600px; }
+
+  .btn-save-modal {
+    padding: 0.55rem 1.5rem; border-radius: 50px; font-weight: 600; font-size: 0.9rem;
+    border: none; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-save-desc { background: var(--ats-accent); color: #fff; }
+  .btn-save-desc:hover { background: #00b0b5; color: #fff; }
+  .btn-save-ai { background: #8b5cf6; color: #fff; }
+  .btn-save-ai:hover { background: #7c3aed; color: #fff; }
+
+  .btn-submit-main {
+    padding: 0.65rem 2rem; border-radius: 50px; font-weight: 700; font-size: 1rem;
+    border: none; cursor: pointer; transition: all 0.2s; letter-spacing: 0.01em;
+    background: linear-gradient(135deg, var(--ats-accent), #00b0b5);
+    color: #fff; box-shadow: 0 4px 16px rgba(0,196,201,0.25);
+  }
+  .btn-submit-main:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(0,196,201,0.35); }
+
+  @media (max-width: 576px) {
+    .vf-hero { padding: 1.5rem; }
+    .vf-hero h1 { font-size: 1.3rem; }
+    .vf-preview { padding: 1.25rem; }
+    .modal-header, .modal-body, .modal-footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+{% endblock %}
+
 {% block ats_content %}
-  <div class="ats-content-card p-4 mb-4" style="max-width: 640px;">
-    <h1 class="h4 mb-4 fw-bold">{% if is_edit %}Editar vacante{% else %}Nueva vacante{% endif %} <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" title="Cada vacante tiene su propio perfil para la IA. Al analizar un CV de un candidato de esta vacante, se usará el perfil e habilidades que definas aquí."></i></h1>
-    <p class="text-muted small mb-3">Define un puesto de trabajo. La <strong>configuración de la IA es por vacante</strong>: el perfil y las habilidades de abajo se usan al analizar con IA los CV de los candidatos asignados a <em>esta</em> vacante.</p>
-    <form method="post" action="">
-      {% csrf_token %}
-      <div class="mb-3">
-        <label class="form-label fw-bold">Título del puesto</label>
-        {{ form.title }}
-        {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Descripción (requisitos, responsabilidades)</label>
-        {{ form.description }}
-      </div>
-      <div class="mb-3">
-        <label class="form-label fw-bold">Perfil para análisis con IA</label>
-        {{ form.profile_for_analysis }}
-        <div class="form-text">Qué perfil debe buscar la IA en el CV: experiencia, tecnologías, nivel de idioma, etc.</div>
-        {% if form.profile_for_analysis.errors %}<div class="text-danger small">{{ form.profile_for_analysis.errors }}</div>{% endif %}
-      </div>
-      <div class="mb-4">
-        <label class="form-label fw-bold">Habilidades deseadas (una por línea)</label>
-        {{ form.desired_skills_text }}
-        {% if form.desired_skills_text.errors %}<div class="text-danger small">{{ form.desired_skills_text.errors }}</div>{% endif %}
-      </div>
-      <button type="submit" class="btn btn-primary rounded-pill">{% if is_edit %}Guardar cambios{% else %}Crear vacante{% endif %}</button>
-      <a href="{% url 'ats_dashboard' %}?section=reclutamiento" class="btn btn-outline-secondary rounded-pill ms-2">Cancelar</a>
-    </form>
+<form method="post" action="" id="vacancyForm">
+  {% csrf_token %}
+
+  {# Hidden fields synced from modals #}
+  <input type="hidden" name="title" id="hid_title" value="{{ form.title.value|default_if_none:'' }}">
+  <input type="hidden" name="description" id="hid_description" value="{{ form.description.value|default_if_none:'' }}">
+  <input type="hidden" name="profile_for_analysis" id="hid_profile" value="{{ form.profile_for_analysis.value|default_if_none:'' }}">
+  <input type="hidden" name="desired_skills_text" id="hid_skills" value="{{ form.desired_skills_text.value|default_if_none:'' }}">
+  <input type="hidden" name="ai_enabled" id="hid_ai" value="{% if form.ai_enabled.value %}on{% endif %}">
+
+  {# ─── Hero ─── #}
+  <div class="vf-hero">
+    <div class="vf-badge"><i class="bi bi-briefcase-fill"></i>{% if is_edit %}Editar{% else %}Nueva{% endif %} vacante</div>
+    <h1 id="heroTitle">{{ form.title.value|default:"Sin título" }}</h1>
+    <p class="vf-sub">Configura la descripción y la inteligencia artificial para esta vacante</p>
   </div>
-  <p><a href="{% url 'ats_dashboard' %}?section=reclutamiento" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Volver a Reclutamiento</a></p>
+
+  {# ─── Action cards ─── #}
+  <div class="vf-actions">
+    <div class="vf-action-card card-desc" data-bs-toggle="modal" data-bs-target="#modalDesc">
+      <div class="card-icon"><i class="bi bi-file-earmark-richtext"></i></div>
+      <h3>Publicación de la vacante</h3>
+      <p>Define el título, descripción, requisitos y habilidades que verán los candidatos al postularse.</p>
+      <span class="card-status" id="statusDesc">
+        <i class="bi bi-circle-fill" style="font-size:0.45rem;"></i> <span>Pendiente</span>
+      </span>
+    </div>
+    <div class="vf-action-card card-ai" data-bs-toggle="modal" data-bs-target="#modalAI">
+      <div class="card-icon"><i class="bi bi-robot"></i></div>
+      <h3>Inteligencia Artificial</h3>
+      <p>Activa el análisis de CV con IA y configura el perfil del candidato ideal para evaluación automática.</p>
+      <span class="card-status" id="statusAI">
+        <i class="bi bi-circle-fill" style="font-size:0.45rem;"></i> <span>Desactivada</span>
+      </span>
+    </div>
+  </div>
+
+  {# ─── Preview ─── #}
+  <div class="vf-preview" id="previewWrap">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h2 class="mb-0"><i class="bi bi-eye me-2" style="color:var(--ats-accent);"></i>Vista previa de publicación</h2>
+      <span class="preview-ai-badge ai-badge-off" id="previewAIBadge"><i class="bi bi-robot"></i> IA desactivada</span>
+    </div>
+    <div class="preview-section">
+      <h4>Título del puesto</h4>
+      <div class="preview-text" id="prevTitle"><span class="preview-empty">Sin título</span></div>
+    </div>
+    <div class="preview-section">
+      <h4>Descripción</h4>
+      <div class="preview-text" id="prevDesc"><span class="preview-empty">Sin descripción aún</span></div>
+    </div>
+    <div class="preview-section">
+      <h4>Habilidades requeridas</h4>
+      <div class="preview-skills" id="prevSkills"><span class="preview-empty">Sin habilidades</span></div>
+    </div>
+    <div class="preview-section" id="prevProfileWrap" style="display:none;">
+      <h4><i class="bi bi-robot me-1" style="color:#8b5cf6;"></i>Perfil IA</h4>
+      <div class="preview-text" id="prevProfile"></div>
+    </div>
+  </div>
+
+  {# ─── Submit ─── #}
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <button type="submit" class="btn-submit-main"><i class="bi bi-check2-circle me-2"></i>{% if is_edit %}Guardar cambios{% else %}Crear vacante{% endif %}</button>
+    <a href="{% url 'ats_dashboard' %}?section=reclutamiento" class="btn btn-outline-secondary rounded-pill">Cancelar</a>
+  </div>
+
+  {% if form.errors %}
+  <div class="alert alert-danger rounded-3">
+    <strong>Corrige los siguientes errores:</strong>
+    <ul class="mb-0 mt-1">
+    {% for field, errs in form.errors.items %}
+      {% for e in errs %}<li>{{ field }}: {{ e }}</li>{% endfor %}
+    {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+</form>
+
+<p class="mt-2 mb-0"><a href="{% url 'ats_dashboard' %}?section=reclutamiento" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Volver a Reclutamiento</a></p>
+
+<div class="modal fade" id="modalDesc" tabindex="-1" aria-labelledby="modalDescLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header modal-desc">
+        <h5 class="modal-title" id="modalDescLabel"><i class="bi bi-file-earmark-richtext modal-icon"></i>Publicación de la vacante</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="field-group">
+          <label for="mdTitle">Título del puesto</label>
+          <input type="text" class="form-control" id="mdTitle" placeholder="Ej. Desarrollador Python Senior" value="{{ form.title.value|default_if_none:'' }}">
+          {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors }}</div>{% endif %}
+        </div>
+        <div class="field-group">
+          <label for="mdDesc">Descripción completa</label>
+          <textarea class="form-control" id="mdDesc" rows="8" placeholder="Responsabilidades, requisitos, beneficios, ubicación, horario, salario...&#10;&#10;Tip: Escribe con saltos de línea para mejor legibilidad.">{{ form.description.value|default_if_none:'' }}</textarea>
+          <div class="form-text">Esta descripción se mostrará a los candidatos cuando se postulun.</div>
+        </div>
+        <div class="field-group mb-0">
+          <label for="mdSkills">Habilidades y competencias</label>
+          <div id="skillsTagsWrap" class="d-flex flex-wrap gap-2 mb-2"></div>
+          <div class="input-group">
+            <input type="text" class="form-control" id="mdSkillInput" placeholder="Escribe una habilidad y presiona Enter">
+            <button type="button" class="btn btn-outline-secondary" id="btnAddSkill"><i class="bi bi-plus-lg"></i></button>
+          </div>
+          <div class="form-text">Agrega habilidades una por una. Se mostrarán como etiquetas en la publicación.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-save-modal btn-save-desc" id="btnSaveDesc"><i class="bi bi-check2 me-1"></i>Aplicar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalAI" tabindex="-1" aria-labelledby="modalAILabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header modal-ai">
+        <h5 class="modal-title" id="modalAILabel"><i class="bi bi-robot modal-icon"></i>Configuración de Inteligencia Artificial</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="ai-toggle-wrap">
+          <div class="ai-toggle-info">
+            <h4><i class="bi bi-cpu me-1"></i>Análisis de CV con IA</h4>
+            <p>La IA evaluará automáticamente los CV de candidatos que apliquen a esta vacante.</p>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="mdAiEnabled" {% if form.ai_enabled.value %}checked{% endif %}>
+          </div>
+        </div>
+
+        <div class="ai-profile-section {% if form.ai_enabled.value %}expanded{% else %}collapsed{% endif %}" id="aiProfileSection">
+          <div class="field-group">
+            <label for="mdProfile"><i class="bi bi-person-badge me-1"></i>Perfil del candidato ideal</label>
+            <textarea class="form-control" id="mdProfile" rows="6" placeholder="Describe el perfil que debe buscar la IA en el CV:&#10;&#10;- Años de experiencia requeridos&#10;- Tecnologías o herramientas clave&#10;- Nivel de idioma (ej. Inglés B2+)&#10;- Certificaciones&#10;- Soft skills">{{ form.profile_for_analysis.value|default_if_none:'' }}</textarea>
+            <div class="form-text">La IA usará esta descripción para evaluar la compatibilidad de cada CV con la vacante.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-save-modal btn-save-ai" id="btnSaveAI"><i class="bi bi-check2 me-1"></i>Aplicar configuración</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block ats_extra_js %}
+<script>
+(function(){
+  /* ─── State ─── */
+  var skills = [];
+  var initSkills = document.getElementById("hid_skills").value.trim();
+  if (initSkills) skills = initSkills.split("\n").map(function(s){ return s.trim(); }).filter(Boolean);
+
+  /* ─── DOM refs ─── */
+  var heroTitle    = document.getElementById("heroTitle");
+  var hidTitle     = document.getElementById("hid_title");
+  var hidDesc      = document.getElementById("hid_description");
+  var hidProfile   = document.getElementById("hid_profile");
+  var hidSkills    = document.getElementById("hid_skills");
+  var hidAi        = document.getElementById("hid_ai");
+
+  var mdTitle      = document.getElementById("mdTitle");
+  var mdDesc       = document.getElementById("mdDesc");
+  var mdProfile    = document.getElementById("mdProfile");
+  var mdAiEnabled  = document.getElementById("mdAiEnabled");
+  var mdSkillInput = document.getElementById("mdSkillInput");
+  var skillsWrap   = document.getElementById("skillsTagsWrap");
+  var aiSection    = document.getElementById("aiProfileSection");
+
+  var prevTitle    = document.getElementById("prevTitle");
+  var prevDesc     = document.getElementById("prevDesc");
+  var prevSkills   = document.getElementById("prevSkills");
+  var prevProfile  = document.getElementById("prevProfile");
+  var prevProfileW = document.getElementById("prevProfileWrap");
+  var prevAIBadge  = document.getElementById("previewAIBadge");
+  var statusDesc   = document.getElementById("statusDesc");
+  var statusAI     = document.getElementById("statusAI");
+
+  /* ─── Helpers ─── */
+  function esc(s){ var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+  function renderSkillTags(){
+    skillsWrap.innerHTML = "";
+    skills.forEach(function(s, i){
+      var tag = document.createElement("span");
+      tag.className = "preview-skill-tag";
+      tag.innerHTML = esc(s) + ' <i class="bi bi-x-lg" style="cursor:pointer;font-size:0.6rem;margin-left:0.2rem;" data-idx="' + i + '"></i>';
+      tag.querySelector("i").addEventListener("click", function(){ skills.splice(i, 1); renderSkillTags(); });
+      skillsWrap.appendChild(tag);
+    });
+  }
+
+  function addSkill(){
+    var v = mdSkillInput.value.trim();
+    if (v && skills.indexOf(v) === -1) { skills.push(v); renderSkillTags(); }
+    mdSkillInput.value = "";
+    mdSkillInput.focus();
+  }
+
+  function syncPreview(){
+    var t = hidTitle.value.trim();
+    var d = hidDesc.value.trim();
+    var p = hidProfile.value.trim();
+    var ai = hidAi.value === "on";
+
+    heroTitle.textContent = t || "Sin título";
+    prevTitle.innerHTML = t ? '<strong style="font-size:1.1rem;">' + esc(t) + '</strong>' : '<span class="preview-empty">Sin título</span>';
+    prevDesc.innerHTML = d ? esc(d).replace(/\n/g, "<br>") : '<span class="preview-empty">Sin descripción aún</span>';
+
+    if (skills.length) {
+      prevSkills.innerHTML = "";
+      skills.forEach(function(s){ prevSkills.innerHTML += '<span class="preview-skill-tag"><i class="bi bi-check-circle-fill" style="font-size:0.65rem;"></i> ' + esc(s) + '</span>'; });
+    } else {
+      prevSkills.innerHTML = '<span class="preview-empty">Sin habilidades</span>';
+    }
+
+    if (ai && p) {
+      prevProfileW.style.display = "";
+      prevProfile.innerHTML = esc(p).replace(/\n/g, "<br>");
+    } else {
+      prevProfileW.style.display = "none";
+    }
+
+    prevAIBadge.className = "preview-ai-badge " + (ai ? "ai-badge-on" : "ai-badge-off");
+    prevAIBadge.innerHTML = '<i class="bi bi-robot"></i> IA ' + (ai ? "activada" : "desactivada");
+
+    var descFilled = !!(t && d);
+    statusDesc.className = "card-status " + (descFilled ? "status-filled" : "status-empty");
+    statusDesc.innerHTML = '<i class="bi bi-circle-fill" style="font-size:0.45rem;"></i> <span>' + (descFilled ? "Configurada" : "Pendiente") + '</span>';
+
+    statusAI.className = "card-status " + (ai ? "status-on" : "status-off");
+    statusAI.innerHTML = '<i class="bi bi-circle-fill" style="font-size:0.45rem;"></i> <span>' + (ai ? "Activada" : "Desactivada") + '</span>';
+  }
+
+  /* ─── Skill input ─── */
+  document.getElementById("btnAddSkill").addEventListener("click", addSkill);
+  mdSkillInput.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); addSkill(); }});
+
+  /* ─── AI toggle ─── */
+  mdAiEnabled.addEventListener("change", function(){
+    if(this.checked){ aiSection.classList.remove("collapsed"); aiSection.classList.add("expanded"); }
+    else { aiSection.classList.remove("expanded"); aiSection.classList.add("collapsed"); }
+  });
+
+  /* ─── Save Description Modal ─── */
+  document.getElementById("btnSaveDesc").addEventListener("click", function(){
+    hidTitle.value = mdTitle.value;
+    hidDesc.value = mdDesc.value;
+    hidSkills.value = skills.join("\n");
+    syncPreview();
+    bootstrap.Modal.getInstance(document.getElementById("modalDesc")).hide();
+  });
+
+  /* ─── Save AI Modal ─── */
+  document.getElementById("btnSaveAI").addEventListener("click", function(){
+    hidAi.value = mdAiEnabled.checked ? "on" : "";
+    hidProfile.value = mdProfile.value;
+    syncPreview();
+    bootstrap.Modal.getInstance(document.getElementById("modalAI")).hide();
+  });
+
+  /* ─── Init ─── */
+  renderSkillTags();
+  syncPreview();
+
+})();
+</script>
 {% endblock %}

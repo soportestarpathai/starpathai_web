@@ -254,7 +254,7 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
                     qs = qs.filter(vacancy_id=int(vacancy_id))
                 except ValueError:
                     pass
-            context["candidates"] = qs.prefetch_related("skill_evaluations")[:200]
+            context["candidates"] = qs.order_by("-score", "-analysis_date").prefetch_related("skill_evaluations")[:200]
             context["filter_q"] = q
             context["filter_status"] = status_filter
             context["filter_vacancy"] = vacancy_id
@@ -362,25 +362,27 @@ class ATSCandidateDetailView(LoginRequiredMixin, View):
     def _get_candidate_and_form(self, request, pk):
         ats_client = getattr(request.user, "ats_client", None)
         if not ats_client:
-            return None, None
-        candidate = get_object_or_404(
-            Candidate.objects.prefetch_related(
+            return None, None, False
+        try:
+            candidate = Candidate.objects.prefetch_related(
                 "skill_evaluations",
                 "criterion_responses",
                 "form_submissions__files",
                 "form_submissions__form",
-            ),
-            pk=pk,
-            client=ats_client,
-        )
+            ).get(pk=pk, client=ats_client)
+        except Candidate.DoesNotExist:
+            return None, None, True
         ats_form = None
         first_sub = candidate.form_submissions.first()
         if first_sub:
             ats_form = first_sub.form
-        return candidate, ats_form
+        return candidate, ats_form, False
 
     def get(self, request, pk):
-        candidate, ats_form = self._get_candidate_and_form(request, pk)
+        candidate, ats_form, was_deleted = self._get_candidate_and_form(request, pk)
+        if was_deleted:
+            messages.warning(request, "El candidato ya no existe o fue eliminado.")
+            return redirect("ats_dashboard")
         if not candidate:
             return render(request, self.template_name, {"candidate": None, "ats_page": "candidatos"})
         criteria = list(ats_form.criteria.all()) if ats_form else []
@@ -390,6 +392,28 @@ class ATSCandidateDetailView(LoginRequiredMixin, View):
         subscription = _get_or_create_subscription(request.user)
         from django.conf import settings as django_settings
         cv_max = getattr(django_settings, "ATS_FORM_PUBLIC_MAX_FILE_SIZE", 10 * 1024 * 1024)
+
+        chat_session = None
+        chat_conversation = []
+        if form_submission:
+            try:
+                chat_session = form_submission.chat_session
+            except Exception:
+                chat_session = None
+            if chat_session and ats_form:
+                from mi_app.views.ats.form_chat_views import _build_steps
+                steps = _build_steps(ats_form)
+                answers = chat_session.answers or {}
+                for i, s in enumerate(steps):
+                    val = answers.get(s["id"])
+                    chat_conversation.append({
+                        "label": s["label"],
+                        "type": s["type"],
+                        "answer": val,
+                        "answered": val is not None,
+                        "is_current": i == chat_session.current_step and chat_session.status != "completed",
+                    })
+
         context = {
             "candidate": candidate,
             "ats_client": getattr(request.user, "ats_client", None),
@@ -403,12 +427,17 @@ class ATSCandidateDetailView(LoginRequiredMixin, View):
             "kpi_cvs_used": subscription.cvs_used if subscription else 0,
             "kpi_cvs_limit": subscription.cvs_limit if subscription else 0,
             "cv_max_size_mb": cv_max // (1024 * 1024),
+            "chat_session": chat_session,
+            "chat_conversation": chat_conversation,
         }
         return render(request, self.template_name, context)
 
     def post(self, request, pk):
         """Guardar evaluación manual (Cumple/No cumple por criterio) y recalcular score."""
-        candidate, ats_form = self._get_candidate_and_form(request, pk)
+        candidate, ats_form, was_deleted = self._get_candidate_and_form(request, pk)
+        if was_deleted:
+            messages.warning(request, "El candidato ya no existe o fue eliminado.")
+            return redirect("ats_dashboard")
         if not candidate or not ats_form:
             return redirect("ats_dashboard")
         criteria = list(ats_form.criteria.all())
@@ -619,6 +648,21 @@ class ATSCandidateExportView(LoginRequiredMixin, View):
         return response
 
 
+class ATSCandidateDeleteView(LoginRequiredMixin, View):
+    """POST: elimina un candidato."""
+    login_url = reverse_lazy("ats_plataforma")
+    http_method_names = ["post"]
+
+    def post(self, request, pk):
+        ats_client = getattr(request.user, "ats_client", None)
+        if not ats_client:
+            return redirect("ats_dashboard")
+        candidate = get_object_or_404(Candidate, pk=pk, client=ats_client)
+        candidate.delete()
+        messages.success(request, "Candidato eliminado correctamente.")
+        return redirect(reverse("ats_dashboard") + "?section=candidatos")
+
+
 def _get_client_or_403(request):
     """Devuelve ATSClient del usuario o None si no tiene; para vistas que requieren cliente."""
     ats_client = getattr(request.user, "ats_client", None)
@@ -653,6 +697,9 @@ class ATSFormListView(LoginRequiredMixin, ListView):
         context["ats_client"] = _get_client_or_403(self.request)
         context["subscription"] = _get_or_create_subscription(self.request.user)
         context["ats_page"] = "formularios"
+        forms_qs = context.get("forms") or self.get_queryset()
+        context["total_submissions"] = sum(getattr(f, "submissions_count", 0) for f in forms_qs)
+        context["total_active"] = sum(1 for f in forms_qs if f.is_active)
         return context
 
 
@@ -792,6 +839,33 @@ class ATSFormSubmissionsView(LoginRequiredMixin, ListView):
         context["subscription"] = _get_or_create_subscription(self.request.user)
         context["ats_page"] = "formularios"
         return context
+
+
+class ATSFormSubmissionDeleteView(LoginRequiredMixin, View):
+    """POST: elimina un envío individual."""
+    login_url = reverse_lazy("ats_plataforma")
+
+    def post(self, request, pk, sub_pk):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("ats_dashboard")
+        ats_form = get_object_or_404(ATSForm, pk=pk, client=client)
+        submission = get_object_or_404(ATSFormSubmission, pk=sub_pk, form=ats_form)
+        submission.delete()
+        return redirect("ats_form_submissions", pk=pk)
+
+
+class ATSFormSubmissionDeleteAllView(LoginRequiredMixin, View):
+    """POST: elimina todos los envíos de un formulario."""
+    login_url = reverse_lazy("ats_plataforma")
+
+    def post(self, request, pk):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("ats_dashboard")
+        ats_form = get_object_or_404(ATSForm, pk=pk, client=client)
+        ATSFormSubmission.objects.filter(form=ats_form).delete()
+        return redirect("ats_form_submissions", pk=pk)
 
 
 class ATSFormPublicView(View):
@@ -1207,8 +1281,15 @@ class ATSNotificationGoView(LoginRequiredMixin, View):
         notification.read = True
         notification.save(update_fields=["read"])
         link = (notification.link or "").strip()
+        if link and "/candidato/" in link:
+            try:
+                cand_pk = int(link.rstrip("/").split("/")[-1])
+                Candidate.objects.get(pk=cand_pk, client=client)
+            except (Candidate.DoesNotExist, ValueError, IndexError):
+                messages.warning(request, "El candidato vinculado a esta notificación ya no existe.")
+                return redirect("ats_dashboard")
         if link and not link.startswith("http"):
-            link = request.build_absolute_uri(link)
+            return redirect(link)
         return redirect(link or reverse("ats_dashboard"))
 
 
@@ -1265,7 +1346,11 @@ class ATSAdminDashboardView(StaffRequiredMixin, View):
     paginate_by = 25
 
     def get(self, request):
-        qs = ATSClient.objects.select_related("user").order_by("-created_at")
+        qs = ATSClient.objects.select_related("user").annotate(
+            num_vacancies=Count("vacancies", distinct=True),
+            num_candidates=Count("candidates", distinct=True),
+            num_forms=Count("ats_forms", distinct=True),
+        ).order_by("-created_at")
         search_q = (request.GET.get("q") or "").strip()
         if search_q:
             qs = qs.filter(
@@ -1283,7 +1368,14 @@ class ATSAdminDashboardView(StaffRequiredMixin, View):
         }
         rows = []
         for client in page_obj.object_list:
-            rows.append({"client": client, "subscription": subs_by_user.get(client.user_id)})
+            rows.append({
+                "client": client,
+                "subscription": subs_by_user.get(client.user_id),
+                "num_vacancies": client.num_vacancies,
+                "num_candidates": client.num_candidates,
+                "num_forms": client.num_forms,
+                "last_login": client.user.last_login,
+            })
         plan_choices = [
             (Subscription.PLAN_FREE, "Gratuito"),
             (Subscription.PLAN_PRO, "Pro"),
@@ -1320,6 +1412,29 @@ class ATSAdminDashboardView(StaffRequiredMixin, View):
                     })
             except Exception:
                 langsmith_runs = []
+        total_clients = ATSClient.objects.count()
+        total_pro = Subscription.objects.filter(plan=Subscription.PLAN_PRO).count()
+        total_enterprise = Subscription.objects.filter(plan=Subscription.PLAN_ENTERPRISE).count()
+        total_pending = len(pending_requests)
+        total_vacancies = Vacancy.objects.count()
+        total_candidates = Candidate.objects.count()
+        total_forms_global = ATSForm.objects.count()
+        top_clients = list(
+            ATSClient.objects.select_related("user")
+            .annotate(
+                n_vac=Count("vacancies", distinct=True),
+                n_cand=Count("candidates", distinct=True),
+                n_forms=Count("ats_forms", distinct=True),
+            )
+            .order_by("-n_cand")[:5]
+        )
+        recent_clients = list(
+            ATSClient.objects.select_related("user")
+            .order_by("-created_at")[:5]
+        )
+        all_clients_for_notify = list(
+            ATSClient.objects.order_by("company_name").values("id", "company_name")
+        )
         return render(request, self.template_name, {
             "rows": rows,
             "page_obj": page_obj,
@@ -1333,9 +1448,19 @@ class ATSAdminDashboardView(StaffRequiredMixin, View):
             "langsmith_configured": langsmith_configured,
             "langsmith_project": langsmith_project,
             "langsmith_runs": langsmith_runs,
+            "total_clients": total_clients,
+            "total_pro": total_pro,
+            "total_enterprise": total_enterprise,
+            "total_pending": total_pending,
+            "total_vacancies": total_vacancies,
+            "total_candidates": total_candidates,
+            "total_forms_global": total_forms_global,
+            "top_clients": top_clients,
+            "recent_clients": recent_clients,
+            "all_clients_for_notify": all_clients_for_notify,
             "ats_page": "administracion",
             "ats_client": getattr(request.user, "ats_client", None),
-            "ats_header_title": "Administración ATS",
+            "ats_header_title": "Administración Órbita",
         })
 
 
@@ -1388,6 +1513,100 @@ class ATSAdminSetLangSmithView(StaffRequiredMixin, View):
         else:
             messages.success(request, f"Proyecto LangSmith quitado para {client.company_name}. Se usará el global.")
         return redirect("ats_admin_dashboard")
+
+
+class ATSAdminDeleteClientView(StaffRequiredMixin, View):
+    """POST: eliminar un cliente ATS y su usuario asociado."""
+    http_method_names = ["post"]
+
+    def post(self, request):
+        client_id = request.POST.get("client_id")
+        if not client_id:
+            messages.error(request, "Falta el identificador del cliente.")
+            return redirect("ats_admin_dashboard")
+        client = get_object_or_404(ATSClient, pk=client_id)
+        company = client.company_name
+        user = client.user
+        Subscription.objects.filter(user=user).delete()
+        client.delete()
+        user.delete()
+        messages.success(request, f"Cliente «{company}» y su cuenta eliminados correctamente.")
+        return redirect("ats_admin_dashboard")
+
+
+class ATSAdminSendNotificationView(StaffRequiredMixin, View):
+    """POST: enviar notificación desde admin a uno o todos los clientes."""
+    http_method_names = ["post"]
+
+    def post(self, request):
+        from mi_app.ats_notifications import notify_ats_client
+        target = request.POST.get("target", "")
+        title = (request.POST.get("title") or "").strip()
+        message_body = (request.POST.get("message") or "").strip()
+        redirect_url = reverse("ats_admin_notifications") + "?tab=enviar"
+        if not title:
+            messages.error(request, "El título es obligatorio.")
+            return redirect(redirect_url)
+        if target == "all":
+            clients = ATSClient.objects.all()
+            count = 0
+            for client in clients:
+                notify_ats_client(
+                    client, ATSNotification.TYPE_ADMIN, title,
+                    message=message_body, request=request,
+                )
+                count += 1
+            messages.success(request, f"Notificación enviada a {count} clientes.")
+        else:
+            client = get_object_or_404(ATSClient, pk=target)
+            notify_ats_client(
+                client, ATSNotification.TYPE_ADMIN, title,
+                message=message_body, request=request,
+            )
+            messages.success(request, f"Notificación enviada a {client.company_name}.")
+        return redirect(redirect_url)
+
+
+class ATSAdminNotificationsView(StaffRequiredMixin, View):
+    """Página completa de notificaciones y solicitudes para el admin."""
+    template_name = "ats/admin/notificaciones.html"
+    paginate_by = 30
+
+    def get(self, request):
+        tab = request.GET.get("tab", "solicitudes")
+        pending = list(
+            PlanChangeRequest.objects.filter(status=PlanChangeRequest.STATUS_PENDING)
+            .select_related("client", "client__user")
+            .order_by("-created_at")
+        )
+        history = PlanChangeRequest.objects.filter(
+            status=PlanChangeRequest.STATUS_DONE
+        ).select_related("client", "client__user").order_by("-created_at")
+        history_paginator = Paginator(history, self.paginate_by)
+        history_page = history_paginator.get_page(request.GET.get("hp", 1))
+        all_clients = ATSClient.objects.order_by("company_name").values("id", "company_name")
+        return render(request, self.template_name, {
+            "ats_page": "admin_notificaciones",
+            "ats_client": None,
+            "tab": tab,
+            "pending_requests": pending,
+            "history_page": history_page,
+            "all_clients_for_notify": list(all_clients),
+        })
+
+
+class ATSAdminMarkRequestDoneView(StaffRequiredMixin, View):
+    """POST: marcar solicitud de cambio de plan como atendida."""
+    http_method_names = ["post"]
+
+    def post(self, request):
+        req_id = request.POST.get("request_id")
+        if req_id:
+            PlanChangeRequest.objects.filter(pk=req_id).update(
+                status=PlanChangeRequest.STATUS_DONE
+            )
+            messages.success(request, "Solicitud marcada como atendida.")
+        return redirect("ats_admin_notifications")
 
 
 class ATSStaffAccountView(StaffRequiredMixin, View):

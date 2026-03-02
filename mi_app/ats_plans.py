@@ -29,7 +29,7 @@ PLANS = [
         "candidates_limit": 10,
         "vacancies_limit": 2,
         "amount_mxn": Decimal("0"),
-        "description": "Prueba el ATS con 10 candidatos (proceso manual) y 2 vacantes. Hasta 3 CVs analizados con IA.",
+        "description": "Prueba Órbita con 10 candidatos (proceso manual) y 2 vacantes. Hasta 3 CVs analizados con IA.",
         "features": ["10 candidatos", "2 vacantes", "3 escaneos IA/mes", "Formularios", "Config. correo", "Soporte por correo"],
     },
     {

@@ -305,15 +305,16 @@ class ATSVacancyForm(forms.ModelForm):
 
     class Meta:
         model = Vacancy
-        fields = ("title", "description", "profile_for_analysis")
+        fields = ("title", "description", "profile_for_analysis", "ai_enabled")
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej. Desarrollador Python"}),
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4, "placeholder": "Requisitos, responsabilidades, etc."}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 6, "placeholder": "Describe el puesto: responsabilidades, requisitos, beneficios, ubicación..."}),
             "profile_for_analysis": forms.Textarea(attrs={
                 "class": "form-control",
-                "rows": 4,
+                "rows": 5,
                 "placeholder": "Perfil que debe evaluar la IA: años de experiencia, tecnologías, nivel de inglés, etc.",
             }),
+            "ai_enabled": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
         }
 
     def __init__(self, *args, **kwargs):

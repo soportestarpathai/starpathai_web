@@ -1,6 +1,6 @@
-# Despliegue ATS — Star Path
+# Despliegue Órbita — Star Path
 
-Checklist y variables de entorno para desplegar el proyecto con el módulo ATS.
+Checklist y variables de entorno para desplegar el proyecto con el módulo Órbita (antes ATS).
 
 ---
 

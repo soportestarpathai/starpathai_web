@@ -13,11 +13,11 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = "Crea o actualiza el usuario administrador ATS (is_staff=True) para el panel de administración."
+    help = "Crea o actualiza el usuario administrador Órbita (is_staff=True) para el panel de administración."
 
     def add_arguments(self, parser):
         parser.add_argument("--username", default="soporte", help="Nombre de usuario (default: soporte)")
-        parser.add_argument("--email", default="soporte@starpathai.mx", help="Email del admin ATS")
+        parser.add_argument("--email", default="soporte@starpathai.mx", help="Email del admin Órbita")
         parser.add_argument("--no-input", action="store_true", help="No pedir contraseña; solo marcar staff si el usuario existe")
 
     def handle(self, *args, **options):
@@ -52,8 +52,8 @@ class Command(BaseCommand):
             password=password,
             is_staff=True,
         )
-        self.stdout.write(self.style.SUCCESS(f"Usuario administrador ATS creado: {username}"))
-        self.stdout.write("  Accede a la plataforma ATS, inicia sesión con este usuario y serás redirigido al panel de Administración ATS.")
+        self.stdout.write(self.style.SUCCESS(f"Usuario administrador Órbita creado: {username}"))
+        self.stdout.write("  Accede a la plataforma Órbita, inicia sesión con este usuario y serás redirigido al panel de Administración.")
 
     def get_pass(self, prompt):
         import getpass

@@ -27,8 +27,8 @@ class ATSClient(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Cliente ATS"
-        verbose_name_plural = "Clientes ATS"
+        verbose_name = "Cliente Órbita"
+        verbose_name_plural = "Clientes Órbita"
 
     def __str__(self):
         return f"{self.company_name} ({self.user.email})"
@@ -72,8 +72,8 @@ class ATSClientEmailConfig(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Configuración de correo ATS"
-        verbose_name_plural = "Configuraciones de correo ATS"
+        verbose_name = "Configuración de correo Órbita"
+        verbose_name_plural = "Configuraciones de correo Órbita"
 
     def __str__(self):
         return f"Correo — {self.client.company_name}"
@@ -85,11 +85,13 @@ class ATSNotification(models.Model):
     TYPE_CANDIDATE = "candidate"
     TYPE_PLAN = "plan"
     TYPE_CVS_LIMIT = "cvs_limit"
+    TYPE_ADMIN = "admin"
     TYPE_CHOICES = [
         (TYPE_SUBMISSION, "Nuevo envío"),
         (TYPE_CANDIDATE, "Nuevo candidato"),
         (TYPE_PLAN, "Plan actualizado"),
         (TYPE_CVS_LIMIT, "Límite de CVs"),
+        (TYPE_ADMIN, "Mensaje del administrador"),
     ]
     client = models.ForeignKey(
         ATSClient,
@@ -104,8 +106,8 @@ class ATSNotification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Notificación ATS"
-        verbose_name_plural = "Notificaciones ATS"
+        verbose_name = "Notificación Órbita"
+        verbose_name_plural = "Notificaciones Órbita"
         ordering = ["-created_at"]
 
     def __str__(self):
@@ -140,8 +142,8 @@ class Subscription(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Suscripción ATS"
-        verbose_name_plural = "Suscripciones ATS"
+        verbose_name = "Suscripción Órbita"
+        verbose_name_plural = "Suscripciones Órbita"
 
     def __str__(self):
         return f"{self.user.email} — {self.get_plan_display()}"
@@ -207,6 +209,11 @@ class Vacancy(models.Model):
         default=list,
         blank=True,
         help_text="Lista de habilidades o competencias a buscar (ej. Python, Inglés B2, liderazgo).",
+    )
+    ai_enabled = models.BooleanField(
+        "IA activada",
+        default=False,
+        help_text="Indica si el análisis de CV con IA está activado para esta vacante.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -419,8 +426,8 @@ class ATSForm(models.Model):
     uuid = models.UUIDField(unique=True, editable=False, null=True, blank=True)
 
     class Meta:
-        verbose_name = "Formulario ATS"
-        verbose_name_plural = "Formularios ATS"
+        verbose_name = "Formulario Órbita"
+        verbose_name_plural = "Formularios Órbita"
         ordering = ["-updated_at"]
         constraints = [
             models.UniqueConstraint(fields=["client", "slug"], name="unique_client_form_slug"),
@@ -545,6 +552,65 @@ class ATSFormCriterion(models.Model):
 
     def __str__(self):
         return f"{self.form.name} — {self.label}"
+
+
+class FormChatSession(models.Model):
+    """Sesión de chat conversacional: tracking paso a paso del candidato en el formulario."""
+    STATUS_STARTED = "started"
+    STATUS_IN_PROGRESS = "in_progress"
+    STATUS_COMPLETED = "completed"
+
+    STATUS_CHOICES = [
+        (STATUS_STARTED, "Iniciada"),
+        (STATUS_IN_PROGRESS, "En progreso"),
+        (STATUS_COMPLETED, "Completada"),
+    ]
+
+    SOURCE_WEB = "web"
+    SOURCE_TELEGRAM = "telegram"
+    SOURCE_CHOICES = [
+        (SOURCE_WEB, "Web"),
+        (SOURCE_TELEGRAM, "Telegram"),
+    ]
+
+    form = models.ForeignKey(
+        ATSForm,
+        on_delete=models.CASCADE,
+        related_name="chat_sessions",
+    )
+    session_uuid = models.UUIDField("UUID de sesión", unique=True, editable=False)
+    status = models.CharField("Estado", max_length=20, choices=STATUS_CHOICES, default=STATUS_STARTED)
+    current_step = models.PositiveSmallIntegerField("Paso actual", default=0)
+    total_steps = models.PositiveSmallIntegerField("Total de pasos", default=0)
+    answers = models.JSONField("Respuestas parciales", default=dict)
+    candidate_name = models.CharField("Nombre del candidato", max_length=200, blank=True)
+    candidate_email = models.EmailField("Email del candidato", blank=True)
+    source = models.CharField("Origen", max_length=20, choices=SOURCE_CHOICES, default=SOURCE_WEB)
+    ip_address = models.GenericIPAddressField("IP", null=True, blank=True)
+    started_at = models.DateTimeField("Inicio", auto_now_add=True)
+    updated_at = models.DateTimeField("Última actividad", auto_now=True)
+    completed_at = models.DateTimeField("Completada", null=True, blank=True)
+    submission = models.OneToOneField(
+        ATSFormSubmission,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="chat_session",
+    )
+
+    class Meta:
+        verbose_name = "Sesión de chat"
+        verbose_name_plural = "Sesiones de chat"
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return f"Chat {self.session_uuid!s:.8} — {self.form.name} ({self.get_status_display()})"
+
+    def save(self, *args, **kwargs):
+        if not self.session_uuid:
+            import uuid as _uuid
+            self.session_uuid = _uuid.uuid4()
+        super().save(*args, **kwargs)
 
 
 class ATSCandidateCriterionResponse(models.Model):
