@@ -98,16 +98,13 @@ WSGI_APPLICATION = 'starpath_web.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-# PostgreSQL (Render o .env); si no hay credenciales, SQLite en local.
-
-_use_pg = False
+# PostgreSQL (Render o .env); SQLite local por defecto.
+# Para activar PostgreSQL de nuevo, define USE_POSTGRES=1 en variables de entorno.
+_use_pg = os.environ.get("USE_POSTGRES", "0").strip().lower() in ("1", "true", "yes")
 _db_url = os.environ.get("DATABASE_URL")
 if _db_url:
     import re
     _db_url = re.sub(r"^postgres://", "postgresql://", _db_url)
-    _use_pg = True
-elif os.environ.get("DB_PASSWORD") or os.environ.get("DB_HOST"):
-    _use_pg = True
 
 if _use_pg:
     DATABASES = {
