@@ -91,6 +91,16 @@ Con el entorno virtual activado:
 python manage.py migrate
 ```
 
+### Render: migraciones automáticas en cada deploy
+
+En Render, las migraciones deben ejecutarse contra la base de datos de producción en cada despliegue. Configura el **Release Command** del Web Service:
+
+1. Dashboard Render → tu servicio → **Settings**
+2. Busca **Release Command** (puede estar en "Advanced")
+3. Añade: `python manage.py migrate --noinput`
+
+Render ejecutará las migraciones antes de levantar la nueva versión. Si no usas `render.yaml`, configura esto manualmente.
+
 ---
 
 ## 3. Usuario administrador Django (superusuario)
