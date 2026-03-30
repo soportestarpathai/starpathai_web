@@ -3,6 +3,7 @@ Middleware para registrar cada request desde entrada hasta salida (método, path
 """
 import logging
 import time
+from django.shortcuts import redirect
 
 logger = logging.getLogger(__name__)
 
@@ -31,3 +32,28 @@ class RequestLoggingMiddleware:
             duration_ms,
         )
         return response
+
+
+class ATSStaffAdminRedirectMiddleware:
+    """
+    Si un usuario staff (sin perfil ats_client) entra a rutas del dashboard cliente,
+    redirige al panel de administración ATS para evitar mezcla de vistas.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        path = request.path or ""
+        user = getattr(request, "user", None)
+
+        if (
+            user
+            and user.is_authenticated
+            and user.is_staff
+            and not getattr(user, "ats_client", None)
+            and path.startswith("/ats/plataforma/dashboard")
+        ):
+            return redirect("ats_admin_dashboard")
+
+        return self.get_response(request)

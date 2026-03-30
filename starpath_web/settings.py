@@ -70,6 +70,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    "mi_app.middleware.ATSStaffAdminRedirectMiddleware",
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -98,15 +99,41 @@ WSGI_APPLICATION = 'starpath_web.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-# PostgreSQL (Render o .env); SQLite local por defecto.
-# Para activar PostgreSQL de nuevo, define USE_POSTGRES=1 en variables de entorno.
+# Prioridad de selección:
+# 1) MySQL (USE_MYSQL=1)
+# 2) PostgreSQL (USE_POSTGRES=1)
+# 3) SQLite local por defecto
+_use_mysql = os.environ.get("USE_MYSQL", "0").strip().lower() in ("1", "true", "yes")
 _use_pg = os.environ.get("USE_POSTGRES", "0").strip().lower() in ("1", "true", "yes")
 _db_url = os.environ.get("DATABASE_URL")
 if _db_url:
     import re
     _db_url = re.sub(r"^postgres://", "postgresql://", _db_url)
 
-if _use_pg:
+if _use_mysql:
+    import pymysql
+
+    # Compatibilidad: Django 6 valida versión de mysqlclient en MySQLdb.
+    # Al usar PyMySQL como reemplazo, ajustamos metadata para pasar esa validación.
+    pymysql.version_info = (2, 2, 1, "final", 0)
+    pymysql.__version__ = "2.2.1"
+    pymysql.install_as_MySQLdb()
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": os.environ.get("MYSQL_NAME", os.environ.get("DB_NAME", "orbita_db")),
+            "USER": os.environ.get("MYSQL_USER", os.environ.get("DB_USER", "root")),
+            "PASSWORD": os.environ.get("MYSQL_PASSWORD", os.environ.get("DB_PASSWORD", "")),
+            "HOST": os.environ.get("MYSQL_HOST", os.environ.get("DB_HOST", "127.0.0.1")),
+            "PORT": os.environ.get("MYSQL_PORT", os.environ.get("DB_PORT", "3306")),
+            "CONN_MAX_AGE": 60,
+            "OPTIONS": {
+                "charset": "utf8mb4",
+            },
+        }
+    }
+elif _use_pg:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -121,6 +148,7 @@ if _use_pg:
     }
     if _db_url and _db_url.startswith("postgresql://"):
         from urllib.parse import urlparse
+
         try:
             _p = urlparse(_db_url)
             if _p.path:
