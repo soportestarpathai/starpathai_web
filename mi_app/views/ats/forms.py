@@ -1,6 +1,7 @@
 """
 Formularios para registro e inicio de sesión de clientes ATS.
 """
+import json
 import re
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -8,6 +9,25 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
 User = get_user_model()
+
+
+def _infer_imap_host_from_smtp(smtp_host: str) -> str:
+    """
+    Intenta inferir host IMAP a partir del SMTP para facilitar configuración
+    cuando se usa la misma cuenta para enviar y recibir.
+    """
+    host = (smtp_host or "").strip()
+    if not host:
+        return ""
+    lower = host.lower()
+    if lower.startswith("smtp."):
+        return "imap." + host[5:]
+    # Casos comunes conocidos
+    if "gmail.com" in lower:
+        return "imap.gmail.com"
+    if "outlook.com" in lower or "office365.com" in lower or "hotmail.com" in lower:
+        return "outlook.office365.com"
+    return host
 
 
 def validate_password_strength(value):
@@ -204,23 +224,80 @@ class ATSFormFieldForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        options = []
-        if self.instance and self.instance.pk and getattr(self.instance, "option_values", None):
-            options = [str(v).strip() for v in self.instance.option_values if str(v).strip()]
-        self.fields["options_text"].initial = ", ".join(options)
+        # Permitimos vacío aquí para controlar validación manual y
+        # evitar que filas extra vacías bloqueen el guardado.
+        self.fields["label"].required = False
+        # Para formularios extra vacíos (sin instancia), mantener vacío evita que
+        # Django los trate como "modificados" y bloquee el guardado.
+        if not (self.instance and self.instance.pk):
+            self.fields["options_text"].initial = ""
+            return
+
+        options = [str(v).strip() for v in (getattr(self.instance, "option_values", None) or []) if str(v).strip()]
+        # Se serializa en JSON para soportar de forma robusta múltiples opciones
+        # en "opción única" y "selección múltiple" desde el builder JS.
+        self.fields["options_text"].initial = json.dumps(options, ensure_ascii=False)
 
     def clean_options_text(self):
         value = (self.cleaned_data.get("options_text") or "").strip()
         if not value:
             return []
-        return [x.strip() for x in value.replace("\n", ",").split(",") if x.strip()]
+        # Formato nuevo: JSON array generado por el builder de opciones.
+        if value.startswith("["):
+            try:
+                parsed = json.loads(value)
+            except (TypeError, ValueError, json.JSONDecodeError):
+                parsed = None
+            if isinstance(parsed, list):
+                out = []
+                seen = set()
+                for item in parsed:
+                    option = str(item).strip()
+                    if not option:
+                        continue
+                    key = option.lower()
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    out.append(option)
+                return out
+        # Compatibilidad con formato previo por comas/saltos de línea.
+        out = []
+        seen = set()
+        for x in value.replace("\n", ",").split(","):
+            option = x.strip()
+            if not option:
+                continue
+            key = option.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(option)
+        return out
 
     def clean(self):
         cleaned = super().clean()
         field_type = cleaned.get("field_type")
+        label = (cleaned.get("label") or "").strip()
         options = cleaned.get("options_text") or []
-        if field_type in (ATSFormField.FIELD_RADIO, ATSFormField.FIELD_MULTI) and len(options) < 2:
-            self.add_error("options_text", "Debes indicar al menos 2 opciones para este tipo de campo.")
+
+        # Si es fila nueva y realmente vacía, la marcamos para ignorarla.
+        is_existing = bool(self.instance and self.instance.pk)
+        if not is_existing and not cleaned.get("DELETE"):
+            placeholder = (cleaned.get("placeholder") or "").strip()
+            has_meaningful_content = bool(label or placeholder or options)
+            if field_type and field_type != ATSFormField.FIELD_TEXT:
+                has_meaningful_content = True
+            if not has_meaningful_content:
+                cleaned["DELETE"] = True
+                return cleaned
+
+        # Para filas reales (existentes o nuevas con contenido), etiqueta obligatoria.
+        if not cleaned.get("DELETE") and not label:
+            self.add_error("label", "Este campo es obligatorio.")
+
+        if field_type in (ATSFormField.FIELD_RADIO, ATSFormField.FIELD_MULTI) and len(options) < 1:
+            self.add_error("options_text", "Debes indicar al menos 1 opción para este tipo de campo.")
         return cleaned
 
     def save(self, commit=True):
@@ -280,6 +357,22 @@ def get_ats_form_criterion_formset(extra=2, form_instance=None, data=None):
 
 class ATSEmailConfigForm(forms.ModelForm):
     """Configuración de correo: notificaciones y correo de la empresa (conexión propia)."""
+    smtp_password = forms.CharField(
+        label="Contraseña SMTP (App Password)",
+        required=False,
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "••••••••",
+                "autocomplete": "new-password",
+            },
+            render_value=False,
+        ),
+        help_text=(
+            "Para Gmail/Google Workspace usa una contraseña de aplicación (App Password), "
+            "no la contraseña normal de la cuenta. Deja vacío para conservar la actual."
+        ),
+    )
     imap_password = forms.CharField(
         label="Contraseña IMAP",
         required=False,
@@ -349,7 +442,37 @@ class ATSEmailConfigForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
+        smtp_host = (cleaned.get("smtp_host") or "").strip()
+        smtp_user = (cleaned.get("smtp_user") or "").strip()
+        smtp_port = cleaned.get("smtp_port")
+        smtp_password_new = (cleaned.get("smtp_password") or "").strip()
+        has_existing_smtp_password = bool(getattr(self.instance, "smtp_password_encrypted", "").strip())
+        smtp_config_started = bool(smtp_host or smtp_user or smtp_password_new or has_existing_smtp_password)
+        if smtp_config_started:
+            if not smtp_host:
+                self.add_error("smtp_host", "Indica el servidor SMTP.")
+            if not smtp_user:
+                self.add_error("smtp_user", "Indica el usuario SMTP.")
+            if not smtp_port:
+                self.add_error("smtp_port", "Indica el puerto SMTP.")
+            if not has_existing_smtp_password and not smtp_password_new:
+                self.add_error("smtp_password", "Indica la contraseña SMTP.")
+
         if cleaned.get("imap_enabled"):
+            # Si usarán la misma cuenta para recibir, autocompletar IMAP con SMTP cuando falte.
+            if not (cleaned.get("imap_user") or "").strip() and smtp_user:
+                cleaned["imap_user"] = smtp_user
+            if not (cleaned.get("imap_host") or "").strip() and smtp_host:
+                cleaned["imap_host"] = _infer_imap_host_from_smtp(smtp_host)
+            if not cleaned.get("imap_port"):
+                cleaned["imap_port"] = 993
+            imap_password_new = (cleaned.get("imap_password") or "").strip()
+            if not imap_password_new:
+                if smtp_password_new:
+                    cleaned["imap_password"] = smtp_password_new
+                elif has_existing_smtp_password and not (getattr(self.instance, "imap_password_encrypted", "") or "").strip():
+                    cleaned["imap_password"] = (getattr(self.instance, "smtp_password_encrypted", "") or "").strip()
+
             if not (cleaned.get("imap_host") or "").strip():
                 self.add_error("imap_host", "Indica el servidor IMAP.")
             if not (cleaned.get("imap_user") or "").strip():
@@ -368,6 +491,10 @@ class ATSEmailConfigForm(forms.ModelForm):
 
     def save(self, commit=True):
         obj = super().save(commit=False)
+        new_smtp_password = (self.cleaned_data.get("smtp_password") or "").strip()
+        if new_smtp_password:
+            # Nota: mantenemos el mismo patrón del proyecto (campo *_encrypted).
+            obj.smtp_password_encrypted = new_smtp_password
         new_password = (self.cleaned_data.get("imap_password") or "").strip()
         if new_password:
             # Nota: mantenemos el mismo patrón que SMTP en el proyecto (campo *_encrypted).

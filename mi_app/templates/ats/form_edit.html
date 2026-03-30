@@ -74,6 +74,25 @@
     <h1 class="h4 mb-4 fw-bold">Editar: {{ ats_form.name }}</h1>
     <form method="post" action="" id="form-edit-main">
       {% csrf_token %}
+      {% if form.errors or formset.errors or criteria_formset.errors or formset.non_form_errors or criteria_formset.non_form_errors %}
+      <div class="alert alert-danger py-2 small mb-3">
+        No se pudo guardar. Revisa los campos marcados y vuelve a intentar.
+        {% if formset.non_form_errors %}<div class="mt-1">{{ formset.non_form_errors }}</div>{% endif %}
+        {% if criteria_formset.non_form_errors %}<div class="mt-1">{{ criteria_formset.non_form_errors }}</div>{% endif %}
+      </div>
+      {% endif %}
+      {% if formset.errors %}
+      <div class="alert alert-warning py-2 small mb-3">
+        <div class="fw-semibold mb-1">Detalle de campos del formulario:</div>
+        <ul class="mb-0 ps-3">
+          {% for row_errors in formset.errors %}
+            {% if row_errors %}
+            <li>Fila {{ forloop.counter }}: {{ row_errors }}</li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
       <div class="row g-3 mb-4">
         <div class="col-12 col-md-6">
           <label class="form-label fw-bold">Nombre</label>
@@ -121,20 +140,21 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
           <div>
             <h2 class="h6 fw-bold mb-1"><i class="bi bi-input-cursor-text me-2"></i>Campos del formulario</h2>
-            <p class="small text-muted mb-0">Añade los campos que verán los candidatos. Para tipo radio o selección múltiple, agrega opciones separadas por coma.</p>
+            <p class="small text-muted mb-0">Añade los campos que verán los candidatos. Para tipo radio o selección múltiple, usa el botón “Agregar” en opciones.</p>
           </div>
           <button type="button" class="btn btn-outline-primary btn-add-row" id="btn-add-field"><i class="bi bi-plus-lg me-1"></i>Añadir campo</button>
         </div>
         {{ formset.management_form }}
         <div class="table-responsive">
           <table class="table table-sm formset-table">
-            <thead><tr><th>Etiqueta</th><th>Tipo</th><th>Oblig.</th><th>Opciones (radio/múltiple)</th><th>Orden</th><th class="text-end" style="width:100px;">Quitar</th></tr></thead>
+            <thead><tr><th>Etiqueta</th><th>Tipo</th><th>Oblig.</th><th>Placeholder</th><th>Opciones (radio/múltiple)</th><th>Orden</th><th class="text-end" style="width:100px;">Quitar</th></tr></thead>
             <tbody id="fields-tbody">
               {% for f in formset %}
               <tr class="formset-row">
                 <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}<span class="d-none">{{ f.DELETE }}</span>{{ f.label }}</td>
                 <td>{{ f.field_type }}</td>
                 <td>{{ f.required }}</td>
+                <td>{{ f.placeholder }}</td>
                 <td>
                   <div class="options-builder">
                     {{ f.options_text }}
@@ -160,6 +180,7 @@
             <td>{{ formset.empty_form.id }}<span class="d-none">{{ formset.empty_form.DELETE }}</span>{{ formset.empty_form.label }}</td>
             <td>{{ formset.empty_form.field_type }}</td>
             <td>{{ formset.empty_form.required }}</td>
+            <td>{{ formset.empty_form.placeholder }}</td>
             <td>
               <div class="options-builder">
                 {{ formset.empty_form.options_text }}
@@ -183,7 +204,7 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
           <div>
             <h2 class="h6 fw-bold mb-1"><i class="bi bi-check2-square me-2"></i>Criterios de evaluación manual</h2>
-            <p class="small text-muted mb-0">El revisor marcará Cumple / No cumple por cada criterio. Los campos del formulario se agregan automáticamente aquí; define su valor de 0 a 100 para el peso del score manual.</p>
+            <p class="small text-muted mb-0">El revisor marcará Cumple / No cumple por cada criterio. Los campos del formulario se reflejan automáticamente aquí; define su valor de 0 a 100 para el peso del score manual.</p>
           </div>
         </div>
         {{ criteria_formset.management_form }}
@@ -192,15 +213,19 @@
             <thead><tr><th>Etiqueta / Criterio</th><th>Valor (0-100)</th></tr></thead>
             <tbody id="criteria-tbody">
               {% for f in criteria_formset %}
-              <tr class="formset-row">
-                <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}<span class="fw-semibold">{{ f.instance.label }}</span></td>
+              <tr class="formset-row criteria-existing-row" data-source-field-id="{{ f.instance.source_form_field_id|default:'' }}">
+                <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}<span class="fw-semibold criterion-label">{{ f.instance.label }}</span></td>
                 <td>{{ f.score_value }}</td>
               </tr>
               {% endfor %}
             </tbody>
+            <tbody id="criteria-pending-tbody"></tbody>
           </table>
         </div>
+        <p id="criteria-autosave-status" class="small text-muted mt-2 mb-0">Los cambios en valor (0-100) se guardan automáticamente.</p>
       </div>
+
+      <div id="auto-criteria-hidden"></div>
 
       <div class="d-flex flex-wrap gap-2 mt-4">
         <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-check-lg me-1"></i>Guardar formulario</button>
@@ -215,16 +240,222 @@
     var prefixFields = 'fields-';
     var templatePrefix = '__prefix__';
     var choiceTypes = ['radio', 'multi_select'];
+    var autosaveDelayMs = 700;
+    var autosaveTimer = null;
+    var autosaveInFlight = false;
+    var autosaveQueued = false;
 
     function getTotal(name) { return parseInt(document.getElementById(name).value, 10) || 0; }
     function setTotal(name, val) { document.getElementById(name).value = val; }
+    function clampScore(value) {
+      var n = parseInt(value, 10);
+      if (isNaN(n)) return 100;
+      if (n < 0) return 0;
+      if (n > 100) return 100;
+      return n;
+    }
+    function getFieldFormIndexFromName(name) {
+      var m = String(name || '').match(/^fields-(\d+)-label$/);
+      return m ? m[1] : null;
+    }
+    function collectActiveFields() {
+      var list = [];
+      document.querySelectorAll('#fields-tbody .formset-row').forEach(function(row) {
+        var labelInput = row.querySelector('input[name$="-label"]');
+        var typeSelect = row.querySelector('select[name$="-field_type"]');
+        var idInput = row.querySelector('input[name$="-id"]');
+        var deleteCb = row.querySelector('input[name$="-DELETE"]');
+        if (!labelInput || !typeSelect) return;
+        if (deleteCb && deleteCb.checked) return;
+        if ((typeSelect.value || '').trim() === 'file') return;
+        var idx = getFieldFormIndexFromName(labelInput.name);
+        if (idx === null) return;
+        list.push({
+          index: idx,
+          fieldId: (idInput && idInput.value) ? String(idInput.value).trim() : '',
+          label: (labelInput.value || '').trim() || 'Sin etiqueta',
+        });
+      });
+      return list;
+    }
+    function syncCriteriaPreview() {
+      var activeFields = collectActiveFields();
+      var activeById = {};
+      activeFields.forEach(function(f) {
+        if (f.fieldId) activeById[f.fieldId] = f;
+      });
+
+      // Mantener/ocultar criterios existentes y actualizar etiqueta en vivo
+      document.querySelectorAll('#criteria-tbody .criteria-existing-row').forEach(function(row) {
+        var sourceFieldId = (row.getAttribute('data-source-field-id') || '').trim();
+        var labelEl = row.querySelector('.criterion-label');
+        var scoreInput = row.querySelector('input[name$="-score_value"]');
+        if (!sourceFieldId || !activeById[sourceFieldId]) {
+          row.style.display = 'none';
+          if (scoreInput) scoreInput.disabled = true;
+          return;
+        }
+        row.style.display = '';
+        if (scoreInput) scoreInput.disabled = false;
+        if (labelEl) labelEl.textContent = activeById[sourceFieldId].label;
+      });
+
+      // Criterios pendientes (campos nuevos que aún no existen en DB)
+      var pendingBody = document.getElementById('criteria-pending-tbody');
+      var hiddenBox = document.getElementById('auto-criteria-hidden');
+      if (!pendingBody || !hiddenBox) return;
+
+      var prevScores = {};
+      pendingBody.querySelectorAll('input.auto-score-input').forEach(function(inp) {
+        prevScores[inp.getAttribute('data-field-index')] = clampScore(inp.value);
+      });
+
+      pendingBody.innerHTML = '';
+      hiddenBox.innerHTML = '';
+
+      activeFields.forEach(function(f) {
+        if (f.fieldId && activeById[f.fieldId]) {
+          var existingRow = document.querySelector('#criteria-tbody .criteria-existing-row[data-source-field-id=\"' + f.fieldId + '\"]');
+          if (existingRow) return;
+        }
+
+        var tr = document.createElement('tr');
+        tr.className = 'formset-row criteria-pending-row';
+        tr.innerHTML = '<td><span class=\"fw-semibold\"></span> <span class=\"small text-muted\">(nuevo, se guardará al enviar)</span></td><td><input type=\"number\" min=\"0\" max=\"100\" class=\"form-control form-control-sm auto-score-input\" /></td>';
+        tr.querySelector('.fw-semibold').textContent = f.label;
+        var scoreInput = tr.querySelector('.auto-score-input');
+        var scoreValue = (prevScores[f.index] !== undefined) ? prevScores[f.index] : 100;
+        scoreInput.value = scoreValue;
+        scoreInput.setAttribute('data-field-index', f.index);
+
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'auto_score_field_' + f.index;
+        hidden.value = clampScore(scoreInput.value);
+        hiddenBox.appendChild(hidden);
+
+        scoreInput.addEventListener('input', function() {
+          hidden.value = clampScore(scoreInput.value);
+          scoreInput.value = hidden.value;
+        });
+        pendingBody.appendChild(tr);
+      });
+    }
+
+    function setAutosaveStatus(message, tone) {
+      var el = document.getElementById('criteria-autosave-status');
+      if (!el) return;
+      el.textContent = message || '';
+      el.classList.remove('text-muted', 'text-success', 'text-danger');
+      if (tone === 'success') {
+        el.classList.add('text-success');
+      } else if (tone === 'error') {
+        el.classList.add('text-danger');
+      } else {
+        el.classList.add('text-muted');
+      }
+    }
+
+    function collectCriteriaAutosavePayload() {
+      var rows = document.querySelectorAll('#criteria-tbody .criteria-existing-row');
+      var criteria = [];
+      rows.forEach(function(row) {
+        if (row.style.display === 'none') return;
+        var idInput = row.querySelector('input[name$="-id"]');
+        var scoreInput = row.querySelector('input[name$="-score_value"]');
+        if (!idInput || !idInput.value || !scoreInput || scoreInput.disabled) return;
+        var score = clampScore(scoreInput.value);
+        scoreInput.value = score;
+        criteria.push({ id: idInput.value, score: score });
+      });
+      return criteria;
+    }
+
+    function runAutosaveCriteria() {
+      var formEl = document.getElementById('form-edit-main');
+      if (!formEl) return;
+      if (autosaveInFlight) {
+        autosaveQueued = true;
+        return;
+      }
+      var criteria = collectCriteriaAutosavePayload();
+      if (!criteria.length) return;
+
+      autosaveInFlight = true;
+      setAutosaveStatus('Guardando valor de criterios...', 'info');
+
+      var formData = new FormData();
+      var csrfInput = formEl.querySelector('input[name="csrfmiddlewaretoken"]');
+      if (csrfInput && csrfInput.value) {
+        formData.append('csrfmiddlewaretoken', csrfInput.value);
+      }
+      formData.append('autosave_criteria', '1');
+      formData.append('criteria_payload', JSON.stringify({ criteria: criteria }));
+
+      fetch(formEl.getAttribute('action') || window.location.href, {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+      .then(function(response) {
+        return response.text().then(function(text) {
+          var data = {};
+          try { data = JSON.parse(text); } catch (e) {}
+          return { ok: response.ok, data: data };
+        });
+      })
+      .then(function(result) {
+        if (!result.ok || !result.data || !result.data.ok) {
+          throw new Error((result.data && result.data.error) || 'No se pudo guardar');
+        }
+        setAutosaveStatus('Valores guardados automáticamente.', 'success');
+      })
+      .catch(function() {
+        setAutosaveStatus('No se pudo guardar automático. Se guardará al enviar el formulario.', 'error');
+      })
+      .finally(function() {
+        autosaveInFlight = false;
+        if (autosaveQueued) {
+          autosaveQueued = false;
+          runAutosaveCriteria();
+        }
+      });
+    }
+
+    function scheduleAutosaveCriteria() {
+      if (autosaveTimer) clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(function() {
+        runAutosaveCriteria();
+      }, autosaveDelayMs);
+    }
 
     function parseOptions(raw) {
       if (!raw) return [];
-      var parts = String(raw).replace(/\r/g, '\n').split(/[\n,]/g);
+      var text = String(raw).trim();
       var out = [];
       var seen = {};
-      parts.forEach(function(p) {
+
+      // Formato actual: JSON array (más robusto para input hidden de una línea).
+      if (text.charAt(0) === '[') {
+        try {
+          var parsed = JSON.parse(text);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(function(p) {
+              var v = (p || '').toString().trim();
+              if (!v) return;
+              var key = v.toLowerCase();
+              if (seen[key]) return;
+              seen[key] = true;
+              out.push(v);
+            });
+            return out;
+          }
+        } catch (e) {}
+      }
+
+      // Compatibilidad con formato previo por comas/saltos de línea.
+      String(raw).replace(/\r/g, '\n').split(/[\n,]/g).forEach(function(p) {
         var v = (p || '').trim();
         if (!v) return;
         var key = v.toLowerCase();
@@ -236,7 +467,7 @@
     }
 
     function syncOptionsInput(input, options) {
-      input.value = options.join('\n');
+      input.value = JSON.stringify(options);
     }
 
     function setupOptionsBuilder(row) {
@@ -252,7 +483,7 @@
         var isChoiceType = choiceTypes.indexOf(typeSelect.value) >= 0;
         optionsUI.style.display = isChoiceType ? '' : 'none';
         if (!isChoiceType) {
-          syncOptionsInput(optionsInput, []);
+          optionsInput.value = '';
           optionsList.innerHTML = '';
           newInput.value = '';
           return;
@@ -310,6 +541,64 @@
         if (id) deleteBtn.onclick = function() { toggleDeleteRow(deleteBtn, id); };
       }
       setupOptionsBuilder(row);
+      var labelInput = row.querySelector('input[name$="-label"]');
+      var placeholderInput = row.querySelector('input[name$="-placeholder"]');
+      var typeSelect = row.querySelector('select[name$="-field_type"]');
+      if (labelInput) labelInput.addEventListener('input', syncCriteriaPreview);
+      if (placeholderInput) placeholderInput.addEventListener('input', function() {
+        if (labelInput) labelInput.setCustomValidity('');
+      });
+      if (typeSelect) typeSelect.addEventListener('change', syncCriteriaPreview);
+    }
+
+    function rowHasMeaningfulContent(labelInput, typeSelect, placeholderInput, optionsInput) {
+      var label = (labelInput && labelInput.value || '').trim();
+      var placeholder = (placeholderInput && placeholderInput.value || '').trim();
+      var fieldType = (typeSelect && typeSelect.value || '').trim();
+      var options = parseOptions(optionsInput ? optionsInput.value : '');
+      if (label || placeholder || options.length) return true;
+      if (fieldType && fieldType !== 'text') return true;
+      return false;
+    }
+
+    function validateFieldsBeforeSubmit() {
+      var firstInvalid = null;
+      document.querySelectorAll('#fields-tbody .formset-row').forEach(function(row) {
+        var deleteCb = row.querySelector('input[name$="-DELETE"]');
+        if (deleteCb && deleteCb.checked) return;
+
+        var labelInput = row.querySelector('input[name$="-label"]');
+        var typeSelect = row.querySelector('select[name$="-field_type"]');
+        var placeholderInput = row.querySelector('input[name$="-placeholder"]');
+        var optionsInput = row.querySelector('input[name$="-options_text"]');
+
+        if (labelInput) labelInput.setCustomValidity('');
+        if (!rowHasMeaningfulContent(labelInput, typeSelect, placeholderInput, optionsInput)) return;
+
+        var label = (labelInput && labelInput.value || '').trim();
+        if (!label && labelInput) {
+          labelInput.setCustomValidity('La etiqueta es obligatoria.');
+          if (!firstInvalid) firstInvalid = labelInput;
+          return;
+        }
+
+        var fieldType = (typeSelect && typeSelect.value || '').trim();
+        if ((fieldType === 'radio' || fieldType === 'multi_select') && optionsInput) {
+          if (parseOptions(optionsInput.value).length < 1) {
+            optionsInput.setCustomValidity('Agrega al menos una opción.');
+            if (!firstInvalid) firstInvalid = optionsInput;
+            return;
+          }
+        }
+        if (optionsInput) optionsInput.setCustomValidity('');
+      });
+
+      if (firstInvalid) {
+        firstInvalid.reportValidity();
+        firstInvalid.focus();
+        return false;
+      }
+      return true;
     }
 
     function cloneRow(templateId, tbodyId, prefix, totalInputName) {
@@ -336,7 +625,10 @@
       }
       tbody.appendChild(tr);
       setTotal(totalInputName, total + 1);
-      if (tbodyId === 'fields-tbody') initFieldRow(tr);
+      if (tbodyId === 'fields-tbody') {
+        initFieldRow(tr);
+        syncCriteriaPreview();
+      }
     }
 
     function toggleDeleteRow(btn, deleteId) {
@@ -347,6 +639,7 @@
         if (cb.checked) row.classList.add('deleted');
         else row.classList.remove('deleted');
       }
+      syncCriteriaPreview();
     }
 
     document.getElementById('btn-add-field').onclick = function() {
@@ -356,6 +649,29 @@
     document.querySelectorAll('#fields-tbody .formset-row').forEach(function(row) {
       initFieldRow(row);
     });
+    var formMain = document.getElementById('form-edit-main');
+    if (formMain) {
+      formMain.addEventListener('submit', function(e) {
+        if (!validateFieldsBeforeSubmit()) {
+          e.preventDefault();
+        }
+      });
+    }
+
+    document.addEventListener('input', function(e) {
+      if (e.target && e.target.matches('#criteria-tbody input[name$="-score_value"]')) {
+        e.target.value = clampScore(e.target.value);
+        scheduleAutosaveCriteria();
+      }
+    });
+    document.addEventListener('change', function(e) {
+      if (e.target && e.target.matches('#criteria-tbody input[name$="-score_value"]')) {
+        e.target.value = clampScore(e.target.value);
+        scheduleAutosaveCriteria();
+      }
+    });
+
+    syncCriteriaPreview();
   })();
   </script>
 {% endblock %}

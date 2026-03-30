@@ -4,6 +4,7 @@ Vistas para el producto ATS (Applicant Tracking System) de Star Path.
 - Plataforma ATS: login, registro y dashboard para clientes.
 - Dashboard: candidatos, habilidades (en detalle), cuenta/billing.
 """
+import json
 import logging
 
 from django.core.paginator import Paginator
@@ -22,8 +23,10 @@ from django.urls import reverse_lazy, reverse
 
 from django.conf import settings
 from django.core.cache import cache
+from django.core.mail import send_mail
+from django.core.mail.backends.smtp import EmailBackend
 from django.contrib import messages
-from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse, JsonResponse
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
 from django.utils import timezone
 
@@ -847,11 +850,13 @@ class ATSFormEditView(LoginRequiredMixin, View):
         if not client:
             return redirect("ats_dashboard")
         ats_form = get_object_or_404(ATSForm, pk=pk, client=client)
+        if request.POST.get("autosave_criteria") == "1":
+            return self._autosave_criteria(request, ats_form)
         form = ATSFormCreateEditForm(request.POST, instance=ats_form)
         form.fields["vacancy"].queryset = client.vacancies.all()
         formset = get_ats_form_field_formset(extra=1, form_instance=ats_form, data=request.POST, files=request.FILES)
         criteria_formset = get_ats_form_criterion_formset(extra=0, form_instance=ats_form, data=request.POST)
-        if form.is_valid() and formset.is_valid() and criteria_formset.is_valid():
+        if form.is_valid() and formset.is_valid():
             form.save()
             formset.save(commit=False)
             for obj in formset.new_objects:
@@ -861,10 +866,45 @@ class ATSFormEditView(LoginRequiredMixin, View):
                 obj.save()
             for obj in formset.deleted_objects:
                 obj.delete()
-            criteria_formset.save()
+
+            # Mapa índice-formset -> pk de campo guardado, para aplicar score automático de criterios nuevos.
+            field_index_to_pk = {}
+            for idx, field_form in enumerate(formset.forms):
+                cleaned = getattr(field_form, "cleaned_data", None) or {}
+                if not cleaned or cleaned.get("DELETE"):
+                    continue
+                instance = field_form.instance
+                if not instance.pk:
+                    continue
+                if instance.field_type == ATSFormField.FIELD_FILE:
+                    continue
+                field_index_to_pk[str(idx)] = instance.pk
+
             _sync_criteria_from_form_fields(ats_form)
+            self._apply_posted_existing_criteria_scores(request, ats_form)
+
+            # Campos nuevos mostrados por AJAX: auto_score_field_<índice_formset>
+            # Se aplica después del sync, porque el criterio aún no existe antes de sincronizar.
+            for key, value in request.POST.items():
+                if not key.startswith("auto_score_field_"):
+                    continue
+                field_idx = key[len("auto_score_field_"):]
+                field_pk = field_index_to_pk.get(field_idx)
+                if not field_pk:
+                    continue
+                try:
+                    score_value = int(value)
+                except (TypeError, ValueError):
+                    score_value = 100
+                score_value = max(0, min(100, score_value))
+                ATSFormCriterion.objects.filter(
+                    form=ats_form,
+                    source_form_field_id=field_pk,
+                ).update(score_value=score_value)
+
             messages.success(request, "Formulario guardado.")
             return redirect("ats_form_list")
+        messages.error(request, "No se pudo guardar. Revisa los campos marcados e intenta nuevamente.")
         return render(request, "ats/form_edit.html", {
             "ats_form": ats_form,
             "form": form,
@@ -874,6 +914,69 @@ class ATSFormEditView(LoginRequiredMixin, View):
             "subscription": _get_or_create_subscription(request.user),
             "ats_page": "formularios",
         })
+
+    def _autosave_criteria(self, request, ats_form):
+        """
+        Autosave de scores manuales (0-100) por AJAX sin requerir submit completo.
+        Espera: criteria_payload='{"criteria":[{"id":1,"score":80}, ...]}'
+        """
+        raw_payload = (request.POST.get("criteria_payload") or "").strip()
+        if not raw_payload:
+            return JsonResponse({"ok": False, "error": "Sin datos de criterios."}, status=400)
+        try:
+            payload = json.loads(raw_payload)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return JsonResponse({"ok": False, "error": "Formato de payload inválido."}, status=400)
+
+        items = payload.get("criteria")
+        if not isinstance(items, list):
+            return JsonResponse({"ok": False, "error": "El payload debe incluir una lista de criterios."}, status=400)
+
+        updated = 0
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            criterion_id = item.get("id")
+            score_value = item.get("score")
+            try:
+                criterion_id = int(criterion_id)
+                score_value = int(score_value)
+            except (TypeError, ValueError):
+                continue
+            score_value = max(0, min(100, score_value))
+            updated += ATSFormCriterion.objects.filter(
+                form=ats_form,
+                pk=criterion_id,
+            ).update(score_value=score_value)
+
+        return JsonResponse({"ok": True, "updated": updated})
+
+    def _apply_posted_existing_criteria_scores(self, request, ats_form):
+        """
+        Aplica scores de criterios existentes desde POST tradicional del formset
+        sin bloquear el guardado completo si falta algún campo oculto.
+        """
+        for key, value in request.POST.items():
+            if not key.startswith("criteria-") or not key.endswith("-id"):
+                continue
+            parts = key.split("-")
+            if len(parts) < 3:
+                continue
+            idx = parts[1]
+            criterion_id_raw = (value or "").strip()
+            score_raw = (request.POST.get(f"criteria-{idx}-score_value") or "").strip()
+            if not criterion_id_raw or not score_raw:
+                continue
+            try:
+                criterion_id = int(criterion_id_raw)
+                score_value = int(score_raw)
+            except (TypeError, ValueError):
+                continue
+            score_value = max(0, min(100, score_value))
+            ATSFormCriterion.objects.filter(
+                form=ats_form,
+                pk=criterion_id,
+            ).update(score_value=score_value)
 
 
 class ATSFormDeleteView(LoginRequiredMixin, View):
@@ -1207,8 +1310,94 @@ class ATSEmailConfigView(LoginRequiredMixin, FormView):
             return redirect("ats_dashboard")
         form.instance.client = client
         form.save()
-        messages.success(self.request, "Configuración de correo guardada.")
+        smtp_password_changed = bool((form.cleaned_data.get("smtp_password") or "").strip())
+        imap_password_changed = bool((form.cleaned_data.get("imap_password") or "").strip())
+        if smtp_password_changed or imap_password_changed:
+            messages.success(self.request, "Configuración de correo guardada. Las contraseñas nuevas fueron actualizadas.")
+        else:
+            messages.success(self.request, "Configuración de correo guardada.")
         return super().form_valid(form)
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get("test_smtp"):
+            return self._handle_test_smtp(request)
+        return super().post(request, *args, **kwargs)
+
+    def _handle_test_smtp(self, request):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("ats_dashboard")
+
+        config, _ = ATSClientEmailConfig.objects.get_or_create(client=client)
+        form = self.form_class(request.POST, instance=config)
+        if not form.is_valid():
+            messages.error(request, "Revisa los datos SMTP e intenta nuevamente.")
+            return render(request, self.template_name, self.get_context_data(form=form))
+
+        smtp_host = (form.cleaned_data.get("smtp_host") or "").strip()
+        smtp_user = (form.cleaned_data.get("smtp_user") or "").strip()
+        smtp_port = int(form.cleaned_data.get("smtp_port") or 587)
+        smtp_use_tls = bool(form.cleaned_data.get("smtp_use_tls"))
+        smtp_password = (form.cleaned_data.get("smtp_password") or "").strip() or (
+            getattr(config, "smtp_password_encrypted", "") or ""
+        ).strip()
+
+        if not smtp_host or not smtp_user or not smtp_password:
+            messages.error(
+                request,
+                "Para probar SMTP completa servidor, usuario y contraseña en Config. correo.",
+            )
+            return render(request, self.template_name, self.get_context_data(form=form))
+
+        from_name = (form.cleaned_data.get("company_from_name") or "").strip() or client.company_name or "Órbita"
+        from_email = (form.cleaned_data.get("company_from_email") or "").strip() or smtp_user
+        from_header = f"{from_name} <{from_email}>"
+        notification_email = (form.cleaned_data.get("notification_email") or "").strip()
+        to_email = notification_email or (request.user.email or "").strip() or smtp_user
+
+        connection = EmailBackend(
+            host=smtp_host,
+            port=smtp_port,
+            username=smtp_user,
+            password=smtp_password,
+            use_tls=smtp_use_tls,
+            timeout=getattr(settings, "EMAIL_TIMEOUT", 10),
+            fail_silently=False,
+        )
+        try:
+            connection.open()
+            send_mail(
+                subject="[Órbita] Prueba SMTP",
+                message=(
+                    "Prueba SMTP exitosa.\n\n"
+                    "Este correo confirma que la configuración SMTP del cliente funciona correctamente."
+                ),
+                from_email=from_header,
+                recipient_list=[to_email],
+                fail_silently=False,
+                connection=connection,
+            )
+            messages.success(
+                request,
+                f"SMTP verificado correctamente. Se envió un correo de prueba a {to_email}.",
+            )
+        except Exception as exc:
+            error_text = str(exc)
+            lower_error = error_text.lower()
+            if ("5.7.9" in lower_error) or ("application-specific password required" in lower_error):
+                messages.error(
+                    request,
+                    "Google bloqueó el acceso SMTP. Usa una contraseña de aplicación (App Password) en vez de la contraseña normal.",
+                )
+            else:
+                messages.error(request, f"No se pudo validar SMTP: {exc}")
+        finally:
+            try:
+                connection.close()
+            except Exception:
+                pass
+
+        return render(request, self.template_name, self.get_context_data(form=form))
 
 
 class ATSProfileConfigView(LoginRequiredMixin, FormView):

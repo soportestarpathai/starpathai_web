@@ -213,6 +213,10 @@
           <span class="tag">Opcional</span>
         </div>
         <p class="text-muted small mb-3" style="margin-top:-.25rem;">Para enviar desde tu propio servidor de correo.</p>
+        <p class="text-muted small mb-3" style="margin-top:-.25rem;">
+          Si usas Gmail/Google Workspace, activa verificación en 2 pasos y usa una
+          <strong>contraseña de aplicación</strong> para SMTP.
+        </p>
         <div class="row g-3">
           <div class="col-12">
             <label class="form-label">Servidor SMTP</label>
@@ -232,6 +236,15 @@
             <label class="form-label">Usuario SMTP</label>
             {{ form.smtp_user }}
           </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label">Contraseña SMTP</label>
+            {{ form.smtp_password }}
+            <div class="form-text">{{ form.smtp_password.help_text }}</div>
+            {% if form.instance and form.instance.smtp_password_encrypted %}
+              <div class="form-text text-success">Ya existe una contraseña SMTP guardada. Déjalo vacío para conservarla.</div>
+            {% endif %}
+            {% if form.smtp_password.errors %}<div class="text-danger small mt-1">{{ form.smtp_password.errors }}</div>{% endif %}
+          </div>
         </div>
       </div>
 
@@ -241,7 +254,10 @@
           <h2>Procesar correos entrantes (IMAP)</h2>
           <span class="tag">Opcional</span>
         </div>
-        <p class="text-muted small mb-3" style="margin-top:-.25rem;">Conecta un buzón para convertir correos de candidatos en postulaciones automáticamente.</p>
+        <p class="text-muted small mb-3" style="margin-top:-.25rem;">
+          Conecta un buzón para convertir correos de candidatos en postulaciones automáticamente.
+          Si usas la misma cuenta, IMAP se autocompleta con los datos SMTP cuando falten campos.
+        </p>
         <div class="row g-3">
           <div class="col-12">
             <div class="form-check form-switch">
@@ -276,6 +292,9 @@
             <label class="form-label">Contraseña IMAP</label>
             {{ form.imap_password }}
             <div class="form-text">{{ form.imap_password.help_text }}</div>
+            {% if form.instance and form.instance.imap_password_encrypted %}
+              <div class="form-text text-success">Ya existe una contraseña IMAP guardada. Déjalo vacío para conservarla.</div>
+            {% endif %}
             {% if form.imap_password.errors %}<div class="text-danger small mt-1">{{ form.imap_password.errors }}</div>{% endif %}
           </div>
           <div class="col-12">
@@ -287,6 +306,7 @@
       </div>
 
       <div class="ec-actions">
+        <button type="submit" name="test_smtp" value="1" class="btn btn-back"><i class="bi bi-plug me-1"></i>Probar SMTP</button>
         <button type="submit" class="btn btn-save"><i class="bi bi-check-lg me-1"></i>Guardar configuración</button>
         <a href="{% url 'ats_dashboard' %}" class="btn btn-back">Cancelar</a>
       </div>

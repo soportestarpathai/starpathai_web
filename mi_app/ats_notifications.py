@@ -247,15 +247,28 @@ def send_email_to_candidate(client, candidate, email_type, custom_message=None):
     to_email = (candidate.email or "").strip()
     if not to_email or "@" not in to_email:
         return False
-    from_email = settings.DEFAULT_FROM_EMAIL
-    from_name = "Órbita"
-    try:
-        config = getattr(client, "email_config", None)
-        if config and getattr(config, "company_from_email", None) and config.company_from_email.strip():
-            from_email = config.company_from_email.strip()
-            from_name = (getattr(config, "company_from_name", None) or "").strip() or client.company_name
-    except Exception:
-        pass
+    config = getattr(client, "email_config", None)
+    if not config:
+        from mi_app.models import ATSClientEmailConfig
+        config = ATSClientEmailConfig.objects.filter(client=client).first()
+    if not config:
+        logger.warning("send_email_to_candidate: sin configuración de correo para client=%s", getattr(client, "pk", None))
+        return False
+
+    smtp_host = (getattr(config, "smtp_host", "") or "").strip()
+    smtp_user = (getattr(config, "smtp_user", "") or "").strip()
+    smtp_password = (getattr(config, "smtp_password_encrypted", "") or "").strip()
+    smtp_port = int(getattr(config, "smtp_port", 587) or 587)
+    smtp_use_tls = bool(getattr(config, "smtp_use_tls", True))
+    if not smtp_host or not smtp_user or not smtp_password:
+        logger.warning(
+            "send_email_to_candidate: SMTP incompleto para client=%s (host/user/password requeridos)",
+            getattr(client, "pk", None),
+        )
+        return False
+
+    from_email = (getattr(config, "company_from_email", "") or "").strip() or smtp_user
+    from_name = (getattr(config, "company_from_name", "") or "").strip() or client.company_name or "Órbita"
     from_header = f"{from_name} <{from_email}>" if from_name else from_email
     candidate_name = (candidate.name or "Candidato/a").strip()
     if email_type == "apto":
@@ -274,13 +287,65 @@ def send_email_to_candidate(client, candidate, email_type, custom_message=None):
             "Te deseamos éxito en tu búsqueda y te invitamos a estar atento/a a futuras vacantes.\n\n"
             "Saludos cordiales."
         )
+
+    is_apto = email_type == "apto"
+    status_badge = "Perfil apto para continuar" if is_apto else "Resultado de postulación"
+    status_color = "#10b981" if is_apto else "#ef4444"
+    company_name_html = html.escape(from_name or "Órbita")
+    candidate_name_html = html.escape(candidate_name)
+    vacancy_title = ""
+    if getattr(candidate, "vacancy", None):
+        vacancy_title = (getattr(candidate.vacancy, "title", "") or "").strip()
+    vacancy_html = html.escape(vacancy_title) if vacancy_title else ""
+
+    body_html_lines = "<br>".join(html.escape(line) for line in body.splitlines())
+    email_body_html = f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:24px; background:#f3f6fb; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#243447;">
+  <div style="max-width:640px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 8px 24px rgba(11,28,45,0.08);">
+    <div style="background:linear-gradient(135deg, #0b1c2d 0%, #16324f 100%); padding:24px 26px;">
+      <p style="margin:0; color:#9fd9ff; font-size:12px; letter-spacing:.08em; text-transform:uppercase;">Órbita • Comunicación de reclutamiento</p>
+      <h1 style="margin:8px 0 0; color:#ffffff; font-size:22px; line-height:1.25;">{html.escape(subject)}</h1>
+      <span style="display:inline-block; margin-top:14px; background:{status_color}; color:#fff; padding:7px 12px; border-radius:999px; font-size:12px; font-weight:700;">{status_badge}</span>
+    </div>
+    <div style="padding:24px 26px;">
+      <p style="margin:0 0 14px; font-size:15px; line-height:1.6;">Hola <strong>{candidate_name_html}</strong>,</p>
+      <div style="font-size:15px; line-height:1.65; color:#34495e; margin-bottom:18px;">{body_html_lines}</div>
+      <div style="background:#f8fbff; border:1px solid #e6eef8; border-radius:12px; padding:14px 16px; margin-top:10px;">
+        <p style="margin:0 0 6px; color:#5a6a7b; font-size:12px; text-transform:uppercase; letter-spacing:.06em;">Empresa</p>
+        <p style="margin:0; font-size:15px; font-weight:700; color:#0b1c2d;">{company_name_html}</p>
+        {f'<p style="margin:10px 0 0; font-size:14px; color:#44566b;"><strong>Vacante:</strong> {vacancy_html}</p>' if vacancy_html else ''}
+      </div>
+    </div>
+    <div style="padding:14px 26px; border-top:1px solid #ecf1f7; background:#fafcff;">
+      <p style="margin:0; color:#7a8794; font-size:12px;">Este mensaje fue enviado desde Órbita. Si tienes dudas, responde a este correo.</p>
+    </div>
+  </div>
+</body>
+</html>"""
     try:
+        from django.core.mail.backends.smtp import EmailBackend
+        connection = EmailBackend(
+            host=smtp_host,
+            port=smtp_port,
+            username=smtp_user,
+            password=smtp_password,
+            use_tls=smtp_use_tls,
+            timeout=getattr(settings, "EMAIL_TIMEOUT", 10),
+            fail_silently=False,
+        )
         send_mail(
             subject=f"[{from_name}] {subject}",
             message=body,
             from_email=from_header,
             recipient_list=[to_email],
-            fail_silently=True,
+            html_message=email_body_html,
+            fail_silently=False,
+            connection=connection,
         )
         return True
     except Exception as e:
