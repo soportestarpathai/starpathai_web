@@ -1253,7 +1253,7 @@ class ATSBackfillCandidatesFromSubmissionsView(LoginRequiredMixin, View):
         if created:
             messages.success(
                 request,
-                f"Se crearon {created} candidato(s) desde envíos de formularios. Ya aparecen en Reclutamiento y Candidatos.",
+                f"Se crearon {created} candidato(s) desde envíos de formularios. Ya aparecen en Vacantes y Candidatos.",
             )
             notify_ats_client(
                 client,
@@ -1658,4 +1658,3 @@ class ATSPasswordResetConfirmView(AuthPasswordResetConfirmView):
 
 class ATSPasswordResetCompleteView(AuthPasswordResetCompleteView):
     template_name = "ats/auth/password_reset_complete.html"
-

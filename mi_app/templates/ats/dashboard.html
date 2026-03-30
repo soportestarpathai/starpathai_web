@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block ats_title %}Órbita{% endblock %}
-{% block ats_header_title %}{% if dashboard_section == 'candidatos' %}Candidatos{% elif dashboard_section == 'reclutamiento' %}Reclutamiento{% elif dashboard_section == 'cuenta' %}Mi cuenta{% else %}Órbita{% endif %}{% endblock %}
+{% block ats_header_title %}{% if dashboard_section == 'candidatos' %}Candidatos{% elif dashboard_section == 'reclutamiento' %}Vacantes{% elif dashboard_section == 'cuenta' %}Mi cuenta{% else %}Órbita{% endif %}{% endblock %}
 
 {% block ats_extra_css %}
   /* ─── Welcome header ─── */
@@ -530,7 +530,7 @@
 
   {% if dashboard_section == 'reclutamiento' %}
     <div class="recr-hero" style="max-width:1400px;">
-      <div class="hero-badge"><i class="bi bi-briefcase-fill"></i> Reclutamiento</div>
+      <div class="hero-badge"><i class="bi bi-briefcase-fill"></i> Vacantes</div>
       <div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
         <div>
           <h1>Vacantes</h1>
@@ -646,7 +646,6 @@
         </div>
         {% if subscription.next_payment_date %}
           <div class="stat-value">{{ subscription.next_payment_date|date:"d/m/Y" }}</div>
-          {% if subscription.amount %}<div class="stat-sub">${{ subscription.amount }} MXN</div>{% endif %}
         {% else %}
           <div class="stat-value" style="color:#8896a6;">Sin cobro</div>
         {% endif %}
@@ -682,7 +681,6 @@
             {% if subscription.plan == plan.id %}<span class="plan-badge-current">Actual</span>{% endif %}
           </div>
           <p class="plan-desc">{{ plan.description }}</p>
-          <p class="plan-price">{% if plan.id == 'FREE' %}Gratis{% else %}${{ plan.amount_mxn }} MXN <span class="price-period">/ mes</span>{% endif %}</p>
           <ul class="plan-features">
             {% for f in plan.features %}<li>{{ f }}</li>{% endfor %}
           </ul>

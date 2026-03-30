@@ -305,7 +305,7 @@
         {% if ats_client %}
         <div class="nav-label">Menú</div>
         <div class="nav-item"><a href="{% url 'ats_dashboard' %}?section=candidatos" class="nav-link {% if ats_page == 'candidatos' %}active{% endif %}"><i class="bi bi-people"></i> Candidatos</a></div>
-        <div class="nav-item"><a href="{% url 'ats_dashboard' %}?section=reclutamiento" class="nav-link {% if ats_page == 'reclutamiento' %}active{% endif %}"><i class="bi bi-briefcase"></i> Reclutamiento</a></div>
+        <div class="nav-item"><a href="{% url 'ats_dashboard' %}?section=reclutamiento" class="nav-link {% if ats_page == 'reclutamiento' %}active{% endif %}"><i class="bi bi-briefcase"></i> Vacantes</a></div>
         <div class="nav-item"><a href="{% url 'ats_form_list' %}" class="nav-link {% if ats_page == 'formularios' %}active{% endif %}"><i class="bi bi-ui-checks"></i> Formularios</a></div>
         <div class="nav-item"><a href="{% url 'ats_dashboard' %}?section=cuenta" class="nav-link {% if ats_page == 'cuenta' %}active{% endif %}"><i class="bi bi-credit-card"></i> Mi cuenta</a></div>
         <div class="nav-item"><a href="{% url 'ats_notification_panel' %}" class="nav-link {% if ats_page == 'notificaciones' %}active{% endif %}"><i class="bi bi-bell"></i> Notificaciones</a></div>
