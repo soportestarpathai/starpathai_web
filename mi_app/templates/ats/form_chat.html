@@ -815,6 +815,9 @@
         addMsg("bot", "Por favor, <strong>" + step.label.toLowerCase() + "</strong>. Puedes subir un archivo PDF, DOC o DOCX.");
       } else if (step.type === "textarea") {
         addMsg("bot", step.label + " <small style='color:#8896a6'>(puedes escribir todo lo que necesites)</small>");
+      } else if ((step.type === "radio" || step.type === "multi_select") && step.options && step.options.length) {
+        var opts = step.options.map(function(o) { return "• " + o; }).join("<br>");
+        addMsg("bot", step.label + "<br><small style='color:#8896a6'>Opciones:<br>" + opts + "</small>");
       } else {
         addMsg("bot", step.label);
       }

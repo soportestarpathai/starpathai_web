@@ -125,6 +125,7 @@
   .cv-card .form-control, .cv-card textarea.form-control { border-radius: 10px; border: 1px solid rgba(11,28,45,.12); padding: .6rem .9rem; font-size: .9rem; transition: border-color .2s, box-shadow .2s; }
   .cv-card .form-control:focus, .cv-card textarea.form-control:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,.1); }
   .cv-card .form-text { font-size: .78rem; color: var(--default-color); opacity: .8; }
+  .cv-card .form-check-input:checked { background-color: #7c3aed; border-color: #7c3aed; }
 
   .cv-actions {
     margin-top: 1.75rem;
@@ -191,6 +192,19 @@
 
     <form method="post" action="">
       {% csrf_token %}
+
+      <div class="cv-card">
+        <div class="cv-card-head">
+          <div class="ic profile"><i class="bi bi-toggles2"></i></div>
+          <h2>Estado del análisis con IA</h2>
+        </div>
+        <div class="form-check form-switch">
+          {{ form.enabled }}
+          <label class="form-check-label fw-semibold" for="{{ form.enabled.id_for_label }}">Habilitar análisis de CV con IA</label>
+        </div>
+        {% if form.enabled.help_text %}<div class="form-text mt-2">{{ form.enabled.help_text }}</div>{% endif %}
+        {% if form.enabled.errors %}<div class="text-danger small mt-1">{{ form.enabled.errors }}</div>{% endif %}
+      </div>
 
       <div class="cv-card">
         <div class="cv-card-head">

@@ -174,6 +174,35 @@
 
   .dash-empty { padding: 3.5rem 2rem; text-align: center; color: #8896a6; background: #fff; border-radius: 16px; border: 1px solid rgba(11,28,45,0.05); box-shadow: 0 2px 8px rgba(11,28,45,0.03); }
   .dash-empty i { font-size: 3rem; color: var(--ats-accent, var(--accent-color)); opacity: 0.35; margin-bottom: 1rem; display: block; }
+  .btn-empty-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.72rem 1.3rem;
+    min-height: 46px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--ats-accent), #00b0b5);
+    border: 1px solid rgba(0, 176, 181, 0.35);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.92rem;
+    line-height: 1.2;
+    text-decoration: none;
+    box-shadow: 0 6px 20px rgba(0, 196, 201, 0.28);
+    transition: transform 0.18s, box-shadow 0.18s;
+  }
+  .btn-empty-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(0, 196, 201, 0.34);
+    color: #fff;
+  }
+  .btn-empty-cta i {
+    font-size: 0.92rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+  }
 
   @media (max-width: 991px) {
     .cand-meta { gap: 0.5rem; }
@@ -396,7 +425,10 @@
       <div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
         <div>
           <h1>Candidatos{% if filter_vacancy %} <span style="opacity:.5;font-weight:400;font-size:.85rem;">· filtrado</span>{% endif %}</h1>
-          <p class="hero-sub mb-0">{{ kpi_total }} candidato{{ kpi_total|pluralize }} registrado{{ kpi_total|pluralize }} · {{ kpi_aptos }} apto{{ kpi_aptos|pluralize }} para avanzar</p>
+          <p class="hero-sub mb-0">
+            {{ kpi_total }} candidato{{ kpi_total|pluralize }} registrado{{ kpi_total|pluralize }} · {{ kpi_aptos }} apto{{ kpi_aptos|pluralize }} para avanzar
+            {% if selected_vacancy %}<br>Vacante seleccionada: <strong>{{ selected_vacancy.title }}</strong>{% endif %}
+          </p>
         </div>
         {% if subscription_can_export_candidates %}
         <div class="hero-actions">
@@ -563,7 +595,7 @@
       {% endif %}
       <div class="recr-kpi">
         <div class="kpi-icon" style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(99,102,241,0.04));color:#6366f1;"><i class="bi bi-people-fill"></i></div>
-        <div><div class="kpi-val">{{ kpi_total }}</div><div class="kpi-lbl">Candidatos totales</div></div>
+        <div><div class="kpi-val">{{ kpi_total_global }}</div><div class="kpi-lbl">Candidatos totales</div></div>
       </div>
       {% if pending_submissions_count > 0 %}
       <div class="recr-kpi">
@@ -590,7 +622,7 @@
           </div>
           <div class="vc-actions">
             <a href="{% url 'ats_vacancy_edit' v.pk %}" class="btn btn-vc-edit"><i class="bi bi-pencil me-1"></i>Editar</a>
-            <a href="{% url 'ats_dashboard' %}?section=candidatos&vacancy={{ v.id }}" class="btn btn-vc-cand"><i class="bi bi-people me-1"></i>Candidatos</a>
+            <a href="{% url 'ats_dashboard' %}?section=candidatos&amp;vacancy={{ v.id }}" class="btn btn-vc-cand"><i class="bi bi-people me-1"></i>Candidatos</a>
             <form method="post" action="{% url 'ats_vacancy_delete' v.pk %}" class="d-inline ms-auto" onsubmit="return atsConfirmSubmit(event, { title: '¿Eliminar esta vacante?', text: 'Los candidatos no se borran.', icon: 'warning', confirmButtonText: 'Sí, eliminar' });">
               {% csrf_token %}
               <button type="submit" class="btn btn-vc-del"><i class="bi bi-trash"></i></button>
@@ -602,7 +634,7 @@
           <i class="bi bi-briefcase"></i>
           <p class="mb-2">Aún no tienes vacantes.</p>
           <p class="small text-muted mb-3">Crea puestos de trabajo para organizar candidatos y filtrar por vacante.</p>
-          <a href="{% url 'ats_vacancy_create' %}" class="btn btn-primary rounded-pill"><i class="bi bi-plus-lg me-2"></i>Crear primera vacante</a>
+          <a href="{% url 'ats_vacancy_create' %}" class="btn-empty-cta"><i class="bi bi-plus-lg"></i>Crear primera vacante</a>
         </div>
       {% endfor %}
     </div>

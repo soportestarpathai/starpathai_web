@@ -34,12 +34,16 @@ def _build_steps(ats_form):
     """Construye la lista ordenada de pasos del chat a partir de los campos del formulario."""
     steps = []
     for field in ats_form.fields.all().order_by("order", "id"):
+        options = []
+        if getattr(field, "option_values", None):
+            options = [str(v).strip() for v in field.option_values if str(v).strip()]
         steps.append({
             "id": f"field_{field.id}",
             "label": field.label,
             "type": field.field_type,
             "required": field.required,
             "placeholder": field.placeholder or "",
+            "options": options,
         })
 
     has_email_field = any(s["type"] == ATSFormField.FIELD_EMAIL for s in steps)

@@ -28,6 +28,39 @@
   .btn-remove-row { padding: 0.25rem 0.5rem; font-size: 0.8rem; border-radius: 8px; }
   .formset-row.deleted { opacity: 0.5; pointer-events: none; }
   .formset-row.deleted td { text-decoration: line-through; }
+  .options-builder-ui {
+    border: 1px solid #dbe5ef;
+    border-radius: 10px;
+    padding: 0.5rem;
+    background: #f8fbff;
+  }
+  .options-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    min-height: 28px;
+  }
+  .option-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid #cfe1ff;
+    background: #eaf2ff;
+    color: #184a87;
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.78rem;
+    line-height: 1.2;
+  }
+  .option-chip button {
+    border: 0;
+    background: transparent;
+    color: #184a87;
+    padding: 0;
+    line-height: 1;
+    font-weight: 700;
+    cursor: pointer;
+  }
   @media (max-width: 767px) {
     .formset-table .table-responsive { font-size: 0.9rem; }
     .formset-table th, .formset-table td { white-space: normal; }
@@ -88,20 +121,33 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
           <div>
             <h2 class="h6 fw-bold mb-1"><i class="bi bi-input-cursor-text me-2"></i>Campos del formulario</h2>
-            <p class="small text-muted mb-0">Añade los campos que verán los candidatos. Usa "Quitar" para eliminar una fila.</p>
+            <p class="small text-muted mb-0">Añade los campos que verán los candidatos. Para tipo radio o selección múltiple, agrega opciones separadas por coma.</p>
           </div>
           <button type="button" class="btn btn-outline-primary btn-add-row" id="btn-add-field"><i class="bi bi-plus-lg me-1"></i>Añadir campo</button>
         </div>
         {{ formset.management_form }}
         <div class="table-responsive">
           <table class="table table-sm formset-table">
-            <thead><tr><th>Etiqueta</th><th>Tipo</th><th>Oblig.</th><th>Orden</th><th class="text-end" style="width:100px;">Quitar</th></tr></thead>
+            <thead><tr><th>Etiqueta</th><th>Tipo</th><th>Oblig.</th><th>Opciones (radio/múltiple)</th><th>Orden</th><th class="text-end" style="width:100px;">Quitar</th></tr></thead>
             <tbody id="fields-tbody">
               {% for f in formset %}
               <tr class="formset-row">
                 <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}<span class="d-none">{{ f.DELETE }}</span>{{ f.label }}</td>
                 <td>{{ f.field_type }}</td>
                 <td>{{ f.required }}</td>
+                <td>
+                  <div class="options-builder">
+                    {{ f.options_text }}
+                    <div class="options-builder-ui">
+                      <div class="options-list"></div>
+                      <div class="d-flex gap-2 mt-2">
+                        <input type="text" class="form-control form-control-sm options-new" placeholder="Escribe una opción">
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-option-add">Agregar</button>
+                      </div>
+                      <div class="form-text mt-1 mb-0">Disponible para opción única y selección múltiple.</div>
+                    </div>
+                  </div>
+                </td>
                 <td>{{ f.order }}</td>
                 <td class="text-end">{% if f.DELETE %}<button type="button" class="btn btn-sm btn-outline-danger btn-remove-row btn-delete-field" data-delete-id="{{ f.DELETE.id_for_label }}">Quitar</button>{% endif %}</td>
               </tr>
@@ -114,6 +160,19 @@
             <td>{{ formset.empty_form.id }}<span class="d-none">{{ formset.empty_form.DELETE }}</span>{{ formset.empty_form.label }}</td>
             <td>{{ formset.empty_form.field_type }}</td>
             <td>{{ formset.empty_form.required }}</td>
+            <td>
+              <div class="options-builder">
+                {{ formset.empty_form.options_text }}
+                <div class="options-builder-ui">
+                  <div class="options-list"></div>
+                  <div class="d-flex gap-2 mt-2">
+                    <input type="text" class="form-control form-control-sm options-new" placeholder="Escribe una opción">
+                    <button type="button" class="btn btn-sm btn-outline-primary btn-option-add">Agregar</button>
+                  </div>
+                  <div class="form-text mt-1 mb-0">Disponible para opción única y selección múltiple.</div>
+                </div>
+              </div>
+            </td>
             <td>{{ formset.empty_form.order }}</td>
             <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-row btn-delete-field">Quitar</button></td>
           </tr>
@@ -124,32 +183,23 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
           <div>
             <h2 class="h6 fw-bold mb-1"><i class="bi bi-check2-square me-2"></i>Criterios de evaluación manual</h2>
-            <p class="small text-muted mb-0">El revisor marcará Cumple / No cumple por cada criterio. Usa "Quitar" para eliminar.</p>
+            <p class="small text-muted mb-0">El revisor marcará Cumple / No cumple por cada criterio. Los campos del formulario se agregan automáticamente aquí; define su valor de 0 a 100 para el peso del score manual.</p>
           </div>
-          <button type="button" class="btn btn-outline-primary btn-add-row" id="btn-add-criterion"><i class="bi bi-plus-lg me-1"></i>Añadir criterio</button>
         </div>
         {{ criteria_formset.management_form }}
         <div class="table-responsive">
           <table class="table table-sm formset-table">
-            <thead><tr><th>Etiqueta / Criterio</th><th>Orden</th><th class="text-end" style="width:100px;">Quitar</th></tr></thead>
+            <thead><tr><th>Etiqueta / Criterio</th><th>Valor (0-100)</th></tr></thead>
             <tbody id="criteria-tbody">
               {% for f in criteria_formset %}
               <tr class="formset-row">
-                <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}<span class="d-none">{{ f.DELETE }}</span>{{ f.label }}</td>
-                <td>{{ f.order }}</td>
-                <td class="text-end">{% if f.DELETE %}<button type="button" class="btn btn-sm btn-outline-danger btn-remove-row btn-delete-criterion" data-delete-id="{{ f.DELETE.id_for_label }}">Quitar</button>{% endif %}</td>
+                <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}<span class="fw-semibold">{{ f.instance.label }}</span></td>
+                <td>{{ f.score_value }}</td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-        <table class="d-none" aria-hidden="true"><tbody>
-          <tr id="criteria-template-row">
-            <td>{{ criteria_formset.empty_form.id }}<span class="d-none">{{ criteria_formset.empty_form.DELETE }}</span>{{ criteria_formset.empty_form.label }}</td>
-            <td>{{ criteria_formset.empty_form.order }}</td>
-            <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-row btn-delete-criterion">Quitar</button></td>
-          </tr>
-        </tbody></table>
       </div>
 
       <div class="d-flex flex-wrap gap-2 mt-4">
@@ -162,13 +212,105 @@
   <script>
   (function() {
     var totalFieldsName = 'id_fields-TOTAL_FORMS';
-    var totalCriteriaName = 'id_criteria-TOTAL_FORMS';
     var prefixFields = 'fields-';
-    var prefixCriteria = 'criteria-';
     var templatePrefix = '__prefix__';
+    var choiceTypes = ['radio', 'multi_select'];
 
     function getTotal(name) { return parseInt(document.getElementById(name).value, 10) || 0; }
     function setTotal(name, val) { document.getElementById(name).value = val; }
+
+    function parseOptions(raw) {
+      if (!raw) return [];
+      var parts = String(raw).replace(/\r/g, '\n').split(/[\n,]/g);
+      var out = [];
+      var seen = {};
+      parts.forEach(function(p) {
+        var v = (p || '').trim();
+        if (!v) return;
+        var key = v.toLowerCase();
+        if (seen[key]) return;
+        seen[key] = true;
+        out.push(v);
+      });
+      return out;
+    }
+
+    function syncOptionsInput(input, options) {
+      input.value = options.join('\n');
+    }
+
+    function setupOptionsBuilder(row) {
+      var typeSelect = row.querySelector('select[name$="-field_type"]');
+      var optionsInput = row.querySelector('input[name$="-options_text"]');
+      var optionsUI = row.querySelector('.options-builder-ui');
+      var optionsList = row.querySelector('.options-list');
+      var newInput = row.querySelector('.options-new');
+      var addBtn = row.querySelector('.btn-option-add');
+      if (!typeSelect || !optionsInput || !optionsUI || !optionsList || !newInput || !addBtn) return;
+
+      function render() {
+        var isChoiceType = choiceTypes.indexOf(typeSelect.value) >= 0;
+        optionsUI.style.display = isChoiceType ? '' : 'none';
+        if (!isChoiceType) {
+          syncOptionsInput(optionsInput, []);
+          optionsList.innerHTML = '';
+          newInput.value = '';
+          return;
+        }
+
+        var options = parseOptions(optionsInput.value);
+        syncOptionsInput(optionsInput, options);
+        optionsList.innerHTML = '';
+        if (!options.length) {
+          optionsList.innerHTML = '<span class="text-muted small">Sin opciones todavía.</span>';
+          return;
+        }
+        options.forEach(function(opt, idx) {
+          var chip = document.createElement('span');
+          chip.className = 'option-chip';
+          chip.innerHTML = '<span></span><button type="button" title="Quitar">×</button>';
+          chip.querySelector('span').textContent = opt;
+          chip.querySelector('button').addEventListener('click', function() {
+            var current = parseOptions(optionsInput.value);
+            current.splice(idx, 1);
+            syncOptionsInput(optionsInput, current);
+            render();
+          });
+          optionsList.appendChild(chip);
+        });
+      }
+
+      function addOption() {
+        var val = (newInput.value || '').trim();
+        if (!val) return;
+        var current = parseOptions(optionsInput.value);
+        var exists = current.some(function(x) { return x.toLowerCase() === val.toLowerCase(); });
+        if (!exists) current.push(val);
+        syncOptionsInput(optionsInput, current);
+        newInput.value = '';
+        render();
+      }
+
+      addBtn.addEventListener('click', addOption);
+      newInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addOption();
+        }
+      });
+      typeSelect.addEventListener('change', render);
+      optionsInput.classList.add('d-none');
+      render();
+    }
+
+    function initFieldRow(row) {
+      var deleteBtn = row.querySelector('.btn-delete-field');
+      if (deleteBtn) {
+        var id = deleteBtn.getAttribute('data-delete-id');
+        if (id) deleteBtn.onclick = function() { toggleDeleteRow(deleteBtn, id); };
+      }
+      setupOptionsBuilder(row);
+    }
 
     function cloneRow(templateId, tbodyId, prefix, totalInputName) {
       var template = document.getElementById(templateId);
@@ -194,6 +336,7 @@
       }
       tbody.appendChild(tr);
       setTotal(totalInputName, total + 1);
+      if (tbodyId === 'fields-tbody') initFieldRow(tr);
     }
 
     function toggleDeleteRow(btn, deleteId) {
@@ -208,27 +351,10 @@
 
     document.getElementById('btn-add-field').onclick = function() {
       cloneRow('fields-template-row', 'fields-tbody', prefixFields, totalFieldsName);
-      document.getElementById('fields-tbody').querySelectorAll('.btn-delete-field').forEach(function(btn) {
-        var id = btn.getAttribute('data-delete-id');
-        if (id && !btn._bound) { btn._bound = true; btn.onclick = function() { toggleDeleteRow(btn, id); }; }
-      });
     };
 
-    document.getElementById('btn-add-criterion').onclick = function() {
-      cloneRow('criteria-template-row', 'criteria-tbody', prefixCriteria, totalCriteriaName);
-      document.getElementById('criteria-tbody').querySelectorAll('.btn-delete-criterion').forEach(function(btn) {
-        var id = btn.getAttribute('data-delete-id');
-        if (id && !btn._bound) { btn._bound = true; btn.onclick = function() { toggleDeleteRow(btn, id); }; }
-      });
-    };
-
-    document.querySelectorAll('.btn-delete-field').forEach(function(btn) {
-      var id = btn.getAttribute('data-delete-id');
-      if (id) btn.onclick = function() { toggleDeleteRow(btn, id); };
-    });
-    document.querySelectorAll('.btn-delete-criterion').forEach(function(btn) {
-      var id = btn.getAttribute('data-delete-id');
-      if (id) btn.onclick = function() { toggleDeleteRow(btn, id); };
+    document.querySelectorAll('#fields-tbody .formset-row').forEach(function(row) {
+      initFieldRow(row);
     });
   })();
   </script>

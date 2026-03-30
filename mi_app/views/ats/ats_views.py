@@ -4,6 +4,8 @@ Vistas para el producto ATS (Applicant Tracking System) de Star Path.
 - Plataforma ATS: login, registro y dashboard para clientes.
 - Dashboard: candidatos, habilidades (en detalle), cuenta/billing.
 """
+import logging
+
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, View
@@ -69,6 +71,7 @@ from mi_app.ats_plans import (
 from mi_app.ats_notifications import notify_ats_client, notify_support_plan_change, notify_support_account_deletion_request, send_email_to_candidate
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class StaffRequiredMixin(LoginRequiredMixin):
@@ -226,20 +229,16 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
 
         if ats_client:
             base_qs = Candidate.objects.filter(client=ats_client).select_related("vacancy")
-            # KPIs (totales)
-            context["kpi_total"] = base_qs.count()
-            context["kpi_aptos"] = base_qs.filter(status=Candidate.STATUS_APTO).count()
-            context["kpi_revision"] = base_qs.filter(status=Candidate.STATUS_REVISION).count()
-            context["kpi_no_aptos"] = base_qs.filter(status=Candidate.STATUS_NO_APTO).count()
+            # KPIs globales (sin filtros) para secciones generales
+            context["kpi_total_global"] = base_qs.count()
+            context["kpi_aptos_global"] = base_qs.filter(status=Candidate.STATUS_APTO).count()
+            context["kpi_revision_global"] = base_qs.filter(status=Candidate.STATUS_REVISION).count()
+            context["kpi_no_aptos_global"] = base_qs.filter(status=Candidate.STATUS_NO_APTO).count()
             context["kpi_cvs_used"] = subscription.cvs_used
             context["kpi_cvs_limit"] = subscription.cvs_limit
             context["kpi_candidates_limit"] = get_plan_candidates_limit(subscription.plan)
             context["kpi_vacancies_limit"] = get_plan_vacancies_limit(subscription.plan)
             context["kpi_vacancy_count"] = Vacancy.objects.filter(client=ats_client).count()
-            # Datos para gráfica (por estado)
-            context["chart_aptos"] = context["kpi_aptos"]
-            context["chart_revision"] = context["kpi_revision"]
-            context["chart_no_aptos"] = context["kpi_no_aptos"]
             # Filtros
             q = (self.request.GET.get("q") or "").strip()
             status_filter = self.request.GET.get("status", "")
@@ -254,10 +253,25 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
                     qs = qs.filter(vacancy_id=int(vacancy_id))
                 except ValueError:
                     pass
+            # KPIs de vista candidatos (sí respetan filtros activos, incluida vacante)
+            context["kpi_total"] = qs.count()
+            context["kpi_aptos"] = qs.filter(status=Candidate.STATUS_APTO).count()
+            context["kpi_revision"] = qs.filter(status=Candidate.STATUS_REVISION).count()
+            context["kpi_no_aptos"] = qs.filter(status=Candidate.STATUS_NO_APTO).count()
+            # Datos para gráfica (por estado, filtrados)
+            context["chart_aptos"] = context["kpi_aptos"]
+            context["chart_revision"] = context["kpi_revision"]
+            context["chart_no_aptos"] = context["kpi_no_aptos"]
             context["candidates"] = qs.order_by("-score", "-analysis_date").prefetch_related("skill_evaluations")[:200]
             context["filter_q"] = q
             context["filter_status"] = status_filter
             context["filter_vacancy"] = vacancy_id
+            context["selected_vacancy"] = None
+            if vacancy_id:
+                try:
+                    context["selected_vacancy"] = Vacancy.objects.filter(client=ats_client, pk=int(vacancy_id)).first()
+                except ValueError:
+                    context["selected_vacancy"] = None
             # Vacantes (para filtro y sección Reclutamiento)
             context["vacancies"] = Vacancy.objects.filter(client=ats_client).annotate(
                 candidates_count=Count("candidates")
@@ -270,6 +284,7 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
             ).count()
         else:
             context["kpi_total"] = context["kpi_aptos"] = context["kpi_revision"] = context["kpi_no_aptos"] = 0
+            context["kpi_total_global"] = context["kpi_aptos_global"] = context["kpi_revision_global"] = context["kpi_no_aptos_global"] = 0
             context["kpi_cvs_used"] = subscription.cvs_used
             context["kpi_cvs_limit"] = subscription.cvs_limit
             context["kpi_candidates_limit"] = get_plan_candidates_limit(subscription.plan)
@@ -278,6 +293,7 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
             context["chart_aptos"] = context["chart_revision"] = context["chart_no_aptos"] = 0
             context["candidates"] = []
             context["filter_q"] = context["filter_status"] = context["filter_vacancy"] = ""
+            context["selected_vacancy"] = None
             context["vacancies"] = []
             context["pending_submissions_count"] = 0
             context["subscription_can_export_candidates"] = subscription_can(subscription, "export_candidates")
@@ -454,15 +470,22 @@ class ATSCandidateDetailView(LoginRequiredMixin, View):
             if resp.cumple != cumple:
                 resp.cumple = cumple
                 resp.save(update_fields=["cumple"])
-        # Score = (criterios que cumple / total criterios) * 100
-        total = len(criteria)
-        if total > 0:
-            cumplidos = ATSCandidateCriterionResponse.objects.filter(
-                candidate=candidate,
-                criterion__in=criteria,
-                cumple=True,
-            ).count()
-            new_score = round((cumplidos / total) * 100)
+        # Score ponderado: suma de valores cumplidos / suma total de valores * 100
+        total_valor = sum(max(0, min(100, int(getattr(c, "score_value", 0) or 0))) for c in criteria)
+        if total_valor > 0:
+            cumplidos_ids = set(
+                ATSCandidateCriterionResponse.objects.filter(
+                    candidate=candidate,
+                    criterion__in=criteria,
+                    cumple=True,
+                ).values_list("criterion_id", flat=True)
+            )
+            puntos = sum(
+                max(0, min(100, int(getattr(c, "score_value", 0) or 0)))
+                for c in criteria
+                if c.id in cumplidos_ids
+            )
+            new_score = round((puntos / total_valor) * 100)
             candidate.score = new_score
             if new_score >= 70:
                 candidate.status = Candidate.STATUS_APTO
@@ -470,6 +493,10 @@ class ATSCandidateDetailView(LoginRequiredMixin, View):
                 candidate.status = Candidate.STATUS_NO_APTO
             else:
                 candidate.status = Candidate.STATUS_REVISION
+            candidate.save(update_fields=["score", "status"])
+        else:
+            candidate.score = 0
+            candidate.status = Candidate.STATUS_REVISION
             candidate.save(update_fields=["score", "status"])
         messages.success(request, "Evaluación guardada. Score actualizado.")
         return redirect("ats_candidate_detail", pk=pk)
@@ -519,6 +546,19 @@ class ATSCandidateAnalyzeCVView(LoginRequiredMixin, View):
         if not ats_client:
             return redirect("ats_dashboard")
         candidate = get_object_or_404(Candidate, pk=pk, client=ats_client)
+        cv_config, _ = CVAnalysisConfig.objects.get_or_create(client=ats_client)
+        if not cv_config.enabled:
+            messages.error(
+                request,
+                "El análisis de CV con IA está deshabilitado en tu configuración. Actívalo en Config. análisis CV.",
+            )
+            return redirect("ats_candidate_detail", pk=pk)
+        if candidate.vacancy_id and not getattr(candidate.vacancy, "ai_enabled", False):
+            messages.error(
+                request,
+                "La IA está desactivada para la vacante de este candidato. Actívala en Vacantes > Editar vacante.",
+            )
+            return redirect("ats_candidate_detail", pk=pk)
         subscription = _get_or_create_subscription(request.user)
         if not subscription_can(subscription, "cvs_scan"):
             messages.error(request, "No tienes análisis de CV disponibles o tu plan no incluye escaneo con IA.")
@@ -671,6 +711,44 @@ def _get_client_or_403(request):
     return ats_client
 
 
+def _sync_criteria_from_form_fields(ats_form):
+    """
+    Garantiza que los campos del formulario (excepto archivo) aparezcan como criterios manuales.
+    Crea criterios vinculados si faltan y mantiene etiqueta/orden sincronizados.
+    """
+    form_fields = list(
+        ats_form.fields.exclude(field_type=ATSFormField.FIELD_FILE).order_by("order", "id")
+    )
+    field_ids = {f.id for f in form_fields}
+    ATSFormCriterion.objects.filter(form=ats_form, source_form_field__isnull=True).delete()
+    ATSFormCriterion.objects.filter(form=ats_form).exclude(source_form_field_id__in=field_ids).delete()
+
+    existing_by_source = {
+        c.source_form_field_id: c
+        for c in ATSFormCriterion.objects.filter(form=ats_form, source_form_field__isnull=False)
+    }
+    for idx, f in enumerate(form_fields):
+        c = existing_by_source.get(f.id)
+        if c:
+            updates = []
+            if c.label != f.label:
+                c.label = f.label
+                updates.append("label")
+            if c.order != idx:
+                c.order = idx
+                updates.append("order")
+            if updates:
+                c.save(update_fields=updates)
+            continue
+        ATSFormCriterion.objects.create(
+            form=ats_form,
+            source_form_field=f,
+            label=f.label,
+            score_value=100,
+            order=idx,
+        )
+
+
 # --- Formularios ATS (crear, editar, listar, ver envíos) ---
 
 class ATSFormListView(LoginRequiredMixin, ListView):
@@ -749,10 +827,11 @@ class ATSFormEditView(LoginRequiredMixin, View):
         if not client:
             return redirect("ats_dashboard")
         ats_form = get_object_or_404(ATSForm, pk=pk, client=client)
+        _sync_criteria_from_form_fields(ats_form)
         form = ATSFormCreateEditForm(instance=ats_form)
         form.fields["vacancy"].queryset = client.vacancies.all()
         formset = get_ats_form_field_formset(extra=1, form_instance=ats_form)
-        criteria_formset = get_ats_form_criterion_formset(extra=1, form_instance=ats_form)
+        criteria_formset = get_ats_form_criterion_formset(extra=0, form_instance=ats_form)
         return render(request, "ats/form_edit.html", {
             "ats_form": ats_form,
             "form": form,
@@ -771,7 +850,7 @@ class ATSFormEditView(LoginRequiredMixin, View):
         form = ATSFormCreateEditForm(request.POST, instance=ats_form)
         form.fields["vacancy"].queryset = client.vacancies.all()
         formset = get_ats_form_field_formset(extra=1, form_instance=ats_form, data=request.POST, files=request.FILES)
-        criteria_formset = get_ats_form_criterion_formset(extra=1, form_instance=ats_form, data=request.POST)
+        criteria_formset = get_ats_form_criterion_formset(extra=0, form_instance=ats_form, data=request.POST)
         if form.is_valid() and formset.is_valid() and criteria_formset.is_valid():
             form.save()
             formset.save(commit=False)
@@ -782,14 +861,8 @@ class ATSFormEditView(LoginRequiredMixin, View):
                 obj.save()
             for obj in formset.deleted_objects:
                 obj.delete()
-            criteria_formset.save(commit=False)
-            for obj in criteria_formset.new_objects:
-                obj.form = ats_form
-                obj.save()
-            for obj, _ in criteria_formset.changed_objects:
-                obj.save()
-            for obj in criteria_formset.deleted_objects:
-                obj.delete()
+            criteria_formset.save()
+            _sync_criteria_from_form_fields(ats_form)
             messages.success(request, "Formulario guardado.")
             return redirect("ats_form_list")
         return render(request, "ats/form_edit.html", {
@@ -921,9 +994,32 @@ class ATSFormPublicView(View):
                         })
                     files_to_save.append((field, f))
                     payload[field.label] = f.name
+            elif field.field_type == ATSFormField.FIELD_MULTI:
+                vals = [v.strip() for v in request.POST.getlist(key) if (v or "").strip()]
+                allowed_options = {str(v).strip() for v in (field.option_values or []) if str(v).strip()}
+                if allowed_options:
+                    vals = [v for v in vals if v in allowed_options]
+                if vals or field.required:
+                    if field.required and not vals:
+                        return render(request, self.template_name, {
+                            "ats_form": ats_form,
+                            "ats_form_has_email_field": ats_form.fields.filter(field_type=ATSFormField.FIELD_EMAIL).exists(),
+                            "form_error": f"El campo «{field.label}» es obligatorio.",
+                        })
+                    payload[field.label] = vals
             else:
                 val = request.POST.get(key, "").strip()
+                if field.field_type == ATSFormField.FIELD_RADIO:
+                    allowed_options = {str(v).strip() for v in (field.option_values or []) if str(v).strip()}
+                    if allowed_options and val and val not in allowed_options:
+                        val = ""
                 if val or field.required:
+                    if field.required and not val:
+                        return render(request, self.template_name, {
+                            "ats_form": ats_form,
+                            "ats_form_has_email_field": ats_form.fields.filter(field_type=ATSFormField.FIELD_EMAIL).exists(),
+                            "form_error": f"El campo «{field.label}» es obligatorio.",
+                        })
                     payload[field.label] = val
                     if field.field_type == ATSFormField.FIELD_EMAIL and not submitter_email:
                         submitter_email = val
@@ -1034,7 +1130,52 @@ def _create_candidate_from_submission(submission, payload, submitter_email):
             candidate.cv_file.save(name, ContentFile(cv_attachment.file.read()), save=True)
         except Exception:
             pass
+
+    _auto_analyze_candidate_if_applicable(candidate)
     return candidate
+
+
+def _auto_analyze_candidate_if_applicable(candidate):
+    """
+    Ejecuta análisis automático de CV para postulaciones nuevas cuando aplica:
+    - Config global de análisis CV activa.
+    - IA activa en la vacante (si hay vacante).
+    - Candidato con CV adjunto.
+    - Plan con capacidad y cupo de análisis disponible.
+    """
+    if not candidate:
+        return False
+
+    try:
+        cv_config, _ = CVAnalysisConfig.objects.get_or_create(client=candidate.client)
+        if not cv_config.enabled:
+            return False
+
+        if candidate.vacancy_id and not getattr(candidate.vacancy, "ai_enabled", False):
+            return False
+
+        if not candidate.cv_file:
+            return False
+
+        subscription = _get_or_create_subscription(candidate.client.user)
+        if not subscription_can(subscription, "cvs_scan"):
+            return False
+
+        from mi_app.services.cv_analysis import run_cv_analysis_and_save
+        result = run_cv_analysis_and_save(candidate)
+        if not result.get("ok"):
+            logger.warning(
+                "Auto análisis CV no aplicado para candidate=%s: %s",
+                candidate.pk,
+                result.get("error", "error desconocido"),
+            )
+            return False
+
+        subscription.increment_cvs_used()
+        return True
+    except Exception as exc:
+        logger.warning("Error en auto análisis CV candidate=%s: %s", getattr(candidate, "pk", None), exc)
+        return False
 
 
 class ATSEmailConfigView(LoginRequiredMixin, FormView):

@@ -184,6 +184,13 @@ class ATSFormCreateEditForm(forms.ModelForm):
 
 class ATSFormFieldForm(forms.ModelForm):
     """Un campo del formulario (para formset)."""
+    options_text = forms.CharField(
+        label="Opciones",
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control form-control-sm options-source", "placeholder": "Opciones"}),
+        help_text="Solo para tipo radio o selección múltiple.",
+    )
+
     class Meta:
         model = ATSFormField
         fields = ("label", "field_type", "required", "order", "placeholder")
@@ -194,6 +201,37 @@ class ATSFormFieldForm(forms.ModelForm):
             "order": forms.NumberInput(attrs={"class": "form-control form-control-sm", "min": 0}),
             "placeholder": forms.TextInput(attrs={"class": "form-control form-control-sm", "placeholder": "Opcional"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        options = []
+        if self.instance and self.instance.pk and getattr(self.instance, "option_values", None):
+            options = [str(v).strip() for v in self.instance.option_values if str(v).strip()]
+        self.fields["options_text"].initial = ", ".join(options)
+
+    def clean_options_text(self):
+        value = (self.cleaned_data.get("options_text") or "").strip()
+        if not value:
+            return []
+        return [x.strip() for x in value.replace("\n", ",").split(",") if x.strip()]
+
+    def clean(self):
+        cleaned = super().clean()
+        field_type = cleaned.get("field_type")
+        options = cleaned.get("options_text") or []
+        if field_type in (ATSFormField.FIELD_RADIO, ATSFormField.FIELD_MULTI) and len(options) < 2:
+            self.add_error("options_text", "Debes indicar al menos 2 opciones para este tipo de campo.")
+        return cleaned
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        if obj.field_type in (ATSFormField.FIELD_RADIO, ATSFormField.FIELD_MULTI):
+            obj.option_values = self.cleaned_data.get("options_text") or []
+        else:
+            obj.option_values = []
+        if commit:
+            obj.save()
+        return obj
 
 
 def get_ats_form_field_formset(extra=2, form_instance=None, data=None, files=None):
@@ -217,10 +255,9 @@ class ATSFormCriterionForm(forms.ModelForm):
     """Un criterio de evaluación manual del formulario (para formset)."""
     class Meta:
         model = ATSFormCriterion
-        fields = ("label", "order")
+        fields = ("score_value",)
         widgets = {
-            "label": forms.TextInput(attrs={"class": "form-control form-control-sm", "placeholder": "Ej. Experiencia en Python"}),
-            "order": forms.NumberInput(attrs={"class": "form-control form-control-sm", "min": 0}),
+            "score_value": forms.NumberInput(attrs={"class": "form-control form-control-sm", "min": 0, "max": 100}),
         }
 
 
@@ -230,8 +267,8 @@ def get_ats_form_criterion_formset(extra=2, form_instance=None, data=None):
     FormSet = modelformset_factory(
         ATSFormCriterion,
         form=ATSFormCriterionForm,
-        extra=extra,
-        can_delete=True,
+        extra=0,
+        can_delete=False,
         min_num=0,
         validate_min=False,
     )
@@ -243,31 +280,101 @@ def get_ats_form_criterion_formset(extra=2, form_instance=None, data=None):
 
 class ATSEmailConfigForm(forms.ModelForm):
     """Configuración de correo: notificaciones y correo de la empresa (conexión propia)."""
+    imap_password = forms.CharField(
+        label="Contraseña IMAP",
+        required=False,
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "••••••••",
+                "autocomplete": "new-password",
+            },
+            render_value=False,
+        ),
+        help_text="Por seguridad no se muestra la contraseña guardada. Deja vacío para conservar la actual.",
+    )
+
     class Meta:
         model = ATSClientEmailConfig
         fields = (
             "notification_email",
+            "incoming_subject_regex",
             "company_from_email",
             "company_from_name",
             "smtp_host",
             "smtp_port",
             "smtp_user",
             "smtp_use_tls",
+            "imap_enabled",
+            "imap_host",
+            "imap_port",
+            "imap_user",
+            "imap_folder",
+            "imap_use_ssl",
         )
         widgets = {
             "notification_email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "notificaciones@tuempresa.com"}),
+            "incoming_subject_regex": forms.TextInput(attrs={"class": "form-control", "placeholder": r"(?i)(postulante|interesado en la vacante)"}),
             "company_from_email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "rrhh@tuempresa.com"}),
             "company_from_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Recursos Humanos - Mi Empresa"}),
             "smtp_host": forms.TextInput(attrs={"class": "form-control", "placeholder": "smtp.gmail.com"}),
             "smtp_port": forms.NumberInput(attrs={"class": "form-control", "min": 1, "max": 65535}),
             "smtp_user": forms.TextInput(attrs={"class": "form-control", "placeholder": "correo@tuempresa.com", "autocomplete": "off"}),
             "smtp_use_tls": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "imap_enabled": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
+            "imap_host": forms.TextInput(attrs={"class": "form-control", "placeholder": "imap.gmail.com"}),
+            "imap_port": forms.NumberInput(attrs={"class": "form-control", "min": 1, "max": 65535}),
+            "imap_user": forms.TextInput(attrs={"class": "form-control", "placeholder": "correo@tuempresa.com", "autocomplete": "off"}),
+            "imap_folder": forms.TextInput(attrs={"class": "form-control", "placeholder": "INBOX"}),
+            "imap_use_ssl": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
         help_texts = {
             "notification_email": "Recibirás aquí avisos de nuevas postulaciones y respuestas.",
+            "incoming_subject_regex": "Opcional. Filtra correos entrantes por asunto usando expresión regular (regex).",
             "company_from_email": "Correo que verán los candidatos como remitente (puede ser el mismo de la empresa).",
             "smtp_host": "Opcional: conectar tu servidor de correo para enviar desde tu dominio.",
+            "imap_enabled": "Activa el procesamiento automático de correos entrantes para generar postulaciones.",
+            "imap_host": "Servidor IMAP del buzón que recibirá postulaciones.",
         }
+
+    def clean_incoming_subject_regex(self):
+        pattern = (self.cleaned_data.get("incoming_subject_regex") or "").strip()
+        if not pattern:
+            return ""
+        try:
+            re.compile(pattern)
+        except re.error as exc:
+            raise forms.ValidationError(f"La expresión regular no es válida: {exc}")
+        return pattern
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("imap_enabled"):
+            if not (cleaned.get("imap_host") or "").strip():
+                self.add_error("imap_host", "Indica el servidor IMAP.")
+            if not (cleaned.get("imap_user") or "").strip():
+                self.add_error("imap_user", "Indica el usuario IMAP.")
+            regex_pattern = (cleaned.get("incoming_subject_regex") or "").strip()
+            if not regex_pattern:
+                self.add_error(
+                    "incoming_subject_regex",
+                    "Define un filtro de asunto para evitar procesar correos no relacionados con vacantes.",
+                )
+            has_existing_password = bool(getattr(self.instance, "imap_password_encrypted", "").strip())
+            has_new_password = bool((cleaned.get("imap_password") or "").strip())
+            if not has_existing_password and not has_new_password:
+                self.add_error("imap_password", "Indica la contraseña IMAP.")
+        return cleaned
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        new_password = (self.cleaned_data.get("imap_password") or "").strip()
+        if new_password:
+            # Nota: mantenemos el mismo patrón que SMTP en el proyecto (campo *_encrypted).
+            obj.imap_password_encrypted = new_password
+        if commit:
+            obj.save()
+        return obj
 
 
 class ATSProfileForm(forms.ModelForm):
@@ -347,8 +454,9 @@ class CVAnalysisConfigForm(forms.ModelForm):
 
     class Meta:
         model = CVAnalysisConfig
-        fields = ("default_profile", "analysis_instructions")
+        fields = ("enabled", "default_profile", "analysis_instructions")
         widgets = {
+            "enabled": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
             "default_profile": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 4,

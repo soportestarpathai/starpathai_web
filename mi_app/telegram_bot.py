@@ -35,6 +35,47 @@ logger = logging.getLogger(__name__)
 CHOOSING, ANSWERING = range(2)
 
 
+def _telegram_display_name(user):
+    if not user:
+        return ""
+    first_name = (getattr(user, "first_name", "") or "").strip()
+    last_name = (getattr(user, "last_name", "") or "").strip()
+    display_name = " ".join([part for part in (first_name, last_name) if part]).strip()
+    if display_name:
+        return display_name[:200]
+    username = (getattr(user, "username", "") or "").strip()
+    if username:
+        return f"@{username}"[:200]
+    return ""
+
+
+def _candidate_name_is_generic(name, email=""):
+    clean = (str(name or "").strip()).lower()
+    if not clean:
+        return True
+    if clean in {"postulante", "candidato", "candidate", "applicant"}:
+        return True
+    if email:
+        local_part = (email.split("@")[0] if "@" in email else "").strip().lower()
+        if local_part and clean == local_part:
+            return True
+    return False
+
+
+def _thanks_name(session):
+    direct_name = (session.candidate_name or "").strip()
+    if direct_name and not _candidate_name_is_generic(direct_name, session.candidate_email or ""):
+        return direct_name
+    answers = session.answers or {}
+    tg_meta = answers.get("_telegram", {}) if isinstance(answers, dict) else {}
+    tg_name = (tg_meta.get("display_name") or "").strip() if isinstance(tg_meta, dict) else ""
+    if tg_name:
+        return tg_name
+    if direct_name:
+        return direct_name
+    return ""
+
+
 def _get_form(uuid_str):
     from mi_app.models import ATSForm
     try:
@@ -50,14 +91,24 @@ def _build_steps(ats_form):
     return _bs(ats_form)
 
 
-def _create_session(ats_form, steps, telegram_user_id):
+def _create_session(ats_form, steps, telegram_user_id, telegram_display_name="", telegram_username=""):
     from mi_app.models import FormChatSession
+    answers = {
+        "_telegram": {
+            "id": telegram_user_id,
+            "username": telegram_username or "",
+            "display_name": telegram_display_name or "",
+        }
+    }
     session = FormChatSession(
         form=ats_form,
         session_uuid=_uuid.uuid4(),
         status=FormChatSession.STATUS_STARTED,
         current_step=0,
         total_steps=len(steps),
+        answers=answers,
+        candidate_name=(telegram_display_name or "")[:200],
+        telegram_user_id=telegram_user_id,
         source=FormChatSession.SOURCE_TELEGRAM,
         ip_address=None,
     )
@@ -67,7 +118,6 @@ def _create_session(ats_form, steps, telegram_user_id):
 
 def _save_answer(session, step, value, ats_form):
     from mi_app.models import FormChatSession
-    from mi_app.views.ats.form_chat_views import _build_steps
 
     answers = session.answers or {}
     answers[step["id"]] = value
@@ -81,13 +131,22 @@ def _save_answer(session, step, value, ats_form):
     ):
         session.candidate_email = val_str
 
-    name_keywords = {"nombre", "name", "nombre_completo", "nombre completo", "candidato"}
-    if not session.candidate_name:
-        label_lower = step["label"].lower()
-        if any(kw in label_lower for kw in name_keywords):
-            session.candidate_name = val_str[:200]
-        elif step["type"] in ("text", "textarea") and session.current_step <= 1 and "@" not in val_str and len(val_str) < 80:
-            session.candidate_name = val_str[:200]
+    name_keywords = {
+        "nombre",
+        "name",
+        "nombre completo",
+        "full name",
+        "nombre y apellidos",
+        "apellidos",
+    }
+    label_lower = (step.get("label") or "").lower()
+    if (
+        val_str
+        and step["type"] in ("text", "textarea")
+        and any(kw in label_lower for kw in name_keywords)
+        and "@" not in val_str
+    ):
+        session.candidate_name = val_str[:200]
 
     is_last = session.current_step >= session.total_steps
     if is_last:
@@ -157,6 +216,11 @@ def _finalize(ats_form, session):
         from mi_app.views.ats.ats_views import _create_candidate_from_submission
         _create_candidate_from_submission(submission, payload, submitter_email)
         if submission.candidate_id:
+            tg_meta = (session.answers or {}).get("_telegram", {})
+            tg_name = (tg_meta.get("display_name") or "").strip() if isinstance(tg_meta, dict) else ""
+            if tg_name and _candidate_name_is_generic(submission.candidate.name, submitter_email):
+                submission.candidate.name = tg_name[:255]
+                submission.candidate.save(update_fields=["name"])
             notify_ats_client(
                 ats_form.client,
                 ATSNotification.TYPE_CANDIDATE,
@@ -181,10 +245,9 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args
     if not args:
         await update.message.reply_text(
-            "👋 ¡Hola! Soy *Órbita*, tu asistente de reclutamiento.\n\n"
-            "Para postularte a una vacante necesitas el enlace que te compartieron.\n"
-            "Usa: `/start <código>`",
-            parse_mode="Markdown",
+            "Hola, soy Orbita.\n\n"
+            "Para iniciar una postulación necesito que abras el enlace que te compartieron.\n"
+            "Formato: /start <codigo_del_formulario>",
         )
         return ConversationHandler.END
 
@@ -216,8 +279,8 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🚀 Iniciar postulación", callback_data="apply_yes")],
-        [InlineKeyboardButton("❌ No, gracias", callback_data="apply_no")],
+        [InlineKeyboardButton("Iniciar postulación", callback_data="apply_yes")],
+        [InlineKeyboardButton("Ahora no", callback_data="apply_no")],
     ])
 
     await update.message.reply_text(text, parse_mode="Markdown", reply_markup=keyboard)
@@ -230,8 +293,7 @@ async def apply_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if query.data == "apply_no":
         await query.edit_message_text(
-            "👋 ¡Sin problema! Si cambias de opinión, vuelve a usar el enlace.\n"
-            "¡Mucho éxito! 🍀"
+            "Sin problema. Si cambias de opinion, vuelve a abrir el enlace cuando quieras."
         )
         return ConversationHandler.END
 
@@ -246,7 +308,16 @@ async def apply_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("⚠️ Este formulario no tiene campos configurados.")
         return ConversationHandler.END
 
-    session = await sync_to_async(_create_session)(ats_form, steps, update.effective_user.id)
+    tg_user = update.effective_user
+    tg_display_name = _telegram_display_name(tg_user)
+    tg_username = (getattr(tg_user, "username", "") or "").strip()
+    session = await sync_to_async(_create_session)(
+        ats_form,
+        steps,
+        update.effective_user.id,
+        tg_display_name,
+        tg_username,
+    )
 
     context.user_data["session_id"] = session.pk
     context.user_data["steps"] = steps
@@ -257,9 +328,9 @@ async def apply_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = _format_question(step, 1, total)
 
     await query.edit_message_text(
-        "✅ *¡Perfecto! Comencemos tu postulación.*\n\n"
-        "Te haré algunas preguntas. Responde una a la vez.\n"
-        "Si un campo es tipo archivo, puedes omitirlo escribiendo `omitir`.\n\n"
+        "Perfecto, iniciamos tu postulación.\n\n"
+        "Te voy a hacer algunas preguntas, una por una.\n"
+        "Si un campo es de archivo y no lo tienes, escribe `omitir`.\n\n"
         "─────────────────────\n\n" + msg,
         parse_mode="Markdown",
     )
@@ -272,6 +343,8 @@ def _format_question(step, num, total):
         "email": "📧",
         "phone": "📱",
         "textarea": "📄",
+        "radio": "🔘",
+        "multi_select": "☑️",
         "file": "📎",
     }
     emoji = emoji_map.get(step["type"], "📝")
@@ -281,6 +354,9 @@ def _format_question(step, num, total):
         hint = f"\n💡 _Ej: {step['placeholder']}_"
     if step["type"] == "file":
         hint = "\n💡 _Envía un archivo PDF/DOC o escribe_ `omitir`"
+    options = step.get("options") or []
+    if options:
+        hint += "\nOpciones:\n" + "\n".join([f"• {o}" for o in options[:12]])
 
     return (
         f"{emoji} *Pregunta {num}/{total}*\n"
@@ -327,13 +403,13 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if is_last:
         await sync_to_async(_finalize)(ats_form, session)
-        name = session.candidate_name or "candidato"
+        session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
+        name = _thanks_name(session)
+        intro = f"Gracias, {name}. " if name else "Gracias. "
         await update.message.reply_text(
-            f"🎉 *¡Postulación completada!*\n\n"
-            f"Gracias, {name}. Tu información ha sido enviada correctamente.\n\n"
-            "El equipo de reclutamiento revisará tu perfil y se pondrá en contacto contigo.\n\n"
-            "¡Mucho éxito! 🍀✨",
-            parse_mode="Markdown",
+            "Postulación completada.\n\n"
+            f"{intro}Tu información ya fue enviada al equipo de reclutamiento.\n\n"
+            "Si tu perfil avanza, te van a contactar por este medio o por correo."
         )
         return ConversationHandler.END
 
@@ -435,13 +511,13 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if is_last:
         await sync_to_async(_finalize)(ats_form, session)
-        name = session.candidate_name or "candidato"
+        session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
+        name = _thanks_name(session)
+        intro = f"Gracias, {name}. " if name else "Gracias. "
         await update.message.reply_text(
-            f"🎉 *¡Postulación completada!*\n\n"
-            f"Gracias, {name}. Tu información ha sido enviada correctamente.\n\n"
-            "El equipo de reclutamiento revisará tu perfil y se pondrá en contacto contigo.\n\n"
-            "¡Mucho éxito! 🍀✨",
-            parse_mode="Markdown",
+            "Postulación completada.\n\n"
+            f"{intro}Tu información ya fue enviada al equipo de reclutamiento.\n\n"
+            "Si tu perfil avanza, te van a contactar por este medio o por correo."
         )
         return ConversationHandler.END
 
@@ -465,8 +541,8 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     await update.message.reply_text(
-        "❌ Postulación cancelada.\n"
-        "Si quieres empezar de nuevo, usa el enlace que te compartieron."
+        "Postulación cancelada.\n"
+        "Si quieres retomarla, vuelve a abrir el enlace del formulario."
     )
     return ConversationHandler.END
 

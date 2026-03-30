@@ -180,6 +180,12 @@
           <div class="form-text">{{ form.notification_email.help_text }}</div>
           {% if form.notification_email.errors %}<div class="text-danger small mt-1">{{ form.notification_email.errors }}</div>{% endif %}
         </div>
+        <div class="mt-3 mb-0">
+          <label class="form-label">Filtro de asunto (expresión regular)</label>
+          {{ form.incoming_subject_regex }}
+          <div class="form-text">{{ form.incoming_subject_regex.help_text }}</div>
+          {% if form.incoming_subject_regex.errors %}<div class="text-danger small mt-1">{{ form.incoming_subject_regex.errors }}</div>{% endif %}
+        </div>
       </div>
 
       <div class="ec-card">
@@ -225,6 +231,57 @@
           <div class="col-12 col-md-4">
             <label class="form-label">Usuario SMTP</label>
             {{ form.smtp_user }}
+          </div>
+        </div>
+      </div>
+
+      <div class="ec-card">
+        <div class="ec-card-head">
+          <div class="ic smtp"><i class="bi bi-inbox-fill"></i></div>
+          <h2>Procesar correos entrantes (IMAP)</h2>
+          <span class="tag">Opcional</span>
+        </div>
+        <p class="text-muted small mb-3" style="margin-top:-.25rem;">Conecta un buzón para convertir correos de candidatos en postulaciones automáticamente.</p>
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="form-check form-switch">
+              {{ form.imap_enabled }}
+              <label class="form-check-label fw-semibold" for="{{ form.imap_enabled.id_for_label }}">Habilitar procesamiento IMAP</label>
+            </div>
+            <div class="form-text">{{ form.imap_enabled.help_text }}</div>
+            {% if form.imap_enabled.errors %}<div class="text-danger small mt-1">{{ form.imap_enabled.errors }}</div>{% endif %}
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label">Servidor IMAP</label>
+            {{ form.imap_host }}
+            {% if form.imap_host.errors %}<div class="text-danger small mt-1">{{ form.imap_host.errors }}</div>{% endif %}
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label">Puerto IMAP</label>
+            {{ form.imap_port }}
+            {% if form.imap_port.errors %}<div class="text-danger small mt-1">{{ form.imap_port.errors }}</div>{% endif %}
+          </div>
+          <div class="col-12 col-md-3 d-flex align-items-end pb-2 pb-md-0">
+            <div class="form-check">
+              {{ form.imap_use_ssl }}
+              <label class="form-check-label fw-semibold" for="{{ form.imap_use_ssl.id_for_label }}">Usar SSL</label>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label">Usuario IMAP</label>
+            {{ form.imap_user }}
+            {% if form.imap_user.errors %}<div class="text-danger small mt-1">{{ form.imap_user.errors }}</div>{% endif %}
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label">Contraseña IMAP</label>
+            {{ form.imap_password }}
+            <div class="form-text">{{ form.imap_password.help_text }}</div>
+            {% if form.imap_password.errors %}<div class="text-danger small mt-1">{{ form.imap_password.errors }}</div>{% endif %}
+          </div>
+          <div class="col-12">
+            <label class="form-label">Carpeta IMAP</label>
+            {{ form.imap_folder }}
+            {% if form.imap_folder.errors %}<div class="text-danger small mt-1">{{ form.imap_folder.errors }}</div>{% endif %}
           </div>
         </div>
       </div>

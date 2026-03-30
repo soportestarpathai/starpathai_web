@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class ATSClient(models.Model):
@@ -50,6 +51,12 @@ class ATSClientEmailConfig(models.Model):
         blank=True,
         help_text="Recibirás avisos de formularios, candidatos y, cuando esté activo el análisis de CVs con IA, notificaciones de resultados.",
     )
+    incoming_subject_regex = models.CharField(
+        "Filtro de asunto (regex)",
+        max_length=255,
+        blank=True,
+        help_text="Opcional. Solo se tomarán en cuenta correos entrantes cuyo asunto cumpla esta expresión regular. Ejemplo: (?i)(postulante|interesado en la vacante).",
+    )
     # Correo de la empresa (remitente visible; también para envíos cuando se analicen CVs con IA)
     company_from_email = models.EmailField(
         "Correo de envío (empresa)",
@@ -68,6 +75,18 @@ class ATSClientEmailConfig(models.Model):
     smtp_user = models.CharField("Usuario SMTP", max_length=255, blank=True)
     smtp_password_encrypted = models.CharField("Contraseña SMTP (encriptada)", max_length=255, blank=True)
     smtp_use_tls = models.BooleanField("Usar TLS", default=True)
+    # Inbox IMAP por cliente para procesar correos entrantes y convertirlos en postulaciones.
+    imap_enabled = models.BooleanField(
+        "Procesar correos entrantes (IMAP)",
+        default=False,
+        help_text="Activa la lectura de correos entrantes para crear postulaciones automáticamente.",
+    )
+    imap_host = models.CharField("Servidor IMAP", max_length=255, blank=True)
+    imap_port = models.PositiveIntegerField("Puerto IMAP", null=True, blank=True, default=993)
+    imap_user = models.CharField("Usuario IMAP", max_length=255, blank=True)
+    imap_password_encrypted = models.CharField("Contraseña IMAP (encriptada)", max_length=255, blank=True)
+    imap_folder = models.CharField("Carpeta IMAP", max_length=120, blank=True, default="INBOX")
+    imap_use_ssl = models.BooleanField("Usar SSL en IMAP", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -234,6 +253,11 @@ class CVAnalysisConfig(models.Model):
         ATSClient,
         on_delete=models.CASCADE,
         related_name="cv_analysis_config",
+    )
+    enabled = models.BooleanField(
+        "Habilitar análisis con IA",
+        default=True,
+        help_text="Si se desactiva, se bloquea el análisis de CV con IA para este cliente.",
     )
     default_profile = models.TextField(
         "Perfil por defecto para análisis",
@@ -458,11 +482,15 @@ class ATSFormField(models.Model):
     FIELD_PHONE = "phone"
     FIELD_TEXTAREA = "textarea"
     FIELD_FILE = "file"
+    FIELD_RADIO = "radio"
+    FIELD_MULTI = "multi_select"
     FIELD_CHOICES = [
         (FIELD_TEXT, "Texto corto"),
         (FIELD_EMAIL, "Correo electrónico"),
         (FIELD_PHONE, "Teléfono"),
         (FIELD_TEXTAREA, "Texto largo (párrafo)"),
+        (FIELD_RADIO, "Opción única (radio)"),
+        (FIELD_MULTI, "Selección múltiple"),
         (FIELD_FILE, "Archivo (CV/PDF)"),
     ]
     form = models.ForeignKey(
@@ -475,6 +503,12 @@ class ATSFormField(models.Model):
     required = models.BooleanField("Obligatorio", default=True)
     order = models.PositiveSmallIntegerField("Orden", default=0)
     placeholder = models.CharField("Placeholder", max_length=200, blank=True)
+    option_values = models.JSONField(
+        "Opciones",
+        default=list,
+        blank=True,
+        help_text="Para tipo radio o selección múltiple. Lista de opciones visibles para el candidato.",
+    )
 
     class Meta:
         verbose_name = "Campo de formulario"
@@ -542,13 +576,27 @@ class ATSFormCriterion(models.Model):
         on_delete=models.CASCADE,
         related_name="criteria",
     )
+    source_form_field = models.ForeignKey(
+        ATSFormField,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="manual_criteria",
+        verbose_name="Campo origen del formulario",
+    )
     label = models.CharField("Etiqueta / Criterio", max_length=200)
+    score_value = models.PositiveSmallIntegerField(
+        "Valor (0-100)",
+        default=100,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Peso de este criterio en la evaluación manual. 0 lo ignora; 100 máximo peso.",
+    )
     order = models.PositiveSmallIntegerField("Orden", default=0)
 
     class Meta:
         verbose_name = "Criterio de evaluación"
         verbose_name_plural = "Criterios de evaluación"
-        ordering = ["order", "id"]
+        ordering = ["-score_value", "order", "id"]
 
     def __str__(self):
         return f"{self.form.name} — {self.label}"
@@ -585,6 +633,12 @@ class FormChatSession(models.Model):
     answers = models.JSONField("Respuestas parciales", default=dict)
     candidate_name = models.CharField("Nombre del candidato", max_length=200, blank=True)
     candidate_email = models.EmailField("Email del candidato", blank=True)
+    telegram_user_id = models.BigIntegerField(
+        "ID de usuario en Telegram",
+        null=True,
+        blank=True,
+        db_index=True,
+    )
     source = models.CharField("Origen", max_length=20, choices=SOURCE_CHOICES, default=SOURCE_WEB)
     ip_address = models.GenericIPAddressField("IP", null=True, blank=True)
     started_at = models.DateTimeField("Inicio", auto_now_add=True)
@@ -602,6 +656,9 @@ class FormChatSession(models.Model):
         verbose_name = "Sesión de chat"
         verbose_name_plural = "Sesiones de chat"
         ordering = ["-updated_at"]
+        indexes = [
+            models.Index(fields=["form", "source", "telegram_user_id"], name="chat_form_src_tg_idx"),
+        ]
 
     def __str__(self):
         return f"Chat {self.session_uuid!s:.8} — {self.form.name} ({self.get_status_display()})"

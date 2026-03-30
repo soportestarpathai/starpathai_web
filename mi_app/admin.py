@@ -73,7 +73,7 @@ class VacancyAdmin(admin.ModelAdmin):
 
 @admin.register(CVAnalysisConfig)
 class CVAnalysisConfigAdmin(admin.ModelAdmin):
-    list_display = ("client", "updated_at")
+    list_display = ("client", "enabled", "updated_at")
     search_fields = ("client__company_name",)
 
 
@@ -94,7 +94,15 @@ class LLMUsageLogAdmin(admin.ModelAdmin):
 
 @admin.register(ATSClientEmailConfig)
 class ATSClientEmailConfigAdmin(admin.ModelAdmin):
-    list_display = ("client", "notification_email", "company_from_email", "company_from_name")
+    list_display = (
+        "client",
+        "notification_email",
+        "incoming_subject_regex",
+        "imap_enabled",
+        "imap_user",
+        "company_from_email",
+        "company_from_name",
+    )
     search_fields = ("client__company_name", "notification_email", "company_from_email")
 
 

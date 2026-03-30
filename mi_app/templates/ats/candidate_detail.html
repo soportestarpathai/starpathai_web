@@ -534,7 +534,7 @@
         <div class="mb-3">
           {% for c, cumple in evaluation_criteria_with_response %}
           <div class="criterion-row">
-            <span class="fw-medium">{{ c.label }}</span>
+            <span class="fw-medium">{{ c.label }} <small class="text-muted">({{ c.score_value }} pts)</small></span>
             <div class="d-flex gap-3">
               <div class="form-check form-check-inline mb-0">
                 <input type="radio" name="criterion_{{ c.id }}" id="criterion_{{ c.id }}_1" value="1" class="form-check-input radio-cumple" {% if cumple %}checked{% endif %}>

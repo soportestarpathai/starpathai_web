@@ -312,6 +312,13 @@ def run_cv_analysis_and_save(candidate) -> dict:
     """
     from mi_app.models import Candidate, SkillEvaluation
 
+    config = getattr(candidate.client, "cv_analysis_config", None)
+    if config and not getattr(config, "enabled", True):
+        return {"ok": False, "error": "El análisis de CV con IA está deshabilitado para este cliente."}
+
+    if candidate.vacancy_id and not getattr(candidate.vacancy, "ai_enabled", False):
+        return {"ok": False, "error": "La IA está desactivada para la vacante de este candidato."}
+
     if not candidate.cv_file:
         return {"ok": False, "error": "El candidato no tiene archivo de CV."}
 

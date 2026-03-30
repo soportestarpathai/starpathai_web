@@ -197,6 +197,28 @@
                 <input type="tel" name="field_{{ field.id }}" id="field_{{ field.id }}" class="form-control" placeholder="{{ field.placeholder|default:'' }}" {% if field.required %}required{% endif %}>
               {% elif field.field_type == 'textarea' %}
                 <textarea name="field_{{ field.id }}" id="field_{{ field.id }}" class="form-control" rows="4" placeholder="{{ field.placeholder|default:'' }}" {% if field.required %}required{% endif %}></textarea>
+              {% elif field.field_type == 'radio' %}
+                <div class="d-flex flex-column gap-2">
+                  {% for opt in field.option_values %}
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="field_{{ field.id }}" id="field_{{ field.id }}_opt{{ forloop.counter }}" value="{{ opt }}" {% if field.required and forloop.first %}required{% endif %}>
+                      <label class="form-check-label" for="field_{{ field.id }}_opt{{ forloop.counter }}">{{ opt }}</label>
+                    </div>
+                  {% empty %}
+                    <div class="text-muted small">Sin opciones configuradas.</div>
+                  {% endfor %}
+                </div>
+              {% elif field.field_type == 'multi_select' %}
+                <div class="d-flex flex-column gap-2">
+                  {% for opt in field.option_values %}
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="field_{{ field.id }}" id="field_{{ field.id }}_opt{{ forloop.counter }}" value="{{ opt }}">
+                      <label class="form-check-label" for="field_{{ field.id }}_opt{{ forloop.counter }}">{{ opt }}</label>
+                    </div>
+                  {% empty %}
+                    <div class="text-muted small">Sin opciones configuradas.</div>
+                  {% endfor %}
+                </div>
               {% elif field.field_type == 'file' %}
                 <input type="file" name="field_{{ field.id }}" id="field_{{ field.id }}" class="form-control" accept=".pdf,.doc,.docx" {% if field.required %}required{% endif %}>
               {% endif %}
