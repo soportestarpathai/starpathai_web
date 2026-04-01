@@ -160,6 +160,29 @@
   /* Mobile nav on dark header */
   @media (max-width: 1199.98px) {
     .navmenu .mobile-nav-toggle { color: #fff !important; }
+    .mobile-nav-active .navmenu {
+      background: rgba(4, 12, 22, 0.52) !important;
+    }
+    .navmenu ul {
+      background: rgba(8, 22, 36, 0.98) !important;
+      border: 1px solid rgba(0, 196, 201, 0.24) !important;
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.35) !important;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .navmenu a,
+    .navmenu a:focus {
+      color: rgba(231, 242, 252, 0.88) !important;
+    }
+    .navmenu a:hover,
+    .navmenu .active,
+    .navmenu .active:focus {
+      color: #ffffff !important;
+    }
+    .navmenu .dropdown ul {
+      background: rgba(10, 28, 44, 0.98) !important;
+      border: 1px solid rgba(0, 196, 201, 0.2) !important;
+    }
   }
 
   /* ---------- Hero ---------- */
