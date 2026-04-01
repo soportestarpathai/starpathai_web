@@ -19,6 +19,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
     rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
 
   <!-- Vendor CSS Files -->
   <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -602,84 +603,203 @@
 
   /* ---------- Contact ---------- */
   #contact {
-    background: linear-gradient(160deg,#060e18 0%,#0b1c2d 40%,#0f2438 100%) !important;
-    padding: 80px 0 !important;
+    background: radial-gradient(80% 120% at 10% 0%, rgba(18, 65, 88, 0.22) 0%, transparent 55%),
+                radial-gradient(90% 100% at 100% 100%, rgba(17, 95, 88, 0.18) 0%, transparent 55%),
+                linear-gradient(160deg, #060e18 0%, #0b1c2d 42%, #0f2438 100%) !important;
+    padding: 88px 0 !important;
+  }
+  #contact .container {
+    max-width: 1120px;
+  }
+  #contact .section-title {
+    margin-bottom: 1.2rem;
   }
   #contact .section-title h2 {
     color: #fff !important;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: clamp(2rem, 3.8vw, 3rem);
+    margin-bottom: 0.55rem;
   }
   #contact .section-title p {
-    color: rgba(255,255,255,0.6) !important;
+    color: rgba(223, 236, 249, 0.74) !important;
+    max-width: 760px;
+    margin: 0 auto;
+    font-family: "Manrope", "Poppins", sans-serif;
+    line-height: 1.58;
+    font-size: 1rem;
+  }
+  #contact .sp-contact-shell {
+    background: rgba(8, 26, 43, 0.74);
+    border: 1px solid rgba(78, 124, 162, 0.32);
+    border-radius: 18px;
+    padding: 1.28rem;
+    backdrop-filter: blur(6px);
+  }
+  #contact .sp-contact-panel {
+    border-right: 1px solid rgba(82, 126, 163, 0.26);
+    padding-right: 0.35rem;
+  }
+  #contact .sp-contact-form-panel {
+    padding-left: 0.2rem;
+  }
+  #contact .sp-contact-intro {
+    background: rgba(12, 34, 55, 0.76);
+    border: 1px solid rgba(82, 126, 163, 0.3);
+    border-radius: 14px;
+    padding: 0.9rem 0.95rem;
+    margin-bottom: 0.8rem;
+  }
+  #contact .sp-contact-badges {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.7rem;
+  }
+  #contact .sp-contact-badges span {
+    border: 1px solid rgba(95, 141, 178, 0.36);
+    background: rgba(14, 43, 67, 0.78);
+    color: rgba(195, 220, 240, 0.92);
+    border-radius: 999px;
+    padding: 0.22rem 0.52rem;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+  #contact .sp-contact-intro p {
+    margin: 0;
+    color: rgba(223, 236, 247, 0.82);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+  #contact .sp-contact-intro p strong {
+    display: block;
+    color: #1de1b0;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.73rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 0.24rem;
   }
   #contact .info-item {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 16px !important;
-    padding: 1.2rem 1.4rem !important;
-    margin-bottom: 1rem !important;
+    background: rgba(13, 37, 59, 0.9) !important;
+    border: 1px solid rgba(84, 129, 166, 0.34);
+    border-radius: 14px !important;
+    padding: 1rem 1rem !important;
+    margin-bottom: 0.72rem !important;
     backdrop-filter: blur(8px);
     transition: all 0.3s ease;
+    align-items: center;
   }
   #contact .info-item:hover {
-    background: rgba(255,255,255,0.07) !important;
-    border-color: rgba(0,196,201,0.2);
-    transform: translateX(4px);
+    border-color: rgba(30, 225, 176, 0.48);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
   }
   #contact .info-item > i {
-    background: linear-gradient(135deg,rgba(0,196,201,0.15),rgba(0,229,160,0.1)) !important;
-    color: #00C4C9 !important;
-    border-radius: 12px !important;
-    box-shadow: 0 4px 12px rgba(0,196,201,0.12);
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(31, 216, 174, 0.22), rgba(32, 186, 220, 0.2)) !important;
+    color: #1de1b0 !important;
+    border-radius: 11px !important;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.22);
   }
   #contact .info-item h3 {
-    color: #fff !important;
-    font-size: 1rem;
+    color: #eef8ff !important;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.98rem;
     font-weight: 700;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.1rem;
   }
   #contact .info-item p {
-    color: rgba(255,255,255,0.6) !important;
-    font-size: 0.9rem;
+    color: rgba(197, 218, 236, 0.86) !important;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.86rem;
     margin-bottom: 0;
+    line-height: 1.35;
   }
   #contact .php-email-form {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 20px !important;
-    padding: 2rem 2rem !important;
+    background: rgba(11, 33, 53, 0.92) !important;
+    border: 1px solid rgba(84, 130, 168, 0.36);
+    border-radius: 16px !important;
+    padding: 1.35rem 1.3rem !important;
     backdrop-filter: blur(8px);
   }
+  #contact .sp-contact-form-head {
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgba(84, 130, 168, 0.28);
+  }
+  #contact .sp-contact-form-head h3 {
+    margin: 0 0 0.22rem;
+    color: #f2fbff;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: 1.55rem;
+    line-height: 1.1;
+  }
+  #contact .sp-contact-form-head p {
+    margin: 0;
+    color: rgba(199, 220, 238, 0.82);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+  #contact .sp-field label {
+    display: block;
+    margin-bottom: 0.32rem;
+    color: rgba(189, 214, 235, 0.88);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
   #contact .php-email-form .form-control {
-    background: rgba(255,255,255,0.06) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    border-radius: 12px !important;
-    color: #fff !important;
-    padding: 0.75rem 1rem !important;
-    font-size: 0.92rem;
+    background: rgba(255, 255, 255, 0.07) !important;
+    border: 1px solid rgba(140, 177, 208, 0.28) !important;
+    border-radius: 11px !important;
+    color: #f0f9ff !important;
+    padding: 0.75rem 0.88rem !important;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.9rem;
     transition: all 0.3s !important;
   }
   #contact .php-email-form .form-control::placeholder {
-    color: rgba(255,255,255,0.4) !important;
+    color: rgba(201, 222, 241, 0.58) !important;
   }
   #contact .php-email-form .form-control:focus {
-    background: rgba(255,255,255,0.08) !important;
-    border-color: rgba(0,196,201,0.4) !important;
-    box-shadow: 0 0 0 3px rgba(0,196,201,0.1) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(31, 225, 177, 0.62) !important;
+    box-shadow: 0 0 0 3px rgba(31, 225, 177, 0.12) !important;
   }
   #contact .php-email-form button[type="submit"] {
-    background: linear-gradient(135deg,#00C4C9 0%,#00E5A0 100%) !important;
+    background: linear-gradient(135deg, #00c4c9 0%, #00e5a0 100%) !important;
     border: none !important;
-    border-radius: 999px !important;
-    padding: 0.75rem 2.5rem !important;
-    font-weight: 700 !important;
-    font-size: 0.95rem;
-    color: #fff !important;
-    box-shadow: 0 4px 18px rgba(0,196,201,0.25);
+    border-radius: 12px !important;
+    padding: 0.82rem 1.3rem !important;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-weight: 800 !important;
+    font-size: 0.97rem;
+    color: #062436 !important;
+    box-shadow: 0 8px 18px rgba(0, 196, 201, 0.24);
     transition: all 0.3s ease !important;
+    width: 100%;
   }
   #contact .php-email-form button[type="submit"]:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(0,196,201,0.35);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(0, 196, 201, 0.35);
+  }
+  #contact .sp-contact-note {
+    margin: 0.7rem 0 0;
+    color: rgba(189, 214, 234, 0.8);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.82rem;
+    text-align: center;
+    line-height: 1.35;
   }
 
   /* ---------- Footer ---------- */
@@ -687,6 +807,35 @@
     background: linear-gradient(180deg,#0b1c2d 0%,#060e18 100%) !important;
     border-top: none !important;
     padding-top: 0 !important;
+    position: relative;
+    overflow: hidden;
+  }
+  #footer::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    left: -8%;
+    width: 62%;
+    height: 240px;
+    background: radial-gradient(circle at 22% 38%, rgba(0, 196, 201, 0.2) 0%, rgba(0, 196, 201, 0.06) 44%, transparent 74%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  #footer::after {
+    content: "";
+    position: absolute;
+    right: -10%;
+    bottom: -140px;
+    width: 54%;
+    height: 250px;
+    background: radial-gradient(circle at 78% 34%, rgba(0, 229, 160, 0.16) 0%, rgba(0, 229, 160, 0.05) 45%, transparent 76%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  #footer .footer-top,
+  #footer .copyright {
+    position: relative;
+    z-index: 1;
   }
   #footer .footer-top {
     padding-top: 60px !important;
@@ -694,6 +843,43 @@
   }
   #footer .footer-about .logo .sitename {
     color: #fff !important;
+  }
+  #footer .sp-footer-logo {
+    padding: 0.52rem 0.72rem;
+    border: 1px solid rgba(98, 152, 190, 0.42);
+    border-radius: 16px;
+    background: linear-gradient(155deg, rgba(13, 38, 60, 0.96) 0%, rgba(9, 28, 45, 0.92) 58%, rgba(7, 22, 36, 0.96) 100%);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.27), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -14px 26px rgba(0, 196, 201, 0.09);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 92px;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  #footer .sp-footer-logo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, rgba(255, 255, 255, 0.12) 0%, transparent 34%, transparent 66%, rgba(0, 196, 201, 0.1) 100%);
+    pointer-events: none;
+    z-index: -1;
+  }
+  #footer .sp-footer-logo:hover {
+    transform: translateY(-1px);
+    border-color: rgba(0, 196, 201, 0.5);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.13), inset 0 -16px 28px rgba(0, 196, 201, 0.14);
+  }
+  #footer .sp-footer-logo img {
+    width: clamp(104px, 11vw, 132px);
+    max-height: none !important;
+    height: auto !important;
+    display: block;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    filter: brightness(1.14) contrast(1.02) drop-shadow(0 4px 10px rgba(0, 196, 201, 0.16));
   }
   #footer .footer-tagline {
     color: rgba(255,255,255,0.6) !important;
@@ -808,13 +994,1594 @@
     box-shadow: 0 4px 18px rgba(0,196,201,0.3);
   }
 
+  /* ---------- Landing Hero (2026 Refresh) ---------- */
+  .topbar {
+    display: none !important;
+  }
+
+  .header .branding.sp-landing-nav-wrap {
+    border-bottom: 1px solid rgba(0, 196, 201, 0.15);
+    padding: 0.8rem 0 !important;
+  }
+
+  .sp-nav-container {
+    gap: 1.2rem;
+    align-items: center;
+  }
+
+  .header .sp-brand-logo::before {
+    display: none !important;
+  }
+
+  .sp-brand-logo {
+    padding: 0.14rem 0.22rem;
+    border: 1px solid rgba(92, 134, 167, 0.34);
+    border-radius: 12px;
+    background: rgba(8, 27, 45, 0.58);
+    box-shadow: 0 5px 13px rgba(0, 0, 0, 0.17);
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    align-self: center;
+    line-height: 0;
+  }
+
+  .header .sp-brand-logo img {
+    width: clamp(60px, 4.9vw, 74px) !important;
+    min-width: 60px;
+    height: auto !important;
+    max-height: 56px !important;
+    display: block;
+    margin: 0 auto;
+    filter: brightness(1.13) drop-shadow(0 2px 8px rgba(0, 196, 201, 0.14));
+    transform-origin: left center;
+  }
+
+  .header .sp-brand-logo:hover img {
+    transform: scale(1.015);
+    filter: brightness(1.19) drop-shadow(0 5px 12px rgba(0, 196, 201, 0.2));
+  }
+
+  .navmenu ul li a {
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 1.02rem !important;
+    font-weight: 600 !important;
+    opacity: 0.86;
+    padding-inline: 0.75rem !important;
+  }
+
+  .navmenu ul li a.active,
+  .navmenu ul li a:hover {
+    opacity: 1;
+    color: #ffffff !important;
+  }
+
+  .sp-cta-top {
+    min-width: 245px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    border-radius: 14px !important;
+    background: rgba(9, 29, 48, 0.92) !important;
+    box-shadow: none !important;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-weight: 800 !important;
+    font-size: 1.01rem !important;
+    padding: 0.86rem 1.2rem !important;
+  }
+
+  .sp-cta-top:hover {
+    transform: translateY(-1px);
+    border-color: rgba(0, 229, 160, 0.55) !important;
+    background: rgba(9, 29, 48, 0.95) !important;
+  }
+
+  .sp-hero {
+    padding: 174px 0 0 !important;
+    margin-top: -125px;
+  }
+
+  .sp-hero-grid {
+    padding-bottom: 2.8rem;
+  }
+
+  .sp-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #1de1b0;
+    font-weight: 800;
+    font-size: 0.9rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .sp-hero-title {
+    color: #ffffff;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: clamp(2.2rem, 4.8vw, 4.35rem);
+    line-height: 1.03;
+    font-weight: 800;
+    margin-bottom: 1.2rem;
+    letter-spacing: -0.015em;
+    max-width: 780px;
+  }
+
+  .sp-hero-title em {
+    color: #1de1b0;
+    font-style: italic;
+  }
+
+  .sp-hero-copy {
+    color: rgba(230, 238, 246, 0.85);
+    max-width: 620px;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 1.16rem;
+    line-height: 1.64;
+    margin-bottom: 1.4rem;
+  }
+
+  .sp-hero-actions {
+    display: flex;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.9rem;
+  }
+
+  .sp-btn-primary,
+  .sp-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    padding: 0.78rem 1.25rem;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-weight: 800;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    transition: all 0.22s ease;
+  }
+
+  .sp-btn-primary {
+    background: linear-gradient(135deg, #00c4c9 0%, #00e5a0 100%);
+    color: #042031;
+    border: none;
+  }
+
+  .sp-btn-primary:hover {
+    color: #032136;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0, 196, 201, 0.3);
+  }
+
+  .sp-btn-secondary {
+    background: rgba(11, 34, 55, 0.6);
+    color: #fff;
+  }
+
+  .sp-btn-secondary:hover {
+    color: #fff;
+    border-color: rgba(0, 229, 160, 0.55);
+    transform: translateY(-1px);
+  }
+
+  .sp-hero-meta {
+    color: rgba(204, 214, 223, 0.78);
+    margin: 0;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.98rem;
+  }
+
+  .sp-problem-label {
+    width: 100%;
+    background: rgba(18, 94, 97, 0.42);
+    border: 1px solid rgba(29, 225, 176, 0.22);
+    border-radius: 10px;
+    color: #1de1b0;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    padding: 0.45rem 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .sp-problem-card {
+    background: rgba(20, 44, 69, 0.8);
+    border: 1px solid rgba(89, 130, 165, 0.45);
+    border-radius: 16px;
+    padding: 1.15rem 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .sp-problem-card--active {
+    border-color: #1de1b0;
+    box-shadow: inset 3px 0 0 #1de1b0;
+  }
+
+  .sp-problem-card h3 {
+    color: #ffffff;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 2.02rem;
+    font-weight: 800;
+    margin-bottom: 0.7rem;
+    line-height: 1.1;
+  }
+
+  .sp-tag-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .sp-tag-wrap span {
+    background: rgba(132, 154, 178, 0.18);
+    color: rgba(233, 240, 247, 0.9);
+    border: 1px solid rgba(164, 182, 203, 0.2);
+    border-radius: 8px;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.98rem;
+    padding: 0.35rem 0.62rem;
+    line-height: 1.2;
+  }
+
+  .sp-problem-note {
+    color: #1de1b0;
+    font-style: italic;
+    font-family: "Manrope", "Poppins", sans-serif;
+    margin-top: 1rem;
+    margin-bottom: 0;
+    font-size: 1.18rem;
+  }
+
+  .sp-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    border-top: 1px solid rgba(30, 70, 106, 0.9);
+    border-bottom: 1px solid rgba(30, 70, 106, 0.9);
+    background: rgba(13, 31, 51, 0.8);
+  }
+
+  .sp-stat-item {
+    padding: 1.6rem 1rem 1.7rem;
+    border-right: 1px solid rgba(30, 70, 106, 0.9);
+    text-align: center;
+  }
+
+  .sp-stat-item:last-child {
+    border-right: 0;
+  }
+
+  .sp-stat-item h4 {
+    margin: 0 0 0.35rem;
+    color: #1de1b0;
+    font-size: clamp(1.7rem, 2.8vw, 2.7rem);
+    font-weight: 800;
+    font-family: "Playfair Display", "Times New Roman", serif;
+  }
+
+  .sp-stat-item p {
+    margin: 0;
+    color: rgba(220, 231, 242, 0.84);
+    line-height: 1.35;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 1.04rem;
+  }
+
+  .sp-products {
+    background: linear-gradient(180deg, #071828 0%, #0a1f34 100%);
+    border-top: 1px solid rgba(0, 196, 201, 0.14);
+    border-bottom: 1px solid rgba(0, 196, 201, 0.14);
+    padding: 3.1rem 0 2.2rem;
+  }
+
+  .sp-products-shell {
+    background: rgba(8, 27, 45, 0.82);
+    border: 1px solid rgba(78, 123, 159, 0.34);
+    border-radius: 18px;
+    padding: 1.45rem 1.35rem 1.15rem;
+  }
+
+  .sp-products-kicker {
+    margin: 0 0 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.76rem;
+    font-weight: 800;
+    font-family: "Manrope", "Poppins", sans-serif;
+    color: #1de1b0;
+  }
+
+  .sp-products-title {
+    margin: 0 0 0.58rem;
+    color: #f5fcff;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: clamp(1.95rem, 3.8vw, 3.2rem);
+    line-height: 1.08;
+    font-weight: 800;
+  }
+
+  .sp-products-title em {
+    display: block;
+    color: #1de1b0;
+    font-style: italic;
+  }
+
+  .sp-products-sub {
+    margin: 0 0 1rem;
+    color: rgba(207, 224, 238, 0.86);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 1rem;
+    line-height: 1.58;
+    max-width: 840px;
+  }
+
+  .sp-product-panel {
+    background: rgba(12, 34, 55, 0.9);
+    border: 1px solid rgba(87, 131, 168, 0.42);
+    border-radius: 14px;
+    padding: 1rem 0.95rem 0.95rem;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sp-product-panel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(93, 154, 214, 0.65);
+  }
+
+  .sp-product-panel--eve::before {
+    background: #1de1b0;
+  }
+
+  .sp-product-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.65rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .sp-product-name {
+    margin: 0;
+    color: #f5fdff;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: 2.15rem;
+    line-height: 1.03;
+    font-weight: 700;
+  }
+
+  .sp-product-name--eve {
+    color: #2be9bc;
+  }
+
+  .sp-product-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.28rem 0.52rem;
+    border-radius: 8px;
+    border: 1px solid rgba(109, 151, 186, 0.4);
+    background: rgba(24, 55, 82, 0.72);
+    color: rgba(189, 219, 243, 0.95);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .sp-product-chip--eve {
+    color: #1ee5b5;
+    border-color: rgba(30, 229, 181, 0.4);
+    background: rgba(16, 73, 72, 0.5);
+  }
+
+  .sp-product-subtitle {
+    margin: 0 0 0.7rem;
+    color: rgba(177, 205, 229, 0.92);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.99rem;
+    font-weight: 600;
+  }
+
+  .sp-product-quote {
+    margin: 0 0 0.72rem;
+    color: #e5f5ff;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.94rem;
+    font-style: italic;
+    line-height: 1.45;
+    border-left: 2px solid rgba(47, 226, 188, 0.72);
+    padding-left: 0.55rem;
+  }
+
+  .sp-product-desc {
+    margin: 0 0 0.82rem;
+    color: rgba(211, 226, 239, 0.88);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.53;
+  }
+
+  .sp-product-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    margin: 0 0 0.82rem;
+    color: #29e7ba;
+    text-decoration: none;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .sp-product-link:hover {
+    color: #73f2d0;
+  }
+
+  .sp-product-columns {
+    margin-bottom: 0.82rem;
+  }
+
+  .sp-product-col-title {
+    margin: 0 0 0.44rem;
+    color: #1de1b0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .sp-product-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .sp-product-list li {
+    margin-bottom: 0.35rem;
+    padding-left: 0.92rem;
+    position: relative;
+    color: rgba(204, 222, 238, 0.9);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.88rem;
+    line-height: 1.36;
+  }
+
+  .sp-product-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #2de5ba;
+    font-weight: 800;
+  }
+
+  .sp-product-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid rgba(82, 126, 163, 0.45);
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(20, 46, 70, 0.74);
+  }
+
+  .sp-product-stat {
+    padding: 0.58rem 0.48rem;
+    border-right: 1px solid rgba(82, 126, 163, 0.45);
+    text-align: center;
+  }
+
+  .sp-product-stat:last-child {
+    border-right: 0;
+  }
+
+  .sp-product-stat strong {
+    display: block;
+    color: #1de1b0;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .sp-product-stat span {
+    display: block;
+    margin-top: 0.2rem;
+    color: rgba(203, 220, 236, 0.9);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.78rem;
+    line-height: 1.25;
+  }
+
+  .sp-products-footer {
+    margin-top: 1rem;
+    border-top: 1px solid rgba(75, 120, 157, 0.38);
+    padding-top: 0.88rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .sp-products-note {
+    margin: 0;
+    color: #e9f5ff;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: 1.95rem;
+    font-style: italic;
+    line-height: 1.2;
+  }
+
+  .sp-products-note em {
+    color: #1de1b0;
+    font-style: italic;
+  }
+
+  .sp-products-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.78rem 1.2rem;
+    border-radius: 12px;
+    border: 1px solid rgba(214, 235, 255, 0.32);
+    background: rgba(10, 33, 53, 0.85);
+    color: #f2fbff;
+    text-decoration: none;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-weight: 800;
+    font-size: 1.08rem;
+  }
+
+  .sp-products-cta:hover {
+    color: #ffffff;
+    border-color: rgba(30, 229, 181, 0.55);
+    transform: translateY(-1px);
+  }
+
+  .sp-about-flow-section {
+    background: #eef2f4;
+    border-top: 1px solid rgba(24, 58, 83, 0.08);
+    border-bottom: 1px solid rgba(24, 58, 83, 0.08);
+    padding: 3.35rem 0;
+  }
+
+  .sp-about-flow-section .container {
+    max-width: 1120px;
+  }
+
+  .sp-about-kicker {
+    margin: 0 0 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #1aa783;
+    font-size: 0.76rem;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-weight: 800;
+  }
+
+  .sp-about-title {
+    margin: 0 0 0.76rem;
+    color: #0c1f31;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: clamp(2rem, 4vw, 3.28rem);
+    line-height: 1.07;
+    font-weight: 800;
+  }
+
+  .sp-about-title em {
+    display: block;
+    color: #1aa783;
+    font-style: italic;
+  }
+
+  .sp-about-title--inline-em em {
+    display: inline;
+  }
+
+  .sp-about-copy {
+    margin: 0 0 0.95rem;
+    color: #33485d;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 1rem;
+    line-height: 1.64;
+    max-width: 560px;
+  }
+
+  .sp-why-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.95rem;
+    display: grid;
+    gap: 0.58rem;
+  }
+
+  .sp-why-item {
+    background: #ffffff;
+    border: 1px solid rgba(28, 64, 89, 0.12);
+    border-radius: 9px;
+    padding: 0.62rem 0.68rem;
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 0.62rem;
+    align-items: start;
+    box-shadow: 0 2px 5px rgba(12, 28, 44, 0.04);
+  }
+
+  .sp-why-index {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(24, 167, 131, 0.22);
+    background: rgba(26, 167, 131, 0.08);
+    color: #169877;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-weight: 800;
+    font-size: 0.78rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sp-why-item h4 {
+    margin: 0 0 0.2rem;
+    color: #0d2132;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 1.08rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .sp-why-item p {
+    margin: 0;
+    color: #4a6073;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
+  .sp-about-quote {
+    background: #0c2237;
+    border: 1px solid rgba(24, 167, 131, 0.26);
+    border-radius: 10px;
+    color: #eaf5ff;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: 1.46rem;
+    line-height: 1.24;
+    font-weight: 700;
+    padding: 0.85rem 0.95rem;
+    margin: 0;
+  }
+
+  .sp-about-quote em {
+    color: #1dddb1;
+    font-style: italic;
+  }
+
+  .sp-flow-copy {
+    margin: 0 0 0.95rem;
+    color: #384f63;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 1rem;
+    line-height: 1.62;
+    max-width: 560px;
+  }
+
+  .sp-flow-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.62rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .sp-flow-card {
+    background: #ffffff;
+    border: 1px solid rgba(28, 64, 89, 0.12);
+    border-top: 2px solid rgba(29, 221, 177, 0.35);
+    border-radius: 10px;
+    padding: 0.68rem 0.65rem;
+    min-height: 210px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sp-flow-letter {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #0f2236;
+    color: #20deb2;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-weight: 800;
+    font-size: 0.92rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .sp-flow-card h4 {
+    margin: 0 0 0.24rem;
+    color: #0f2538;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 1.01rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .sp-flow-card p {
+    margin: 0 0 0.35rem;
+    color: #4b6275;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.88rem;
+    line-height: 1.38;
+    flex: 1;
+  }
+
+  .sp-flow-outcome {
+    margin: 0;
+    color: #149675;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+
+  .sp-flow-8w {
+    background: #0b2135;
+    border: 1px solid rgba(18, 160, 125, 0.28);
+    border-radius: 10px;
+    padding: 0.72rem 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 0.92rem;
+    margin-bottom: 0.62rem;
+  }
+
+  .sp-flow-8w strong {
+    color: #1ee0b5;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: 2.2rem;
+    line-height: 1;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .sp-flow-8w p {
+    margin: 0;
+    color: #e9f4ff;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .sp-flow-8w p span {
+    color: rgba(198, 218, 236, 0.88);
+    display: block;
+    font-size: 0.86rem;
+    margin-top: 0.15rem;
+  }
+
+  .sp-flow-tags {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .sp-flow-tags span {
+    border: 1px solid rgba(28, 64, 89, 0.13);
+    background: rgba(20, 167, 132, 0.12);
+    color: #0f7f63;
+    border-radius: 6px;
+    padding: 0.26rem 0.46rem;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .sp-method-section {
+    background: linear-gradient(180deg, #071a2b 0%, #0a1f34 100%);
+    border-top: 1px solid rgba(0, 196, 201, 0.14);
+    border-bottom: 1px solid rgba(0, 196, 201, 0.14);
+    padding: 3.1rem 0;
+  }
+
+  .sp-method-shell {
+    max-width: 1120px;
+    margin: 0 auto;
+    border: 1px solid rgba(75, 119, 157, 0.35);
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(9, 27, 45, 0.88);
+  }
+
+  .sp-method-head {
+    padding: 1.35rem 1.4rem 1rem;
+    border-bottom: 1px solid rgba(75, 119, 157, 0.33);
+  }
+
+  .sp-method-kicker {
+    margin: 0 0 0.42rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #1de1b0;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.74rem;
+    font-weight: 800;
+  }
+
+  .sp-method-title {
+    margin: 0 0 0.62rem;
+    color: #f4fcff;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: clamp(2rem, 4vw, 3.18rem);
+    line-height: 1.07;
+    font-weight: 800;
+  }
+
+  .sp-method-title em {
+    display: block;
+    color: #1de1b0;
+    font-style: italic;
+  }
+
+  .sp-method-sub {
+    margin: 0;
+    color: rgba(201, 219, 235, 0.88);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.96rem;
+    line-height: 1.56;
+    max-width: 890px;
+  }
+
+  .sp-method-timeline {
+    padding: 0.95rem 1.35rem;
+    border-bottom: 1px solid rgba(75, 119, 157, 0.33);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    position: relative;
+  }
+
+  .sp-method-step {
+    position: relative;
+    padding-left: 0.2rem;
+  }
+
+  .sp-method-step::before {
+    content: "";
+    position: absolute;
+    top: 13px;
+    left: 34px;
+    right: -8px;
+    height: 1px;
+    background: rgba(54, 107, 147, 0.5);
+  }
+
+  .sp-method-step:last-child::before {
+    display: none;
+  }
+
+  .sp-method-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #24e5ba;
+    color: #24e5ba;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.82rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.3rem;
+    background: #081d30;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sp-method-step h4 {
+    margin: 0;
+    color: #d7e9f8;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .sp-method-step p {
+    margin: 0.15rem 0 0;
+    color: rgba(176, 203, 225, 0.82);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.75rem;
+    line-height: 1.26;
+  }
+
+  .sp-method-body {
+    background: #f2f5f7;
+    padding: 1rem 1rem 0.92rem;
+  }
+
+  .sp-method-cards {
+    row-gap: 0.8rem;
+  }
+
+  .sp-method-card {
+    background: #ffffff;
+    border: 1px solid rgba(28, 64, 89, 0.12);
+    border-top: 2px solid rgba(26, 191, 152, 0.42);
+    border-radius: 10px;
+    padding: 0.72rem 0.72rem 0.66rem;
+    height: 100%;
+  }
+
+  .sp-method-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.42rem;
+  }
+
+  .sp-method-card-title {
+    margin: 0;
+    color: #0f2436;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 1.03rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .sp-method-chip {
+    border: 1px solid rgba(26, 191, 152, 0.26);
+    background: rgba(26, 191, 152, 0.12);
+    color: #138c6f;
+    border-radius: 999px;
+    padding: 0.18rem 0.42rem;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.66rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .sp-method-card-sub {
+    margin: 0 0 0.4rem;
+    color: #5b7184;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .sp-method-quote {
+    margin: 0 0 0.5rem;
+    color: #258f74;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.83rem;
+    font-style: italic;
+    line-height: 1.38;
+  }
+
+  .sp-method-list {
+    list-style: none;
+    margin: 0 0 0.55rem;
+    padding: 0;
+  }
+
+  .sp-method-list li {
+    margin-bottom: 0.36rem;
+    padding-left: 0.9rem;
+    position: relative;
+    color: #3f566a;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.85rem;
+    line-height: 1.34;
+  }
+
+  .sp-method-list li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #21ae8b;
+    font-weight: 700;
+  }
+
+  .sp-method-output {
+    margin: 0;
+    background: rgba(26, 191, 152, 0.1);
+    border: 1px solid rgba(26, 191, 152, 0.2);
+    border-radius: 8px;
+    padding: 0.45rem 0.5rem;
+    color: #0f5f4b;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .sp-method-tags {
+    margin-top: 0.72rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .sp-method-tags span {
+    border: 1px solid rgba(67, 118, 155, 0.34);
+    background: rgba(8, 27, 45, 0.82);
+    color: rgba(170, 206, 233, 0.92);
+    border-radius: 999px;
+    padding: 0.2rem 0.5rem;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  .sp-method-footer {
+    margin-top: 0.82rem;
+    background: #0a1f33;
+    border: 1px solid rgba(63, 109, 146, 0.38);
+    border-radius: 10px;
+    padding: 0.68rem 0.78rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .sp-method-footer p {
+    margin: 0;
+    color: #e7f3ff;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: 1.6rem;
+    line-height: 1.22;
+    font-weight: 700;
+  }
+
+  .sp-method-footer p em {
+    color: #1de1b0;
+    font-style: italic;
+  }
+
+  .sp-method-footer b {
+    color: #1de1b0;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .sp-method-footer b small {
+    display: block;
+    margin-top: 0.06rem;
+    color: rgba(201, 222, 238, 0.9);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.54em;
+    font-weight: 700;
+    line-height: 1.08;
+  }
+
+  .sp-problem-section {
+    background: linear-gradient(180deg, #0a1d31 0%, #081a2c 100%);
+    border-top: 1px solid rgba(0, 196, 201, 0.14);
+    border-bottom: 1px solid rgba(0, 196, 201, 0.14);
+    padding: 3.2rem 0;
+  }
+
+  .sp-problem-inner {
+    background: rgba(10, 28, 47, 0.78);
+    border: 1px solid rgba(74, 119, 155, 0.38);
+    border-radius: 16px;
+    padding: 1.7rem 1.5rem;
+  }
+
+  .sp-problem-kicker {
+    font-family: "Manrope", "Poppins", sans-serif;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    color: #1de1b0;
+    font-weight: 800;
+    margin-bottom: 0.85rem;
+  }
+
+  .sp-problem-title {
+    margin: 0 0 0.8rem;
+    color: #f5fbff;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: clamp(2rem, 4vw, 3.15rem);
+    line-height: 1.08;
+    font-weight: 800;
+  }
+
+  .sp-problem-title em {
+    color: #20e3b2;
+    font-style: italic;
+  }
+
+  .sp-problem-sub {
+    color: rgba(214, 226, 238, 0.85);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 1.02rem;
+    line-height: 1.62;
+    max-width: 890px;
+    margin-bottom: 1.2rem;
+  }
+
+  .sp-problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.95rem;
+    margin-bottom: 1rem;
+  }
+
+  .sp-problem-block {
+    background: rgba(11, 31, 50, 0.82);
+    border: 1px solid rgba(89, 131, 167, 0.4);
+    border-radius: 14px;
+    padding: 1.1rem 1rem;
+  }
+
+  .sp-problem-block--active {
+    border-top: 2px solid #20e3b2;
+    box-shadow: inset 0 2px 0 #20e3b2;
+  }
+
+  .sp-problem-icon {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    margin-bottom: 0.7rem;
+    color: #20e3b2;
+    background: rgba(32, 227, 178, 0.11);
+    border: 1px solid rgba(32, 227, 178, 0.26);
+  }
+
+  .sp-problem-block h3 {
+    color: #f5fbff;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0 0 0.6rem;
+  }
+
+  .sp-problem-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .sp-problem-list li {
+    color: rgba(209, 223, 236, 0.88);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.94rem;
+    margin-bottom: 0.48rem;
+    padding-left: 0.95rem;
+    position: relative;
+    line-height: 1.4;
+  }
+
+  .sp-problem-list li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: rgba(132, 174, 206, 0.9);
+  }
+
+  .sp-problem-banner {
+    border: 1px solid rgba(84, 129, 167, 0.4);
+    border-radius: 12px;
+    padding: 0.95rem 1rem;
+    background: rgba(20, 46, 70, 0.66);
+    margin-bottom: 1.2rem;
+  }
+
+  .sp-problem-banner h4 {
+    margin: 0 0 0.35rem;
+    color: #f3fbff;
+    font-size: 1.7rem;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-weight: 700;
+  }
+
+  .sp-problem-banner h4 em {
+    color: #20e3b2;
+    font-style: italic;
+  }
+
+  .sp-problem-banner p {
+    margin: 0;
+    color: rgba(201, 217, 231, 0.82);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.95rem;
+  }
+
+  .sp-decision-box {
+    background: rgba(8, 23, 37, 0.62);
+    border: 1px solid rgba(84, 128, 166, 0.36);
+    border-radius: 14px;
+    padding: 1rem 1rem 0.8rem;
+    height: 100%;
+  }
+
+  .sp-decision-title {
+    margin: 0 0 0.7rem;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.99rem;
+    font-weight: 800;
+  }
+
+  .sp-decision-title--bad {
+    color: #ff7e7e;
+  }
+
+  .sp-decision-title--good {
+    color: #2ce7ba;
+  }
+
+  .sp-decision-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .sp-decision-list li {
+    margin-bottom: 0.48rem;
+    padding-left: 1.08rem;
+    position: relative;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.93rem;
+    line-height: 1.35;
+  }
+
+  .sp-decision-list li::before {
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-weight: 800;
+  }
+
+  .sp-decision-list--bad li {
+    color: rgba(255, 211, 211, 0.9);
+  }
+
+  .sp-decision-list--bad li::before {
+    content: "✕";
+    color: #ff7d7d;
+  }
+
+  .sp-decision-list--good li {
+    color: rgba(193, 243, 229, 0.95);
+  }
+
+  .sp-decision-list--good li::before {
+    content: "✓";
+    color: #2ce7ba;
+  }
+
+  .sp-problem-footer-note {
+    margin-top: 1rem;
+    background: rgba(19, 47, 71, 0.75);
+    border: 1px solid rgba(80, 125, 163, 0.44);
+    border-left: 4px solid #20e3b2;
+    border-radius: 10px;
+    padding: 0.8rem 0.95rem;
+    color: #e7f2fb;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: 1.65rem;
+    line-height: 1.2;
+    font-weight: 700;
+  }
+
+  .sp-problem-footer-note em {
+    color: #20e3b2;
+    font-style: italic;
+  }
+
+  .sp-services-section {
+    background: linear-gradient(180deg, #081a2c 0%, #0a1f34 100%);
+    border-top: 1px solid rgba(0, 196, 201, 0.14);
+    border-bottom: 1px solid rgba(0, 196, 201, 0.14);
+    padding: 3.2rem 0;
+  }
+
+  .sp-services-shell {
+    background: rgba(9, 27, 46, 0.8);
+    border: 1px solid rgba(81, 124, 161, 0.35);
+    border-radius: 18px;
+    padding: 1.8rem 1.45rem;
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+
+  .sp-services-kicker {
+    margin: 0 0 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.76rem;
+    font-weight: 800;
+    font-family: "Manrope", "Poppins", sans-serif;
+    color: #1de1b0;
+  }
+
+  .sp-services-title {
+    margin: 0 0 0.75rem;
+    color: #f2fbff;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: clamp(1.95rem, 3.8vw, 3.15rem);
+    line-height: 1.09;
+    font-weight: 800;
+  }
+
+  .sp-services-title em {
+    color: #1de1b0;
+    font-style: italic;
+    display: block;
+  }
+
+  .sp-services-sub {
+    margin: 0 0 1.15rem;
+    color: rgba(211, 225, 238, 0.84);
+    font-family: "Manrope", "Poppins", sans-serif;
+    line-height: 1.58;
+    font-size: 0.99rem;
+    max-width: 820px;
+  }
+
+  .sp-services-grid {
+    row-gap: 0.95rem;
+  }
+
+  .sp-service-card {
+    background: rgba(12, 32, 52, 0.9);
+    border: 1px solid rgba(86, 128, 164, 0.4);
+    border-radius: 14px;
+    padding: 1rem 1rem 0.95rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sp-service-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(31, 220, 182, 0.35);
+  }
+
+  .sp-service-card--active {
+    border-color: rgba(31, 220, 182, 0.55);
+    box-shadow: inset 0 2px 0 #1de1b0, 0 8px 22px rgba(0, 0, 0, 0.22);
+  }
+
+  .sp-service-card--active::before {
+    background: #1de1b0;
+  }
+
+  .sp-service-tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 800;
+    font-family: "Manrope", "Poppins", sans-serif;
+    color: #1de1b0;
+    background: rgba(23, 75, 79, 0.45);
+    border: 1px solid rgba(29, 225, 176, 0.25);
+    border-radius: 8px;
+    padding: 0.24rem 0.45rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .sp-service-card h3 {
+    margin: 0 0 0.52rem;
+    color: #f6fcff;
+    font-family: "Playfair Display", "Times New Roman", serif;
+    font-size: 1.65rem;
+    line-height: 1.1;
+    font-weight: 700;
+  }
+
+  .sp-service-quote {
+    margin: 0 0 0.65rem;
+    color: #30e7bc;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-style: italic;
+    font-size: 0.88rem;
+  }
+
+  .sp-service-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .sp-service-list li {
+    color: rgba(206, 222, 236, 0.92);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.9rem;
+    padding-left: 1rem;
+    margin-bottom: 0.42rem;
+    position: relative;
+    line-height: 1.35;
+  }
+
+  .sp-service-list li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: rgba(117, 210, 194, 0.95);
+    font-weight: 700;
+  }
+
+  .sp-service-note {
+    margin-top: auto;
+    border: 1px solid rgba(82, 126, 163, 0.42);
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(19, 52, 74, 0.76) 0%, rgba(13, 42, 66, 0.82) 100%);
+    padding: 0.66rem 0.7rem;
+  }
+
+  .sp-service-note h4 {
+    margin: 0 0 0.18rem;
+    font-family: "Manrope", "Poppins", sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.66rem;
+    font-weight: 800;
+    color: #1de1b0;
+  }
+
+  .sp-service-note p {
+    margin: 0;
+    color: rgba(212, 227, 240, 0.88);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.84rem;
+    line-height: 1.35;
+  }
+
+  .sp-levels {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.62rem;
+  }
+
+  .sp-levels li {
+    border: 1px solid rgba(77, 123, 161, 0.35);
+    background: rgba(19, 47, 72, 0.78);
+    border-radius: 9px;
+    padding: 0.68rem 0.7rem 0.7rem 0.92rem;
+    position: relative;
+  }
+
+  .sp-levels li::before {
+    content: "";
+    position: absolute;
+    left: 0.5rem;
+    top: 1.08rem;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #24e6ba;
+  }
+
+  .sp-levels strong {
+    display: block;
+    color: #f4fbff;
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.83rem;
+    line-height: 1.3;
+    margin-bottom: 0.18rem;
+  }
+
+  .sp-levels span {
+    display: block;
+    margin-top: 0.24rem;
+    color: rgba(184, 210, 230, 0.86);
+    font-family: "Manrope", "Poppins", sans-serif;
+    font-size: 0.76rem;
+    line-height: 1.33;
+  }
+
   /* ---------- Responsive ---------- */
   @media (max-width: 991.98px) {
     #hero { margin-top: -120px; padding-top: 150px !important; }
     #hero .welcome h2 { font-size: 1.8rem; }
     #hero .why-box h3 { font-size: 1.3rem; }
     #hero .icon-box { padding: 1.5rem 1.2rem !important; }
-    #contact .php-email-form { padding: 1.5rem !important; }
+    #contact .sp-contact-shell { padding: 1rem !important; }
+    #contact .php-email-form { padding: 1.1rem !important; }
+    #contact .sp-contact-panel {
+      border-right: 0;
+      padding-right: 0;
+    }
+    #contact .sp-contact-form-panel {
+      padding-left: 0;
+    }
+    .sp-hero {
+      margin-top: -112px;
+      padding-top: 145px !important;
+    }
+    .sp-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .sp-stat-item:nth-child(2n) {
+      border-right: 0;
+    }
+    .sp-stat-item:nth-child(-n+2) {
+      border-bottom: 1px solid rgba(30, 70, 106, 0.9);
+    }
+    .sp-cta-top {
+      display: none !important;
+    }
+    .header .sp-brand-logo img {
+      width: 68px !important;
+      min-width: 68px;
+      max-height: 50px !important;
+    }
+    .sp-problem-card h3 {
+      font-size: 1.75rem;
+    }
+    .sp-problem-grid {
+      grid-template-columns: 1fr;
+    }
+    .sp-service-card h3 {
+      font-size: 1.45rem;
+    }
+    .sp-product-name {
+      font-size: 1.8rem;
+    }
+    .sp-product-stats {
+      grid-template-columns: 1fr;
+    }
+    .sp-product-stat {
+      border-right: 0;
+      border-bottom: 1px solid rgba(82, 126, 163, 0.45);
+    }
+    .sp-product-stat:last-child {
+      border-bottom: 0;
+    }
+    .sp-products-note {
+      font-size: 1.55rem;
+    }
+    .sp-method-timeline {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .sp-method-step:nth-child(2n)::before {
+      display: none;
+    }
+    .sp-method-footer p {
+      font-size: 1.35rem;
+    }
+    .sp-method-footer b {
+      font-size: 1.95rem;
+    }
+    .sp-flow-grid {
+      grid-template-columns: 1fr;
+    }
+    .sp-about-quote {
+      font-size: 1.35rem;
+    }
   }
   @media (max-width: 575.98px) {
     #hero { margin-top: -100px; padding-top: 130px !important; }
@@ -823,8 +2590,123 @@
     #hero .icon-box i { width: 48px; height: 48px; font-size: 18px !important; }
     #services .service-item { padding: 1.5rem 1.2rem !important; border-radius: 14px !important; }
     #departments .tab-content .tab-pane { padding: 1.5rem !important; border-radius: 16px !important; }
-    #contact .info-item { padding: 1rem 1.1rem !important; }
+    #contact .sp-contact-shell { padding: 0.78rem !important; }
+    #contact .sp-contact-intro { padding: 0.75rem 0.78rem !important; }
+    #contact .info-item { padding: 0.85rem 0.85rem !important; }
+    #contact .sp-contact-form-head h3 { font-size: 1.3rem !important; }
+    #contact .sp-contact-badges { gap: 0.34rem; }
+    #contact .sp-contact-badges span { font-size: 0.69rem; }
+    #contact .sp-field label { font-size: 0.72rem; }
     #footer .footer-top { padding-top: 40px !important; }
+    .sp-hero {
+      margin-top: -98px;
+      padding-top: 132px !important;
+    }
+    .sp-brand-logo {
+      padding: 0.11rem 0.18rem;
+    }
+    .header .sp-brand-logo img {
+      width: 56px !important;
+      min-width: 56px;
+      max-height: 44px !important;
+    }
+    #footer .sp-footer-logo img {
+      width: clamp(84px, 24vw, 112px);
+      max-height: none !important;
+    }
+    .sp-kicker {
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+    }
+    .sp-hero-title {
+      font-size: 2.2rem;
+      line-height: 1.1;
+    }
+    .sp-hero-copy {
+      font-size: 1rem;
+    }
+    .sp-problem-card h3 {
+      font-size: 1.46rem;
+    }
+    .sp-tag-wrap span {
+      font-size: 0.9rem;
+    }
+    .sp-problem-banner h4 {
+      font-size: 1.4rem;
+    }
+    .sp-problem-footer-note {
+      font-size: 1.25rem;
+    }
+    .sp-service-card h3 {
+      font-size: 1.28rem;
+    }
+    .sp-products-shell {
+      padding: 1.2rem 0.92rem 1rem;
+    }
+    .sp-product-name {
+      font-size: 1.56rem;
+    }
+    .sp-product-chip {
+      font-size: 0.62rem;
+    }
+    .sp-products-note {
+      font-size: 1.3rem;
+    }
+    .sp-products-cta {
+      width: 100%;
+      font-size: 1rem;
+    }
+    .sp-method-head {
+      padding: 1rem 0.9rem 0.85rem;
+    }
+    .sp-method-body {
+      padding: 0.78rem 0.78rem 0.8rem;
+    }
+    .sp-method-title {
+      font-size: 2rem;
+    }
+    .sp-method-timeline {
+      grid-template-columns: 1fr;
+      gap: 0.55rem;
+      padding: 0.76rem 0.9rem;
+    }
+    .sp-method-step::before {
+      display: none;
+    }
+    .sp-method-footer {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .sp-method-footer p {
+      font-size: 1.22rem;
+    }
+    .sp-method-footer b {
+      font-size: 1.75rem;
+    }
+    .sp-about-title {
+      font-size: 2.2rem;
+    }
+    .sp-about-quote {
+      font-size: 1.14rem;
+    }
+    .sp-flow-8w {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.45rem;
+    }
+    .sp-flow-8w strong {
+      font-size: 1.7rem;
+    }
+    .sp-stats {
+      grid-template-columns: 1fr;
+    }
+    .sp-stat-item {
+      border-right: 0;
+      border-bottom: 1px solid rgba(30, 70, 106, 0.9);
+    }
+    .sp-stat-item:last-child {
+      border-bottom: 0;
+    }
   }
   </style>
 </head>
@@ -833,28 +2715,12 @@
 
   <header id="header" class="header sticky-top">
 
-    <div class="topbar d-flex align-items-center">
-      <div class="container d-flex justify-content-center justify-content-md-between">
-        <div class="contact-info d-flex align-items-center">
-          <i class="bi bi-envelope d-flex align-items-center"><a
-              href="mailto:soporte@starpathai.mx">soporte@starpathai.mx</a></i>
-          <i class="bi bi-phone d-flex align-items-center ms-4"><span>+52 5540448996</span></i>
-        </div>
-        <div class="social-links d-none d-md-flex align-items-center">
-          <a href="#" class="twitter"><i class="bi bi-twitter-x"></i></a>
-          <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
-          <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
-          <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
-        </div>
-      </div>
-    </div><!-- End Top Bar -->
-
-    <div class="branding d-flex align-items-center">
-      <div class="container position-relative d-flex align-items-center justify-content-between">
+    <div class="branding d-flex align-items-center sp-landing-nav-wrap">
+      <div class="container position-relative d-flex align-items-center justify-content-between sp-nav-container">
 
         <!-- LOGO + TEXTO -->
-        <a href="{% url 'home' %}" class="logo d-flex align-items-center gap-3 me-auto">
-          <img src="{% static 'img/logo_star.png' %}" alt="Star Path Icon">
+        <a href="{% url 'home' %}" class="logo d-flex align-items-center gap-3 me-auto sp-brand-logo">
+          <img src="{% static 'img/Logo_StarPath_1280X144.png' %}" alt="StarPath">
 
         </a>
 
@@ -862,17 +2728,16 @@
         <nav id="navmenu" class="navmenu">
           <ul>
             <li><a href="#hero" class="active">Inicio</a></li>
-            <li><a href="#about">Quiénes Somos</a></li>
+            <li><a href="#problema">El Problema</a></li>
             <li><a href="#services">Servicios</a></li>
-            <li><a href="#departments">Conoce el Modelo de Trabajo</a></li>
-            <li><a href="{% url 'ats_producto' %}">Órbita</a></li>
-            <li><a href="http://www.eve360.mx/">EVE360</a></li>
+            <li><a href="#productos">Productos</a></li>
+            <li><a href="#departments">Metodología</a></li>
           </ul>
           <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>
 
         <!-- BOTÓN -->
-        <a class="cta-btn d-none d-sm-block" href="#contact">Contacto</a>
+        <a class="cta-btn d-none d-sm-block sp-cta-top" href="#contact">Conversa tu impacto</a>
 
       </div>
     </div>
@@ -883,169 +2748,380 @@
   <main class="main">
 
     <!-- Hero Section -->
-    <section id="hero" class="hero section">
+    <section id="hero" class="hero section sp-hero">
 
       <img src="{% static 'img/fondo_inicio.png' %}" alt="" data-aos="fade-in">
       <div class="hero-overlay"></div>
 
       <div class="container position-relative">
+        <div class="row g-4 align-items-start sp-hero-grid">
+          <div class="col-lg-6" data-aos="fade-right" data-aos-delay="100">
+            <p class="sp-kicker">Arquitectura de decisiones empresariales gobernadas</p>
+            <h1 class="sp-hero-title">
+              Diseñamos cómo tu empresa <em>decide</em>. Antes de automatizar. Antes de escalar. Antes de exponerte al riesgo.
+            </h1>
+            <p class="sp-hero-copy">
+              Convertimos decisiones críticas en activos versionables, trazables y auditables. Diseñamos sistemas que sobreviven auditorías. Escalamos capacidad sin escalar riesgo.
+            </p>
 
-        <div class="welcome position-relative" data-aos="fade-down" data-aos-delay="100">
-          <h2>Bienvenidos a Star Path</h2>
-          <p>Empresa especializada en el diseño, automatización y operación de sistemas orientados a escalar la
-            operación.</p>
+            <div class="sp-hero-actions">
+              <a href="#contact" class="sp-btn-primary">Conversa tu impacto</a>
+              <a href="#departments" class="sp-btn-secondary">Ver cómo lo hacemos</a>
+            </div>
+            <p class="sp-hero-meta">Diagnóstico sin costo · 30 minutos · Con resultado ejecutivo</p>
+          </div>
+
+          <div class="col-lg-6" id="problema-panel" data-aos="fade-left" data-aos-delay="150">
+            <div class="sp-problem-label">El problema real</div>
+
+            <article class="sp-problem-card sp-problem-card--active">
+              <h3>Automatización aislada</h3>
+              <div class="sp-tag-wrap">
+                <span>Procesos desconectados</span>
+                <span>Sin trazabilidad</span>
+                <span>Excepciones invisibles</span>
+              </div>
+            </article>
+
+            <article class="sp-problem-card">
+              <h3>IA sin gobierno</h3>
+              <div class="sp-tag-wrap">
+                <span>Pilotos sin impacto</span>
+                <span>Decisiones no auditables</span>
+                <span>Sin integración real</span>
+              </div>
+            </article>
+
+            <article class="sp-problem-card">
+              <h3>Escalamiento con riesgo</h3>
+              <div class="sp-tag-wrap">
+                <span>Costos lineales</span>
+                <span>Errores acumulativos</span>
+                <span>Sin evidencia ejecutiva</span>
+              </div>
+            </article>
+            <p class="sp-problem-note">Si no es versionable, no es gobernable.</p>
+          </div>
         </div>
 
-
-        <div class="content row gy-4">
-          <div class="col-lg-4 d-flex align-items-stretch">
-            <div class="why-box" data-aos="zoom-out" data-aos-delay="200">
-              <h3>¿Por qué Star Path?</h3>
-
-              <ul class="why-starpath">
-                <li>Pensamos como dueños de la operación, no como proveedores.</li>
-                <li>Convertimos la complejidad en control.</li>
-                <li>La automatización aquí tiene impacto real en el negocio.</li>
-                <li>No solo implementamos: nos quedamos.</li>
-                <li>Hablamos en indicadores, no en promesas.</li>
-              </ul>
-
-              <p class="closing-text">
-                Star Path no se contrata para “hacer algo”.
-                Se elige para hacer que la operación funcione mejor, hoy y mañana.
-              </p>
-
-              <div class="text-center">
-                <a href="#about" class="more-btn"><span>Quiénes Somos</span> <i class="bi bi-chevron-right"></i></a>
-              </div>
-            </div>
-          </div><!-- End Why Box -->
-
-          <div class="col-lg-8 d-flex align-items-stretch">
-            <div class="d-flex flex-column justify-content-center">
-              <div class="row gy-4">
-
-                <div class="col-xl-4 d-flex align-items-stretch">
-                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="300">
-                    <i class="bi bi-lightning-charge"></i>
-                    <h4>Innovación que Impulsa tu Negocio</h4>
-                    <p>Diseñamos y operamos soluciones tecnológicas que transforman la manera en que tu empresa ejecuta
-                      su operación.</p>
-                  </div>
-                </div><!-- End Icon Box -->
-
-                <div class="col-xl-4 d-flex align-items-stretch">
-                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="400">
-                    <i class="bi bi-diagram-3 "></i>
-                    <h4>Digitalización Inteligente</h4>
-                    <p>Convertimos procesos manuales y frágiles en flujos digitales robusto</p>
-                  </div>
-                </div><!-- End Icon Box -->
-
-                <div class="col-xl-4 d-flex align-items-stretch">
-                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="500">
-                    <i class="bi bi-arrows-expand"></i>
-                    <h4>Sistemas Flexibles y Evolutivos</h4>
-                    <p>Creamos soluciones hechas para operar y escalar</p>
-                  </div>
-                </div><!-- End Icon Box -->
-
-              </div>
-            </div>
+        <div class="sp-stats" data-aos="fade-up" data-aos-delay="180">
+          <div class="sp-stat-item">
+            <h4>↓70%</h4>
+            <p>Ciclo operativo<br>Supply &amp; Proveedores</p>
           </div>
-        </div><!-- End  Content-->
-
+          <div class="sp-stat-item">
+            <h4>↑90%</h4>
+            <p>Precisión financiera<br>Facturación</p>
+          </div>
+          <div class="sp-stat-item">
+            <h4>4 meses</h4>
+            <p>ROI medible<br>desde primera liberación</p>
+          </div>
+          <div class="sp-stat-item">
+            <h4>8 sem</h4>
+            <p>Blueprint aprobado<br>a producción gobernada</p>
+          </div>
+        </div>
       </div>
 
     </section><!-- /Hero Section -->
 
-    <!-- About Section -->
-    <section id="about" class="about section">
+    <section id="problema" class="section sp-problem-section">
       <div class="container">
-        <div class="row gy-4 gx-5">
+        <div class="sp-problem-inner" data-aos="fade-up" data-aos-delay="90">
+          <p class="sp-problem-kicker">El problema real</p>
+          <h2 class="sp-problem-title">El problema no es la automatización. <em>Es la falta de gobierno en las decisiones.</em></h2>
+          <p class="sp-problem-sub">
+            Las empresas invierten en tecnología y siguen operando con los mismos riesgos invisibles. La causa no es falta de herramientas: es que nadie diseñó cómo la empresa decide antes de automatizar cómo ejecuta.
+          </p>
 
-          <!-- Columna Izquierda: Quiénes Somos -->
-          <div class="col-lg-6 position-relative align-self-start" data-aos="fade-up" data-aos-delay="200">
-
-            <div class="about-panel">
-              <h3>Quiénes Somos</h3>
-
-              <p class="mb-3">
-                Star Path es una empresa de soluciones tecnológicas especializada en el diseño e implementación de
-                arquitecturas low-code, automatización inteligente de procesos y Agentic AI, complementadas con
-                servicios
-                de <strong>staff augmentation</strong> para crear y operar soluciones digitales escalables.
-              </p>
-
-              <p class="mb-4">
-                Diseñamos sistemas, los automatizamos y ponemos a los equipos correctos para que funcionen en el mundo
-                real.
-              </p>
-
-              <ul class="about-highlights">
-                <li><i class="fa-solid fa-layer-group"></i> Arquitecturas low-code listas para operar</li>
-                <li><i class="fa-solid fa-gears"></i> Automatización enfocada en eficiencia y control</li>
-                <li><i class="fa-solid fa-robot"></i> Agentic AI aplicada a procesos reales</li>
-                <li><i class="fa-solid fa-people-group"></i> Talento tech bajo demanda para ejecución</li>
+          <div class="sp-problem-grid">
+            <article class="sp-problem-block">
+              <span class="sp-problem-icon"><i class="bi bi-diagram-3"></i></span>
+              <h3>Automatización aislada</h3>
+              <ul class="sp-problem-list">
+                <li>Procesos desconectados entre sí</li>
+                <li>Sin trazabilidad en las excepciones</li>
+                <li>Dependencia crítica de personas</li>
+                <li>Riesgo no cuantificado</li>
               </ul>
+            </article>
 
-              <div class="about-badge">
-                <i class="fa-solid fa-chart-line"></i>
-                <span>Enfoque en resultados medibles</span>
-              </div>
-            </div>
+            <article class="sp-problem-block sp-problem-block--active">
+              <span class="sp-problem-icon"><i class="bi bi-shield-lock"></i></span>
+              <h3>IA sin gobierno</h3>
+              <ul class="sp-problem-list">
+                <li>Pilotos sin impacto medible</li>
+                <li>Decisiones no auditables</li>
+                <li>Sin integración real al negocio</li>
+                <li>Escalamiento sin estructura</li>
+              </ul>
+            </article>
 
+            <article class="sp-problem-block">
+              <span class="sp-problem-icon"><i class="bi bi-graph-up-arrow"></i></span>
+              <h3>Escalamiento con riesgo</h3>
+              <ul class="sp-problem-list">
+                <li>Costos que crecen linealmente</li>
+                <li>Errores acumulativos silenciosos</li>
+                <li>Sistemas desconectados</li>
+                <li>Sin evidencia para Dirección</li>
+              </ul>
+            </article>
           </div>
 
-          <!-- Columna Derecha: Metodología FLOW -->
-          <div class="col-lg-6 content" data-aos="fade-up" data-aos-delay="100">
+          <div class="sp-problem-banner">
+            <h4>Si no es versionable, <em>no es gobernable.</em></h4>
+            <p>Lo que no está versionado no es sistema. Es improvisación.</p>
+          </div>
 
-            <h3>Principios F.L.O.W.</h3>
-            <p class="mb-4">
-              El modelo F.L.O.W. define la forma en que se diseñan, implementan y operan soluciones, integrando
-              automatización e
-              inteligencia aplicada para asegurar consistencia, velocidad y control.
+          <p class="sp-problem-kicker">Decisión reactiva vs. decisión como infraestructura</p>
+          <div class="row g-3">
+            <div class="col-lg-6">
+              <div class="sp-decision-box">
+                <h3 class="sp-decision-title sp-decision-title--bad">● Decisión reactiva → resultado: dependencia operativa</h3>
+                <ul class="sp-decision-list sp-decision-list--bad">
+                  <li>Criterio individual sin documentar</li>
+                  <li>Cambios invisibles entre versiones</li>
+                  <li>Riesgo no medido ni trazable</li>
+                  <li>Resultados variables por persona</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="sp-decision-box">
+                <h3 class="sp-decision-title sp-decision-title--good">● Decisión como infraestructura → resultado: activo estratégico</h3>
+                <ul class="sp-decision-list sp-decision-list--good">
+                  <li>Reglas explícitas y versionadas</li>
+                  <li>Historial auditable por Dirección</li>
+                  <li>Métricas asociadas por versión</li>
+                  <li>Escalabilidad no lineal de costos</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="sp-problem-footer-note">
+            Cuando una decisión se convierte en arquitectura, deja de ser riesgo humano y se transforma en <em>ventaja estructural.</em>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="productos" class="section sp-products">
+      <div class="container">
+        <div class="sp-products-shell" data-aos="fade-up" data-aos-delay="120">
+          <p class="sp-products-kicker">Productos propios · Lo que construimos</p>
+          <h2 class="sp-products-title">No solo servicios. <em>Productos que operan por ti.</em></h2>
+          <p class="sp-products-sub">
+            EVE 360 y AI Agents son productos propios de StarPath con nombre, arquitectura y métricas independientes. No son servicios, son infraestructura.
+          </p>
+
+          <div class="row g-3">
+            <div class="col-lg-6">
+              <article class="sp-product-panel sp-product-panel--eve">
+                <div class="sp-product-head">
+                  <h3 class="sp-product-name sp-product-name--eve">EVE 360</h3>
+                  <span class="sp-product-chip sp-product-chip--eve">Producto propio</span>
+                </div>
+                <p class="sp-product-subtitle">RegTech &amp; Compliance Platform</p>
+                <p class="sp-product-quote">“Con EVE 360 no solo implementas tecnología: transformas la forma en que tu operación se gestiona.”</p>
+                <p class="sp-product-desc">
+                  Plataforma de cumplimiento regulatorio, automatización de compliance y control operativo para entornos de alta exigencia normativa en LatAm.
+                </p>
+                <a href="http://www.eve360.mx/" target="_blank" rel="noopener" class="sp-product-link">Explorar EVE360 <i class="bi bi-arrow-right"></i></a>
+
+                <div class="row g-3 sp-product-columns">
+                  <div class="col-md-6">
+                    <h4 class="sp-product-col-title">Qué resuelve</h4>
+                    <ul class="sp-product-list">
+                      <li>Gobierno regulatorio sin burocracia</li>
+                      <li>Iteración incremental de reglas</li>
+                      <li>Trazabilidad de cumplimiento</li>
+                      <li>Evidencia auditable automática</li>
+                    </ul>
+                  </div>
+                  <div class="col-md-6">
+                    <h4 class="sp-product-col-title">Qué habilita</h4>
+                    <ul class="sp-product-list">
+                      <li>Control y eficiencia a escala</li>
+                      <li>Versionamiento de políticas</li>
+                      <li>Reportes ejecutivos en tiempo real</li>
+                      <li>Integración a sistemas existentes</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="sp-product-stats">
+                  <div class="sp-product-stat">
+                    <strong>↑90%</strong>
+                    <span>Precisión en compliance</span>
+                  </div>
+                  <div class="sp-product-stat">
+                    <strong>↓95%</strong>
+                    <span>Errores críticos</span>
+                  </div>
+                  <div class="sp-product-stat">
+                    <strong>4 meses</strong>
+                    <span>ROI medible</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="col-lg-6">
+              <article class="sp-product-panel">
+                <div class="sp-product-head">
+                  <h3 class="sp-product-name">AI Agents</h3>
+                  <span class="sp-product-chip">StarPath Core</span>
+                </div>
+                <p class="sp-product-subtitle">Agentes Empresariales Gobernados</p>
+                <p class="sp-product-quote">“No automatizamos tareas. Diseñamos decisiones que escalan.”</p>
+                <p class="sp-product-desc">
+                  Agentes que deciden bajo reglas explícitas, viven en infraestructura segura y miden su impacto en tiempo real. Human-in-the-loop estratégico donde el caso lo justifica.
+                </p>
+                <a href="{% url 'ats_producto' %}" class="sp-product-link">Explorar AI Agents / Órbita <i class="bi bi-arrow-right"></i></a>
+
+                <div class="row g-3 sp-product-columns">
+                  <div class="col-md-6">
+                    <h4 class="sp-product-col-title">Cómo funciona</h4>
+                    <ul class="sp-product-list">
+                      <li>Detecta señales operativas en tiempo real</li>
+                      <li>Decide bajo reglas del negocio</li>
+                      <li>Ejecuta en tus sistemas</li>
+                      <li>Mide con evidencia auditable</li>
+                    </ul>
+                  </div>
+                  <div class="col-md-6">
+                    <h4 class="sp-product-col-title">Casos típicos</h4>
+                    <ul class="sp-product-list">
+                      <li>Supply &amp; proveedores</li>
+                      <li>Compras y órdenes</li>
+                      <li>Facturación inteligente</li>
+                      <li>Excepciones con escalamiento humano</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="sp-product-stats">
+                  <div class="sp-product-stat">
+                    <strong>↓70%</strong>
+                    <span>Ciclo operativo</span>
+                  </div>
+                  <div class="sp-product-stat">
+                    <strong>↑40%</strong>
+                    <span>Liberación de caja</span>
+                  </div>
+                  <div class="sp-product-stat">
+                    <strong>ISO 27001</strong>
+                    <span>Infraestructura certificada</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="sp-products-footer">
+            <p class="sp-products-note">Lo que no está gobernado es experimento. <em>Lo que está en StarPath es infraestructura.</em></p>
+            <a href="#contact" class="sp-products-cta">Conversa tu impacto →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section sp-about-flow-section">
+      <div class="container">
+        <div class="row g-4">
+          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="120">
+            <p class="sp-about-kicker">Por qué StarPath</p>
+            <h2 class="sp-about-title">No somos otro proveedor de IT. <em>Somos tu arquitecto de decisiones.</em></h2>
+            <p class="sp-about-copy">
+              StarPath surge de años diseñando y escalando organizaciones en entornos de alta complejidad operativa. Entendemos de primera mano lo que cuesta tener procesos críticos sin trazabilidad, automatización sin gobierno e IA sin control.
             </p>
 
-            <div class="flow-grid">
-
-              <div class="flow-card">
-                <div class="flow-icon"><i class="fa-solid fa-building-columns"></i></div>
+            <ul class="sp-why-list">
+              <li class="sp-why-item">
+                <span class="sp-why-index">01</span>
                 <div>
-                  <h5><span class="flow-letter">F</span> Flexible Foundation</h5>
-                  <p>Arquitectura sólida y diseño adaptable. Estructuras claras alineadas a la realidad del negocio.</p>
+                  <h4>Pensamos como dueños, no como proveedores</h4>
+                  <p>Arquitecto y Delivery asignado en cada proyecto. Nos quedamos.</p>
                 </div>
-              </div>
-
-              <div class="flow-card">
-                <div class="flow-icon"><i class="fa-solid fa-bolt"></i></div>
+              </li>
+              <li class="sp-why-item">
+                <span class="sp-why-index">02</span>
                 <div>
-                  <h5><span class="flow-letter">L</span> Leverage Automation</h5>
-                  <p>Automatización como multiplicador de capacidad. Libera tiempo, talento y margen operativo.</p>
+                  <h4>Diseñamos antes de automatizar</h4>
+                  <p>Primero estructuramos cómo decide tu empresa. Luego ejecutamos.</p>
                 </div>
-              </div>
-
-              <div class="flow-card">
-                <div class="flow-icon"><i class="fa-solid fa-bullseye"></i></div>
+              </li>
+              <li class="sp-why-item">
+                <span class="sp-why-index">03</span>
                 <div>
-                  <h5><span class="flow-letter">O</span> Outcome Focus</h5>
-                  <p>Resultados antes que tareas. Priorizamos impacto real, no actividad.</p>
+                  <h4>Hablamos en indicadores, no en promesas</h4>
+                  <p>Métricas ejecutivas y trazabilidad en cada entrega.</p>
                 </div>
-              </div>
-
-              <div class="flow-card">
-                <div class="flow-icon"><i class="fa-solid fa-gauge-high"></i></div>
+              </li>
+              <li class="sp-why-item">
+                <span class="sp-why-index">04</span>
                 <div>
-                  <h5><span class="flow-letter">W</span> Way of Execution</h5>
-                  <p>Disciplina operativa con mentalidad ágil. Planeamos claro, ejecutamos rápido y corregimos con
-                    datos.</p>
+                  <h4>Diseñado para LatAm, no para laboratorio</h4>
+                  <p>Enfoque en regulación, compliance y entornos reales de operación.</p>
                 </div>
-              </div>
+              </li>
+            </ul>
 
-            </div>
-
+            <p class="sp-about-quote">Star Path no se contrata para <em>“hacer algo”.</em> Se elige para convertir decisiones en <em>infraestructura que escala.</em></p>
           </div>
 
+          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="180">
+            <p class="sp-about-kicker">Metodología F.L.O.W.</p>
+            <h2 class="sp-about-title sp-about-title--inline-em">De decisión crítica a producción en <em>8 semanas.</em></h2>
+            <p class="sp-flow-copy">
+              El modelo F.L.O.W. ejecuta la arquitectura diseñada en ciclos controlados, asegurando impacto medible desde la primera liberación.
+            </p>
+
+            <div class="sp-flow-grid">
+              <article class="sp-flow-card">
+                <span class="sp-flow-letter">F</span>
+                <h4>Discover &amp; Frame</h4>
+                <p>Identificamos decisiones críticas, exposición a riesgo y dependencia. Definimos KPIs objetivo.</p>
+                <p class="sp-flow-outcome">→ Mapa de decisiones priorizado</p>
+              </article>
+
+              <article class="sp-flow-card">
+                <span class="sp-flow-letter">L</span>
+                <h4>Leverage &amp; Design</h4>
+                <p>Diseñamos la arquitectura, reglas explícitas y modelo versionable. Roadmap ejecutivo.</p>
+                <p class="sp-flow-outcome">→ Blueprint aprobado y ejecutable</p>
+              </article>
+
+              <article class="sp-flow-card">
+                <span class="sp-flow-letter">O</span>
+                <h4>Operate &amp; Build</h4>
+                <p>Desarrollo, automatizaciones e integraciones con demos semanales. 2 ciclos UAT.</p>
+                <p class="sp-flow-outcome">→ Decisión en producción</p>
+              </article>
+
+              <article class="sp-flow-card">
+                <span class="sp-flow-letter">W</span>
+                <h4>Watch &amp; Evolve</h4>
+                <p>Monitoreo, gestión de incidentes por impacto y mejora continua con datos.</p>
+                <p class="sp-flow-outcome">→ Operación que mejora sola</p>
+              </article>
+            </div>
+
+            <div class="sp-flow-8w">
+              <strong>8 sem</strong>
+              <p>Cada 8 semanas no entregamos código.<span>Entregamos infraestructura de decisión lista para escalar.</span></p>
+            </div>
+
+            <div class="sp-flow-tags">
+              <span>RPA cuando es determinístico</span>
+              <span>IA cuando es predictivo</span>
+              <span>Agentes cuando el caso lo justifica</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1054,174 +3130,119 @@
 
 
     <!-- Services Section -->
-    <section id="services" class="services section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Servicios</h2>
-        <p>
-          Diseñamos y operamos soluciones tecnológicas que transforman la manera
-          en que tu empresa ejecuta su operación.
-        </p>
-      </div>
-
+    <section id="services" class="section sp-services-section">
       <div class="container">
-        <div class="row gy-4">
+        <div class="sp-services-shell" data-aos="fade-up" data-aos-delay="100">
+          <p class="sp-services-kicker">Servicios · Lo que hacemos</p>
+          <h2 class="sp-services-title">Cinco capacidades. <em>Un solo marco de gobierno.</em></h2>
+          <p class="sp-services-sub">
+            Arquitecto asignado en cada proyecto. No proveemos recursos: activamos capacidad especializada alineada a arquitectura gobernada desde el diseño.
+          </p>
 
-          <!-- Servicio 1 -->
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="service-item position-relative">
+          <div class="row sp-services-grid">
+            <div class="col-lg-4">
+              <article class="sp-service-card sp-service-card--active">
+                <span class="sp-service-tag">Core · Arquitectura</span>
+                <h3>Arquitectura Estratégica de Decisiones</h3>
+                <p class="sp-service-quote">“Diseñamos cómo tu empresa decide antes de automatizar cómo ejecuta.”</p>
+                <ul class="sp-service-list">
+                  <li>Diseño de decisiones críticas con riesgo cuantificado</li>
+                  <li>Modelo versionable y auditable</li>
+                  <li>Framework de gobierno operativo</li>
+                  <li>Roadmap ejecutivo priorizado</li>
+                </ul>
+                <div class="sp-service-note">
+                  <h4>Impacto</h4>
+                  <p>↓30% riesgo · escalabilidad no lineal · evidencia para Dirección</p>
+                </div>
+              </article>
+            </div>
 
-              <div class="icon">
-                <i class="fa-solid fa-compass-drafting"></i>
-              </div>
+            <div class="col-lg-4">
+              <article class="sp-service-card">
+                <span class="sp-service-tag">Procesos · Automatización</span>
+                <h3>Automatización Inteligente de Procesos</h3>
+                <p class="sp-service-quote">“Convertimos procesos manuales y frágiles en flujos digitales gobernados.”</p>
+                <ul class="sp-service-list">
+                  <li>Intelligent Process Automation (IPA)</li>
+                  <li>Orquestación de workflows</li>
+                  <li>Integración de sistemas</li>
+                  <li>Automatización con IA gobernada</li>
+                  <li>Monitoreo y control en tiempo real</li>
+                </ul>
+                <div class="sp-service-note">
+                  <h4>Impacto</h4>
+                  <p>↑50% velocidad · ↓95% automatización gobernada · ↑40% liberación de capa</p>
+                </div>
+              </article>
+            </div>
 
-              <h3>Arquitectura & Asesoría Tecnológica</h3>
+            <div class="col-lg-4">
+              <article class="sp-service-card">
+                <span class="sp-service-tag">Talent · Gobierno</span>
+                <h3>Staff Augmentation Estratégico</h3>
+                <p class="sp-service-quote">“Talento que ejecuta bajo gobierno. No desarrolladores aislados.”</p>
+                <ul class="sp-service-list">
+                  <li>Developers (Oracle, SAP, Python, RPA)</li>
+                  <li>AI Engineers / Cloud Architects</li>
+                  <li>Project Managers con criterio operativo</li>
+                  <li>Validación estratégica vía ÓRBITA™</li>
+                </ul>
+                <div class="sp-service-note">
+                  <h4>Diferenciador</h4>
+                  <p>Hard Skills + Soft Skills + Operación Judgment + Alineación desde día 1.</p>
+                </div>
+              </article>
+            </div>
 
-              <p class="service-intro">
-                Este servicio se enfoca en el diseño de la base sobre la cual opera la infraestructura digital de la
-                organización:
-              </p>
+            <div class="col-lg-5">
+              <article class="sp-service-card">
+                <span class="sp-service-tag">Squads · Ejecución</span>
+                <h3>Squads Especializados por Capacidad Crítica</h3>
+                <p class="sp-service-quote">“Capacidad modular con impacto acumulativo.”</p>
+                <ul class="sp-service-list">
+                  <li>Squad Automatización Operativa (RPA / IPA)</li>
+                  <li>Squad IA / Decision Intelligence</li>
+                  <li>Squad Orquestación e Integraciones</li>
+                  <li>Arquitecto asignado + demos semanales</li>
+                </ul>
+                <div class="sp-service-note">
+                  <h4>Impacto</h4>
+                  <p>↓95% errores críticos · ↑30% eficiencia estructural · 8 semanas a producción</p>
+                </div>
+              </article>
+            </div>
 
-              <ul class="service-list">
-                <li>Arquitecturas low-code</li>
-                <li>Diseño de ecosistemas digitales</li>
-                <li>Gobierno tecnológico y operativo</li>
-                <li>Roadmaps de transformación</li>
-              </ul>
-
+            <div class="col-lg-7">
+              <article class="sp-service-card">
+                <span class="sp-service-tag">Soporte · Evolución continua</span>
+                <h3>Soporte Operativo & Evolución Continua</h3>
+                <p class="sp-service-quote">“No reaccionamos a tickets. Prevenimos impacto.”</p>
+                <div class="row g-3">
+                  <div class="col-md-7">
+                    <ul class="sp-service-list">
+                      <li>Monitoreo inteligente 24/7</li>
+                      <li>SLA por criticidad, no por volumen</li>
+                      <li>Primera respuesta: 15–30 min</li>
+                      <li>Mantenimiento evolutivo incluido</li>
+                      <li>Optimización continua de agentes y bots</li>
+                      <li>KPI ejecutivos mensuales</li>
+                    </ul>
+                  </div>
+                  <div class="col-md-5">
+                    <ul class="sp-levels">
+                      <li><strong>Nivel 1 · Continuidad</strong><span>Mantener la operación viva</span></li>
+                      <li><strong>Nivel 2 · Estabilización</strong><span>Eliminar fricción y reincidencias</span></li>
+                      <li><strong>Nivel 3 · Evolución</strong><span>Optimización funcional y nuevas reglas</span></li>
+                      <li><strong>Nivel 4 · Plataforma</strong><span>Infraestructura y gobierno técnico total</span></li>
+                    </ul>
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
-
-          <!-- Servicio 2 -->
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-            <div class="service-item position-relative">
-
-              <div class="icon">
-                <i class="fa-solid fa-gears"></i>
-              </div>
-
-              <h3>Automatización Inteligente de Procesos</h3>
-
-              <p class="service-intro">
-                Convertimos procesos manuales y frágiles en flujos digitales robustos:
-              </p>
-
-              <ul class="service-list">
-                <li>Intelligent Process Automation (IPA)</li>
-                <li>Orquestación de workflows</li>
-                <li>Integración de sistemas</li>
-                <li>Automatización con IA</li>
-                <li>Monitoreo y control en tiempo real</li>
-              </ul>
-
-            </div>
-          </div>
-
-          <!-- Servicio 3 -->
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-            <div class="service-item position-relative">
-
-              <div class="icon">
-                <i class="fa-solid fa-code"></i>
-              </div>
-
-              <h3>Desarrollo de Soluciones Digitales</h3>
-
-              <p class="service-intro">
-                Creamos soluciones hechas para operar y escalar:
-              </p>
-
-              <ul class="service-list">
-                <li>Aplicaciones low-code y pro-code</li>
-                <li>Portales operativos y de negocio</li>
-                <li>Soluciones escalables y seguras</li>
-              </ul>
-
-            </div>
-          </div>
-
-          <!-- Servicio 4 -->
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
-            <div class="service-item position-relative">
-
-              <div class="icon">
-                <i class="fa-solid fa-people-group"></i>
-              </div>
-
-              <h3>Tech Talent on Demand</h3>
-
-              <p class="service-intro">
-                Equipos listos para ejecutar, integrados a tu operación:
-              </p>
-
-              <ul class="service-list">
-                <li>Arquitectos de solución</li>
-                <li>Ingenieros de automatización</li>
-                <li>Desarrolladores low-code / full-stack</li>
-                <li>Especialistas en IA y datos</li>
-                <li>Equipos de operación y soporte</li>
-              </ul>
-
-            </div>
-          </div>
-
-          <!-- Servicio 5 -->
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
-            <div class="service-item position-relative">
-
-              <div class="icon">
-                <i class="fa-solid fa-life-ring"></i>
-              </div>
-
-              <h3>Soporte Operativo & Evolución Continua</h3>
-
-              <p class="service-intro">
-                Aseguramos continuidad, estabilidad y mejora constante:
-              </p>
-
-              <ul class="service-list">
-                <li>Soporte técnico y funcional</li>
-                <li>Mantenimiento evolutivo</li>
-                <li>Optimización de procesos</li>
-                <li>Mejora continua de automatizaciones</li>
-                <li>Acompañamiento operativo</li>
-              </ul>
-
-            </div>
-          </div>
-
-          <!-- Servicio 6 -->
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
-            <div class="service-item position-relative highlight">
-
-              <div class="icon">
-                <i class="fa-solid fa-shield-halved"></i>
-              </div>
-
-              <h3>Partner Oficial — EVE 360</h3>
-
-              <p class="service-intro">
-                Plataforma avanzada de cumplimiento, automatización y control operativo:
-              </p>
-
-              <ul class="service-list">
-                <li>Gobierno y trazabilidad operativa</li>
-                <li>Automatización de cumplimiento</li>
-                <li>Control y eficiencia a escala</li>
-              </ul>
-
-              <p class="service-footer">
-                Con EVE 360 no solo implementas tecnología transformas la forma
-                en que tu operación se gestiona.
-              </p>
-
-            </div>
-          </div>
-
         </div>
       </div>
-
     </section>
     <!-- /Services Section -->
 
@@ -1229,164 +3250,130 @@
 
 
     <!-- Departments Section -->
-    <section id="departments" class="departments section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Metodología de Trabajo</h2>
-        <p>Aseguramos que cada solución se diseñe, se implemente y se opere con orden, control y resultados medibles.
-        </p>
-      </div>
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-        <div class="row">
-
-          <!-- Tabs -->
-          <div class="col-lg-3">
-            <ul class="nav nav-tabs flex-column flow-tabs">
-              <li class="nav-item">
-                <a class="nav-link active show" data-bs-toggle="tab" href="#departments-tab-1">
-                  <span class="flow-tag">F</span> Discover & Frame
-                  <small>Análisis</small>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#departments-tab-2">
-                  <span class="flow-tag">L</span> Design & Leverage
-                  <small>Propuesta</small>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#departments-tab-3">
-                  <span class="flow-tag">O</span> Build & Operate
-                  <small>Implementación</small>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#departments-tab-4">
-                  <span class="flow-tag">W</span> Optimize & Evolve
-                  <small>Evolución</small>
-                </a>
-              </li>
-            </ul>
+    <section id="departments" class="section sp-method-section">
+      <div class="container">
+        <div class="sp-method-shell" data-aos="fade-up" data-aos-delay="120">
+          <div class="sp-method-head">
+            <p class="sp-method-kicker">Metodología F.L.O.W.</p>
+            <h2 class="sp-method-title">De decisión crítica a producción. <em>En 8 semanas controladas.</em></h2>
+            <p class="sp-method-sub">Arquitectura primero. Producción después. Impacto medible siempre. Cada fase tiene un entregable concreto, no actividades, resultados.</p>
           </div>
 
-          <!-- Content -->
-          <div class="col-lg-9 mt-4 mt-lg-0">
-            <div class="tab-content">
+          <div class="sp-method-timeline">
+            <article class="sp-method-step">
+              <span class="sp-method-dot">F</span>
+              <h4>Sem 0-1</h4>
+              <p>Intake &amp; Validation</p>
+            </article>
+            <article class="sp-method-step">
+              <span class="sp-method-dot">L</span>
+              <h4>Sem 2-5</h4>
+              <p>Diseño &amp; Desarrollo</p>
+            </article>
+            <article class="sp-method-step">
+              <span class="sp-method-dot">O</span>
+              <h4>Sem 6-8</h4>
+              <p>Deployment &amp; UAT</p>
+            </article>
+            <article class="sp-method-step">
+              <span class="sp-method-dot">W</span>
+              <h4>Continuo</h4>
+              <p>Gobierno Operativo</p>
+            </article>
+          </div>
 
-              <!-- F -->
-              <div class="tab-pane active show" id="departments-tab-1">
-                <div class="row align-items-center">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                    <h3>F: Discover & Frame</h3>
-                    <p class="fst-italic">Entendemos tu operación antes de tocar tecnología.</p>
-
-                    <ul class="flow-bullets">
-                      <li><i class="fa-solid fa-diagram-project"></i> Evaluación de procesos</li>
-                      <li><i class="fa-solid fa-magnifying-glass-chart"></i> Análisis de madurez operativa y tecnológica
-                      </li>
-                      <li><i class="fa-solid fa-triangle-exclamation"></i> Identificación de fricciones, riesgos y
-                        oportunidades</li>
-                      <li><i class="fa-solid fa-bullseye"></i> Definición de objetivos y KPIs</li>
-                    </ul>
-
-                    <div class="flow-output">
-                      <i class="fa-solid fa-flag-checkered"></i>
-                      <span><strong>Salida:</strong> Mapa claro de tu operación y sus prioridades.</span>
-                    </div>
+          <div class="sp-method-body">
+            <div class="row sp-method-cards">
+              <div class="col-lg-6">
+                <article class="sp-method-card">
+                  <div class="sp-method-card-head">
+                    <h3 class="sp-method-card-title">Discover &amp; Frame</h3>
+                    <span class="sp-method-chip">Sem 0-1</span>
                   </div>
-
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="{% static 'img/metodo_uno.png' %}" alt="" class="img-fluid flow-img">
-                  </div>
-                </div>
+                  <p class="sp-method-card-sub">Diseño Estratégico</p>
+                  <p class="sp-method-quote">“Entendemos tu operación antes de tocar tecnología.”</p>
+                  <ul class="sp-method-list">
+                    <li>Identificación de decisiones con impacto financiero</li>
+                    <li>Evaluación de madurez operativa y tecnológica</li>
+                    <li>Análisis de riesgo, fricciones y dependencias humanas</li>
+                    <li>Definición de objetivos y KPIs objetivo</li>
+                    <li>Alineación con arquitectura existente</li>
+                  </ul>
+                  <p class="sp-method-output">ENTREGABLE · Mapa de decisiones críticas priorizado por impacto financiero y riesgo</p>
+                </article>
               </div>
 
-              <!-- L -->
-              <div class="tab-pane" id="departments-tab-2">
-                <div class="row align-items-center">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                    <h3>L: Design & Leverage</h3>
-                    <p class="fst-italic">Diseñamos la arquitectura que tu operación necesita.</p>
-
-                    <ul class="flow-bullets">
-                      <li><i class="fa-solid fa-sitemap"></i> Diseño de solución tecnológica y operativa</li>
-                      <li><i class="fa-solid fa-gears"></i> Definición de automatizaciones</li>
-                      <li><i class="fa-solid fa-road"></i> Roadmap de implementación</li>
-                      <li><i class="fa-solid fa-shield-halved"></i> Modelo de gobierno y control</li>
-                    </ul>
-
-                    <div class="flow-output">
-                      <i class="fa-solid fa-flag-checkered"></i>
-                      <span><strong>Salida:</strong> Propuesta estructurada, priorizada y ejecutable.</span>
-                    </div>
+              <div class="col-lg-6">
+                <article class="sp-method-card">
+                  <div class="sp-method-card-head">
+                    <h3 class="sp-method-card-title">Design &amp; Leverage</h3>
+                    <span class="sp-method-chip">Sem 2-5</span>
                   </div>
-
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="{% static 'img/metodo_dos.png' %}" alt="" class="img-fluid flow-img">
-                  </div>
-                </div>
+                  <p class="sp-method-card-sub">Propuesta Ejecutable</p>
+                  <p class="sp-method-quote">“Diseñamos la arquitectura que tu operación necesita.”</p>
+                  <ul class="sp-method-list">
+                    <li>Diseño de solución tecnológica y operativa</li>
+                    <li>Reglas explícitas, estados y métricas asociadas</li>
+                    <li>Modelo versionable validado con el negocio</li>
+                    <li>Roadmap de implementación priorizado</li>
+                    <li>Modelo de gobierno y control definido</li>
+                  </ul>
+                  <p class="sp-method-output">ENTREGABLE · Blueprint aprobado, priorizado y ejecutable con VoBo del negocio</p>
+                </article>
               </div>
 
-              <!-- O -->
-              <div class="tab-pane" id="departments-tab-3">
-                <div class="row align-items-center">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                    <h3>O: Build & Operate</h3>
-                    <p class="fst-italic">Convertimos el diseño en operación real.</p>
-
-                    <ul class="flow-bullets">
-                      <li><i class="fa-solid fa-code"></i> Desarrollo e integración de soluciones</li>
-                      <li><i class="fa-solid fa-wand-magic-sparkles"></i> Implementación de automatizaciones</li>
-                      <li><i class="fa-solid fa-sliders"></i> Configuración de plataformas</li>
-                      <li><i class="fa-solid fa-handshake-angle"></i> Acompañamiento operativo</li>
-                    </ul>
-
-                    <div class="flow-output">
-                      <i class="fa-solid fa-flag-checkered"></i>
-                      <span><strong>Salida:</strong> Sistema funcionando en tu operación.</span>
-                    </div>
+              <div class="col-lg-6">
+                <article class="sp-method-card">
+                  <div class="sp-method-card-head">
+                    <h3 class="sp-method-card-title">Build &amp; Operate</h3>
+                    <span class="sp-method-chip">Sem 6-8</span>
                   </div>
-
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="{% static 'img/metodo_tres.png' %}" alt="" class="img-fluid flow-img">
-                  </div>
-                </div>
+                  <p class="sp-method-card-sub">Implementación Controlada</p>
+                  <p class="sp-method-quote">“Convertimos el diseño en operación real.”</p>
+                  <ul class="sp-method-list">
+                    <li>Desarrollo e integración de soluciones</li>
+                    <li>Implementación de automatizaciones gobernadas</li>
+                    <li>Demos de progreso semanal al negocio</li>
+                    <li>2 ciclos de UAT + producción controlada</li>
+                    <li>Configuración de plataformas y acompañamiento</li>
+                  </ul>
+                  <p class="sp-method-output">ENTREGABLE · Decisión en producción, medida y gobernada desde el primer día</p>
+                </article>
               </div>
 
-              <!-- W -->
-              <div class="tab-pane" id="departments-tab-4">
-                <div class="row align-items-center">
-                  <div class="col-lg-8 details order-2 order-lg-1">
-                    <h3>W: Optimize & Evolve</h3>
-                    <p class="fst-italic">La operación nunca se queda quieta: medimos, optimizamos y evolucionamos.</p>
-
-                    <ul class="flow-bullets">
-                      <li><i class="fa-solid fa-chart-line"></i> Medición de resultados</li>
-                      <li><i class="fa-solid fa-filter-circle-dollar"></i> Optimización de procesos</li>
-                      <li><i class="fa-solid fa-arrows-rotate"></i> Evolución tecnológica</li>
-                      <li><i class="fa-solid fa-database"></i> Mejora continua con datos</li>
-                    </ul>
-
-                    <div class="flow-output">
-                      <i class="fa-solid fa-flag-checkered"></i>
-                      <span><strong>Salida:</strong> Operación más eficiente, estable y rentable.</span>
-                    </div>
+              <div class="col-lg-6">
+                <article class="sp-method-card">
+                  <div class="sp-method-card-head">
+                    <h3 class="sp-method-card-title">Watch &amp; Evolve</h3>
+                    <span class="sp-method-chip">Continuo</span>
                   </div>
-
-                  <div class="col-lg-4 text-center order-1 order-lg-2">
-                    <img src="{% static 'img/metodo_cuatro.png' %}" alt="" class="img-fluid flow-img">
-                  </div>
-                </div>
+                  <p class="sp-method-card-sub">Gobierno Operativo Continuo</p>
+                  <p class="sp-method-quote">“La operación nunca se queda quieta. Medimos, optimizamos y evolucionamos.”</p>
+                  <ul class="sp-method-list">
+                    <li>Monitoreo proactivo 24/7, no reactivo a tickets</li>
+                    <li>SLA por criticidad e impacto financiero</li>
+                    <li>Optimización continua de agentes y bots</li>
+                    <li>Mejora incremental mensual con datos</li>
+                    <li>Reporte ejecutivo con KPIs mensuales</li>
+                  </ul>
+                  <p class="sp-method-output">ENTREGABLE · Operación más eficiente, estable y rentable con evidencia auditable</p>
+                </article>
               </div>
+            </div>
 
+            <div class="sp-method-tags">
+              <span>RPA cuando es determinístico</span>
+              <span>IA cuando es predictivo</span>
+              <span>Agentes cuando el caso lo justifica</span>
+            </div>
+
+            <div class="sp-method-footer">
+              <p>Cada 8 semanas no entregamos código. Entregamos <em>infraestructura de decisión lista para escalar.</em></p>
+              <b>8<br><small>semanas<br>a producción</small></b>
             </div>
           </div>
-
         </div>
       </div>
-
     </section>
     <!-- /Departments Section -->
 
@@ -1416,11 +3403,19 @@
         </iframe>
       </div>-->
 
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <div class="container sp-contact-shell" data-aos="fade-up" data-aos-delay="100">
         <div class="row gy-4">
 
           <!-- Info -->
-          <div class="col-lg-4">
+          <div class="col-lg-4 sp-contact-panel">
+            <div class="sp-contact-intro">
+              <p><strong>Diagnóstico ejecutivo</strong>Cuéntanos tu reto operativo y te proponemos una ruta clara en 30 minutos.</p>
+            </div>
+            <div class="sp-contact-badges">
+              <span>Respuesta &lt; 24h</span>
+              <span>Sesión 30 min</span>
+              <span>Sin costo</span>
+            </div>
 
             <div class="info-item d-flex">
               <i class="bi bi-geo-alt"></i>
@@ -1449,32 +3444,41 @@
           </div>
 
           <!-- Form -->
-          <div class="col-lg-8">
+          <div class="col-lg-8 sp-contact-form-panel">
             <form id="contactForm" method="post" class="php-email-form">
               {% csrf_token %}
+              <div class="sp-contact-form-head">
+                <h3>Conversemos tu impacto</h3>
+                <p>Déjanos tus datos y te contactamos con un enfoque técnico-comercial en menos de 24 horas.</p>
+              </div>
 
               <div class="row gy-4">
-                <div class="col-md-6">
-                  <input type="text" name="name" class="form-control" placeholder="Nombre completo" required>
+                <div class="col-md-6 sp-field">
+                  <label for="contact_name">Nombre completo</label>
+                  <input id="contact_name" type="text" name="name" class="form-control" placeholder="Nombre completo" required>
                 </div>
 
-                <div class="col-md-6">
-                  <input type="email" name="email" class="form-control" placeholder="Correo corporativo" required>
+                <div class="col-md-6 sp-field">
+                  <label for="contact_email">Correo corporativo</label>
+                  <input id="contact_email" type="email" name="email" class="form-control" placeholder="Correo corporativo" required>
                 </div>
 
-                <div class="col-md-12">
-                  <input type="text" name="subject" class="form-control" placeholder="Asunto" required>
+                <div class="col-md-12 sp-field">
+                  <label for="contact_subject">Asunto</label>
+                  <input id="contact_subject" type="text" name="subject" class="form-control" placeholder="Asunto" required>
                 </div>
 
-                <div class="col-md-12">
-                  <textarea name="message" class="form-control" rows="6"
+                <div class="col-md-12 sp-field">
+                  <label for="contact_message">Mensaje</label>
+                  <textarea id="contact_message" name="message" class="form-control" rows="6"
                     placeholder="Cuéntanos brevemente sobre tu operación o necesidad" required></textarea>
                 </div>
 
                 <div class="col-md-12 text-center">
-                  <button id="contactBtn" type="submit">Agendar conversación</button>
+                  <button id="contactBtn" type="submit">Agendar conversación ejecutiva</button>
                 </div>
               </div>
+              <p class="sp-contact-note">Sin spam. Solo conversación ejecutiva y propuesta accionable.</p>
             </form>
 
           </div>
@@ -1495,9 +3499,8 @@
 
         <!-- Brand + Contact -->
         <div class="col-lg-4 col-md-6 footer-about">
-          <a href="#hero" class="logo d-flex align-items-center gap-2">
-            <img src="{% static 'img/logo_star.png' %}" alt="Star Path" style="height:48px;width:auto;">
-            <span class="sitename">Star Path</span>
+          <a href="#hero" class="logo sp-footer-logo d-inline-flex align-items-center">
+            <img src="{% static 'img/Logo_StarPath_1280X144.png' %}" alt="StarPath">
           </a>
 
           <p class="mt-3 footer-tagline">

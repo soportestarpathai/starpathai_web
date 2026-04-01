@@ -165,3 +165,41 @@ Configura el servidor (Nginx, etc.) para servir los archivos en `staticfiles/` b
 | `/ats/plataforma/administracion/` | Panel administración (solo staff) |
 | `/ats/f/<uuid>/` | Formulario público de postulación |
 | `/ats/f/<uuid>/gracias/` | Página de agradecimiento tras enviar formulario |
+
+---
+
+## 8. Background Workers (Telegram e IMAP)
+
+Además del servicio web, Órbita usa workers para automatizaciones:
+
+### Worker Telegram (postulaciones por bot)
+
+Comando:
+
+```bash
+python manage.py run_telegram_bot
+```
+
+Requiere:
+
+```env
+TELEGRAM_BOT_TOKEN=tu_token_del_bot
+```
+
+### Worker IMAP (correo entrante -> postulaciones)
+
+Comando recomendado:
+
+```bash
+python manage.py process_incoming_emails --loop --interval 60
+```
+
+También puedes ejecutar por ciclo único:
+
+```bash
+python manage.py process_incoming_emails --once
+```
+
+Notas:
+- Si no levantas estos workers, la plataforma web funciona, pero no habrá procesamiento automático por Telegram/IMAP.
+- En Render, crea servicios tipo Worker separados para cada comando.
