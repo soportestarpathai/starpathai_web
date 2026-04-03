@@ -626,204 +626,193 @@
 
   /* ---------- Contact ---------- */
   #contact {
-    background: radial-gradient(80% 120% at 10% 0%, rgba(18, 65, 88, 0.22) 0%, transparent 55%),
-                radial-gradient(90% 100% at 100% 100%, rgba(17, 95, 88, 0.18) 0%, transparent 55%),
-                linear-gradient(160deg, #060e18 0%, #0b1c2d 42%, #0f2438 100%) !important;
-    padding: 88px 0 !important;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #06162b 0%, #071a31 52%, #081d36 100%) !important;
+    padding: 92px 0 78px !important;
+  }
+  #contact::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(88, 124, 156, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(88, 124, 156, 0.1) 1px, transparent 1px);
+    background-size: 54px 54px;
+    opacity: 0.22;
+    pointer-events: none;
   }
   #contact .container {
     max-width: 1120px;
+    position: relative;
+    z-index: 1;
   }
   #contact .section-title {
-    margin-bottom: 1.2rem;
+    margin: 0 auto 2rem;
+    max-width: 980px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center !important;
+  }
+  #contact .section-title .label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #2fc2af;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.68rem;
+    font-weight: 700;
+    margin: 0 auto 0.72rem;
+    text-align: center;
   }
   #contact .section-title h2 {
-    color: #fff !important;
-    font-family: "Playfair Display", "Times New Roman", serif;
-    font-size: clamp(2rem, 3.8vw, 3rem);
-    margin-bottom: 0.55rem;
-  }
-  #contact .section-title p {
-    color: rgba(223, 236, 249, 0.74) !important;
-    max-width: 760px;
     margin: 0 auto;
-    font-family: "Manrope", "Poppins", sans-serif;
-    line-height: 1.58;
-    font-size: 1rem;
+    color: #f4f8fd !important;
+    font-family: "Manrope", "Inter", sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    font-size: clamp(2rem, 4vw, 3.35rem);
+    line-height: 1.07;
+    max-width: 920px;
+    text-align: center;
+  }
+  #contact .section-title h2::before,
+  #contact .section-title h2::after {
+    content: none !important;
+    display: none !important;
   }
   #contact .sp-contact-shell {
-    background: rgba(8, 26, 43, 0.74);
-    border: 1px solid rgba(78, 124, 162, 0.32);
-    border-radius: 18px;
-    padding: 1.28rem;
-    backdrop-filter: blur(6px);
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    backdrop-filter: none;
   }
   #contact .sp-contact-panel {
-    border-right: 1px solid rgba(82, 126, 163, 0.26);
-    padding-right: 0.35rem;
-  }
-  #contact .sp-contact-form-panel {
-    padding-left: 0.2rem;
+    padding-right: 1.5rem;
+    border-right: 0;
   }
   #contact .sp-contact-intro {
-    background: rgba(12, 34, 55, 0.76);
-    border: 1px solid rgba(82, 126, 163, 0.3);
-    border-radius: 14px;
-    padding: 0.9rem 0.95rem;
-    margin-bottom: 0.8rem;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 0.92rem;
   }
-  #contact .sp-contact-badges {
-    display: flex;
-    gap: 0.45rem;
-    flex-wrap: wrap;
-    margin-bottom: 0.7rem;
+  #contact .sp-contact-intro h3 {
+    margin: 0 0 1rem;
+    color: #f4f8fd;
+    font-family: "Manrope", "Inter", sans-serif;
+    font-size: clamp(2rem, 3.25vw, 3.15rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    font-weight: 800;
   }
-  #contact .sp-contact-badges span {
-    border: 1px solid rgba(95, 141, 178, 0.36);
-    background: rgba(14, 43, 67, 0.78);
-    color: rgba(195, 220, 240, 0.92);
-    border-radius: 999px;
-    padding: 0.22rem 0.52rem;
-    font-family: "Manrope", "Poppins", sans-serif;
-    font-size: 0.74rem;
-    font-weight: 700;
+  #contact .sp-contact-intro h3 .accent {
+    display: block;
+    color: #2fd4aa;
   }
   #contact .sp-contact-intro p {
     margin: 0;
-    color: rgba(223, 236, 247, 0.82);
-    font-family: "Manrope", "Poppins", sans-serif;
-    font-size: 0.9rem;
-    line-height: 1.45;
+    max-width: 520px;
+    color: rgba(193, 211, 230, 0.76);
+    font-family: "Manrope", "Inter", sans-serif;
+    font-size: 1.1rem;
+    line-height: 1.72;
   }
-  #contact .sp-contact-intro p strong {
-    display: block;
-    color: #1de1b0;
-    font-family: "Manrope", "Poppins", sans-serif;
-    font-size: 0.73rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    margin-bottom: 0.24rem;
+  #contact .sp-contact-badges { display: none; }
+  #contact .sp-contact-meta {
+    margin-top: 1.6rem;
+    display: grid;
+    gap: 0.8rem;
   }
-  #contact .info-item {
-    background: rgba(13, 37, 59, 0.9) !important;
-    border: 1px solid rgba(84, 129, 166, 0.34);
-    border-radius: 14px !important;
-    padding: 1rem 1rem !important;
-    margin-bottom: 0.72rem !important;
-    backdrop-filter: blur(8px);
-    transition: all 0.3s ease;
+  #contact .sp-contact-meta .meta-item {
+    display: flex;
     align-items: center;
+    gap: 0.64rem;
+    color: rgba(196, 216, 234, 0.86);
+    font-family: "Manrope", "Inter", sans-serif;
+    font-size: 1rem;
+    line-height: 1.35;
   }
-  #contact .info-item:hover {
-    border-color: rgba(30, 225, 176, 0.48);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
-  }
-  #contact .info-item > i {
-    width: 42px;
-    height: 42px;
-    min-width: 42px;
+  #contact .sp-contact-meta .meta-item i {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, rgba(31, 216, 174, 0.22), rgba(32, 186, 220, 0.2)) !important;
-    color: #1de1b0 !important;
-    border-radius: 11px !important;
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.22);
+    background: rgba(12, 64, 74, 0.44);
+    border: 1px solid rgba(63, 171, 163, 0.4);
+    color: #35d1b0;
+    font-size: 0.88rem;
+    flex: 0 0 30px;
   }
-  #contact .info-item h3 {
-    color: #eef8ff !important;
-    font-family: "Manrope", "Poppins", sans-serif;
-    font-size: 0.98rem;
-    font-weight: 700;
-    margin-bottom: 0.1rem;
-  }
-  #contact .info-item p {
-    color: rgba(197, 218, 236, 0.86) !important;
-    font-family: "Manrope", "Poppins", sans-serif;
-    font-size: 0.86rem;
-    margin-bottom: 0;
-    line-height: 1.35;
+  #contact .sp-contact-form-panel {
+    padding-left: 1.5rem;
   }
   #contact .php-email-form {
-    background: rgba(11, 33, 53, 0.92) !important;
-    border: 1px solid rgba(84, 130, 168, 0.36);
-    border-radius: 16px !important;
-    padding: 1.35rem 1.3rem !important;
-    backdrop-filter: blur(8px);
+    background: transparent !important;
+    border: 0;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    backdrop-filter: none;
   }
-  #contact .sp-contact-form-head {
-    margin-bottom: 0.9rem;
-    padding-bottom: 0.65rem;
-    border-bottom: 1px solid rgba(84, 130, 168, 0.28);
-  }
-  #contact .sp-contact-form-head h3 {
-    margin: 0 0 0.22rem;
-    color: #f2fbff;
-    font-family: "Playfair Display", "Times New Roman", serif;
-    font-size: 1.55rem;
-    line-height: 1.1;
-  }
-  #contact .sp-contact-form-head p {
-    margin: 0;
-    color: rgba(199, 220, 238, 0.82);
-    font-family: "Manrope", "Poppins", sans-serif;
-    font-size: 0.9rem;
-    line-height: 1.45;
-  }
+  #contact .sp-contact-form-head { display: none; }
   #contact .sp-field label {
     display: block;
-    margin-bottom: 0.32rem;
-    color: rgba(189, 214, 235, 0.88);
-    font-family: "Manrope", "Poppins", sans-serif;
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    margin-bottom: 0.36rem;
+    color: rgba(178, 203, 227, 0.84);
+    font-family: "Manrope", "Inter", sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-transform: none;
   }
   #contact .php-email-form .form-control {
-    background: rgba(255, 255, 255, 0.07) !important;
-    border: 1px solid rgba(140, 177, 208, 0.28) !important;
+    background: rgba(31, 43, 58, 0.9) !important;
+    border: 1px solid rgba(120, 153, 181, 0.34) !important;
     border-radius: 11px !important;
-    color: #f0f9ff !important;
-    padding: 0.75rem 0.88rem !important;
-    font-family: "Manrope", "Poppins", sans-serif;
-    font-size: 0.9rem;
-    transition: all 0.3s !important;
+    color: #edf5fc !important;
+    padding: 0.84rem 0.98rem !important;
+    font-family: "Manrope", "Inter", sans-serif;
+    font-size: 1.04rem;
+    line-height: 1.3;
+    transition: all 0.26s !important;
+  }
+  #contact .php-email-form textarea.form-control {
+    min-height: 150px;
+    resize: vertical;
   }
   #contact .php-email-form .form-control::placeholder {
-    color: rgba(201, 222, 241, 0.58) !important;
+    color: rgba(152, 177, 201, 0.86) !important;
   }
   #contact .php-email-form .form-control:focus {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: rgba(31, 225, 177, 0.62) !important;
-    box-shadow: 0 0 0 3px rgba(31, 225, 177, 0.12) !important;
+    background: rgba(38, 53, 69, 0.95) !important;
+    border-color: rgba(45, 212, 170, 0.62) !important;
+    box-shadow: 0 0 0 3px rgba(45, 212, 170, 0.11) !important;
   }
   #contact .php-email-form button[type="submit"] {
-    background: linear-gradient(135deg, #00c4c9 0%, #00e5a0 100%) !important;
-    border: none !important;
+    background: transparent !important;
+    border: 1px solid rgba(148, 179, 206, 0.52) !important;
     border-radius: 12px !important;
-    padding: 0.82rem 1.3rem !important;
-    font-family: "Manrope", "Poppins", sans-serif;
-    font-weight: 800 !important;
-    font-size: 0.97rem;
-    color: #062436 !important;
-    box-shadow: 0 8px 18px rgba(0, 196, 201, 0.24);
-    transition: all 0.3s ease !important;
+    padding: 0.93rem 1.35rem !important;
+    font-family: "Manrope", "Inter", sans-serif;
+    font-weight: 700 !important;
+    font-size: 1.04rem;
+    color: #f5fbff !important;
+    box-shadow: none;
+    transition: all 0.25s ease !important;
     width: 100%;
   }
   #contact .php-email-form button[type="submit"]:hover {
+    border-color: rgba(45, 212, 170, 0.62) !important;
     transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(0, 196, 201, 0.35);
   }
-  #contact .sp-contact-note {
-    margin: 0.7rem 0 0;
-    color: rgba(189, 214, 234, 0.8);
-    font-family: "Manrope", "Poppins", sans-serif;
-    font-size: 0.82rem;
-    text-align: center;
-    line-height: 1.35;
-  }
+  #contact .sp-contact-note { display: none; }
 
   /* ---------- Footer ---------- */
   #footer {
@@ -868,7 +857,7 @@
     color: #fff !important;
   }
   #footer .sp-footer-logo {
-    padding: 0.52rem 0.72rem;
+    padding: 0.44rem 0.7rem;
     border: 1px solid rgba(98, 152, 190, 0.42);
     border-radius: 16px;
     background: linear-gradient(155deg, rgba(13, 38, 60, 0.96) 0%, rgba(9, 28, 45, 0.92) 58%, rgba(7, 22, 36, 0.96) 100%);
@@ -876,7 +865,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 92px;
+    min-height: 74px;
     position: relative;
     overflow: hidden;
     isolation: isolate;
@@ -895,12 +884,11 @@
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.13), inset 0 -16px 28px rgba(0, 196, 201, 0.14);
   }
   #footer .sp-footer-logo img {
-    width: clamp(104px, 11vw, 132px);
+    width: clamp(186px, 18vw, 240px);
     max-height: none !important;
     height: auto !important;
     display: block;
     margin: 0 auto;
-    aspect-ratio: 1 / 1;
     object-fit: contain;
     filter: brightness(1.14) contrast(1.02) drop-shadow(0 4px 10px rgba(0, 196, 201, 0.16));
   }
@@ -1037,7 +1025,7 @@
   }
 
   .sp-brand-logo {
-    padding: 0.14rem 0.22rem;
+    padding: 0.2rem 0.36rem;
     border: 1px solid rgba(92, 134, 167, 0.34);
     border-radius: 12px;
     background: rgba(8, 27, 45, 0.58);
@@ -1050,10 +1038,10 @@
   }
 
   .header .sp-brand-logo img {
-    width: clamp(60px, 4.9vw, 74px) !important;
-    min-width: 60px;
+    width: clamp(132px, 13.2vw, 174px) !important;
+    min-width: 132px;
     height: auto !important;
-    max-height: 56px !important;
+    max-height: 44px !important;
     display: block;
     margin: 0 auto;
     filter: brightness(1.13) drop-shadow(0 2px 8px rgba(0, 196, 201, 0.14));
@@ -1119,7 +1107,7 @@
   .sp-hero-title {
     color: #ffffff;
     font-family: "Playfair Display", "Times New Roman", serif;
-    font-size: clamp(2.2rem, 4.8vw, 4.35rem);
+    font-size: clamp(3.25rem, 4vw, 3.5rem);
     line-height: 1.03;
     font-weight: 800;
     margin-bottom: 1.2rem;
@@ -1137,7 +1125,7 @@
     max-width: 620px;
     font-family: "Manrope", "Poppins", sans-serif;
     font-size: 1.16rem;
-    line-height: 1.64;
+    line-height: 1.68;
     margin-bottom: 1.4rem;
   }
 
@@ -1177,6 +1165,7 @@
   .sp-btn-secondary {
     background: rgba(11, 34, 55, 0.6);
     color: #fff;
+    border-color: rgba(255, 255, 255, 0.56);
   }
 
   .sp-btn-secondary:hover {
@@ -1207,20 +1196,20 @@
   }
 
   .sp-problem-card {
-    background: rgba(20, 44, 69, 0.8);
-    border: 1px solid rgba(89, 130, 165, 0.45);
+    background: rgba(16, 39, 62, 0.94);
+    border: 1px solid #1de1b0;
     border-radius: 16px;
     padding: 1.15rem 1.2rem;
     margin-bottom: 1rem;
+    box-shadow: inset 3px 0 0 #1de1b0;
   }
 
   .sp-problem-card--active {
     border-color: #1de1b0;
-    box-shadow: inset 3px 0 0 #1de1b0;
   }
 
   .sp-problem-card h3 {
-    color: #ffffff;
+    color: #f4f6f3;
     font-family: "Manrope", "Poppins", sans-serif;
     font-size: 2.02rem;
     font-weight: 800;
@@ -1235,9 +1224,9 @@
   }
 
   .sp-tag-wrap span {
-    background: rgba(132, 154, 178, 0.18);
-    color: rgba(233, 240, 247, 0.9);
-    border: 1px solid rgba(164, 182, 203, 0.2);
+    background: rgba(58, 87, 118, 0.86);
+    color: #c0d0e0;
+    border: 1px solid rgba(177, 200, 224, 0.28);
     border-radius: 8px;
     font-family: "Manrope", "Poppins", sans-serif;
     font-size: 0.98rem;
@@ -1329,7 +1318,7 @@
   }
 
   .sp-products-sub {
-    margin: 0 0 1rem;
+    margin: -14px 0 1rem;
     color: rgba(207, 224, 238, 0.86);
     font-family: "Manrope", "Poppins", sans-serif;
     font-size: 1rem;
@@ -1390,7 +1379,7 @@
     border: 1px solid rgba(109, 151, 186, 0.4);
     background: rgba(24, 55, 82, 0.72);
     color: rgba(189, 219, 243, 0.95);
-    font-size: 0.7rem;
+    font-size: clamp(0.625rem, 0.7vw, 0.7rem);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     font-family: "Manrope", "Poppins", sans-serif;
@@ -1435,7 +1424,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.28rem;
-    margin: 0 0 0.82rem;
+    margin: 0 0 1.12rem;
     color: #29e7ba;
     text-decoration: none;
     font-family: "Manrope", "Poppins", sans-serif;
@@ -1445,6 +1434,17 @@
 
   .sp-product-link:hover {
     color: #73f2d0;
+  }
+
+  .sp-product-link-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.62rem;
+    margin: 0 0 1.12rem;
+  }
+
+  .sp-product-link-group .sp-product-link {
+    margin: 0;
   }
 
   .sp-product-columns {
@@ -1484,6 +1484,10 @@
     top: 0;
     color: #2de5ba;
     font-weight: 800;
+  }
+
+  .sp-product-panel--eve .sp-product-list li::before {
+    color: #b8ccd8;
   }
 
   .sp-product-stats {
@@ -1855,7 +1859,7 @@
   }
 
   .sp-method-sub {
-    margin: 0;
+    margin: 8px 0 0;
     color: rgba(201, 219, 235, 0.88);
     font-family: "Manrope", "Poppins", sans-serif;
     font-size: 0.96rem;
@@ -1998,7 +2002,7 @@
 
   .sp-method-list li {
     margin-bottom: 0.36rem;
-    padding-left: 0.9rem;
+    padding-left: 1.12rem;
     position: relative;
     color: #3f566a;
     font-family: "Manrope", "Poppins", sans-serif;
@@ -2007,7 +2011,7 @@
   }
 
   .sp-method-list li::before {
-    content: "→";
+    content: "→ ";
     position: absolute;
     left: 0;
     top: 0;
@@ -2028,6 +2032,18 @@
     line-height: 1.3;
   }
 
+  .sp-method-output strong {
+    display: block;
+    margin-bottom: 0.18rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .sp-method-output span {
+    display: block;
+    font-weight: 600;
+  }
+
   .sp-method-tags {
     margin-top: 0.72rem;
     display: flex;
@@ -2038,7 +2054,7 @@
   .sp-method-tags span {
     border: 1px solid rgba(67, 118, 155, 0.34);
     background: rgba(8, 27, 45, 0.82);
-    color: rgba(170, 206, 233, 0.92);
+    color: #c0d0de;
     border-radius: 999px;
     padding: 0.2rem 0.5rem;
     font-family: "Manrope", "Poppins", sans-serif;
@@ -2135,6 +2151,7 @@
     font-size: 1.02rem;
     line-height: 1.62;
     max-width: 890px;
+    margin-top: 10px;
     margin-bottom: 1.2rem;
   }
 
@@ -2148,8 +2165,10 @@
   .sp-problem-block {
     background: rgba(11, 31, 50, 0.82);
     border: 1px solid rgba(89, 131, 167, 0.4);
+    border-top: 2px solid #20e3b2;
     border-radius: 14px;
     padding: 1.1rem 1rem;
+    box-shadow: inset 0 2px 0 #20e3b2;
   }
 
   .sp-problem-block--active {
@@ -2195,7 +2214,7 @@
   }
 
   .sp-problem-list li::before {
-    content: "—";
+    content: "•";
     position: absolute;
     left: 0;
     top: 0;
@@ -2238,6 +2257,12 @@
     height: 100%;
   }
 
+  .sp-decision-box--bad {
+    background: rgba(18, 41, 62, 0.9);
+    border-color: rgba(240, 128, 128, 0.56);
+    box-shadow: inset 0 1px 0 rgba(240, 128, 128, 0.22);
+  }
+
   .sp-decision-title {
     margin: 0 0 0.7rem;
     font-family: "Manrope", "Poppins", sans-serif;
@@ -2246,7 +2271,7 @@
   }
 
   .sp-decision-title--bad {
-    color: #ff7e7e;
+    color: #f08080;
   }
 
   .sp-decision-title--good {
@@ -2276,12 +2301,12 @@
   }
 
   .sp-decision-list--bad li {
-    color: rgba(255, 211, 211, 0.9);
+    color: rgba(244, 220, 220, 0.95);
   }
 
   .sp-decision-list--bad li::before {
     content: "✕";
-    color: #ff7d7d;
+    color: #f08080;
   }
 
   .sp-decision-list--good li {
@@ -2486,21 +2511,21 @@
     margin: 0;
     padding: 0;
     display: grid;
-    gap: 0.62rem;
+    gap: 0.82rem;
   }
 
   .sp-levels li {
     border: 1px solid rgba(77, 123, 161, 0.35);
     background: rgba(19, 47, 72, 0.78);
     border-radius: 9px;
-    padding: 0.68rem 0.7rem 0.7rem 0.92rem;
+    padding: 0.68rem 0.7rem 0.7rem 1.35rem;
     position: relative;
   }
 
   .sp-levels li::before {
     content: "";
     position: absolute;
-    left: 0.5rem;
+    left: 0.62rem;
     top: 1.08rem;
     width: 6px;
     height: 6px;
@@ -2526,20 +2551,69 @@
     line-height: 1.33;
   }
 
+  .sp-service-card--support {
+    padding-bottom: 1.12rem;
+  }
+
+  .sp-support-grid {
+    margin-top: 0.2rem;
+    align-items: flex-start;
+  }
+
+  .sp-support-main {
+    padding-right: 1.2rem;
+    border-right: 1px solid rgba(86, 128, 164, 0.28);
+  }
+
+  .sp-support-main .sp-service-list {
+    max-width: 640px;
+    margin-top: 0.08rem;
+  }
+
+  .sp-support-levels {
+    display: flex;
+    align-items: flex-start;
+    padding-left: 0.9rem;
+    margin-top: -42px;
+  }
+
+  .sp-support-levels .sp-levels {
+    width: 100%;
+    margin: 0;
+    gap: 1rem;
+  }
+
+  .sp-support-levels .sp-levels li {
+    min-height: 78px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .sp-service-card--support .sp-service-list li {
+    margin-bottom: 0.9rem !important;
+    line-height: 1.42;
+  }
+
+  .sp-service-card--support .sp-service-list li:last-child {
+    margin-bottom: 0;
+  }
+
   /* ---------- Responsive ---------- */
   @media (max-width: 991.98px) {
     #hero { margin-top: -120px; padding-top: 150px !important; }
     #hero .welcome h2 { font-size: 1.8rem; }
     #hero .why-box h3 { font-size: 1.3rem; }
     #hero .icon-box { padding: 1.5rem 1.2rem !important; }
-    #contact .sp-contact-shell { padding: 1rem !important; }
-    #contact .php-email-form { padding: 1.1rem !important; }
+    #contact .sp-contact-shell { padding: 0 !important; }
+    #contact .php-email-form { padding: 0 !important; }
     #contact .sp-contact-panel {
       border-right: 0;
       padding-right: 0;
     }
     #contact .sp-contact-form-panel {
       padding-left: 0;
+      margin-top: 0.2rem;
     }
     .sp-hero {
       margin-top: -112px;
@@ -2558,9 +2632,9 @@
       display: none !important;
     }
     .header .sp-brand-logo img {
-      width: 68px !important;
-      min-width: 68px;
-      max-height: 50px !important;
+      width: 142px !important;
+      min-width: 142px;
+      max-height: 42px !important;
     }
     .sp-problem-card h3 {
       font-size: 1.75rem;
@@ -2570,6 +2644,20 @@
     }
     .sp-service-card h3 {
       font-size: 1.45rem;
+    }
+    .sp-support-main {
+      padding-right: 0;
+      border-right: 0;
+      border-bottom: 1px solid rgba(86, 128, 164, 0.24);
+      padding-bottom: 0.72rem;
+      margin-bottom: 0.2rem;
+    }
+    .sp-support-levels {
+      padding-left: 0;
+      margin-top: 0.18rem;
+    }
+    .sp-support-levels .sp-levels li {
+      min-height: 62px;
     }
     .sp-product-name {
       font-size: 1.8rem;
@@ -2613,13 +2701,12 @@
     #hero .icon-box i { width: 48px; height: 48px; font-size: 18px !important; }
     #services .service-item { padding: 1.5rem 1.2rem !important; border-radius: 14px !important; }
     #departments .tab-content .tab-pane { padding: 1.5rem !important; border-radius: 16px !important; }
-    #contact .sp-contact-shell { padding: 0.78rem !important; }
-    #contact .sp-contact-intro { padding: 0.75rem 0.78rem !important; }
-    #contact .info-item { padding: 0.85rem 0.85rem !important; }
-    #contact .sp-contact-form-head h3 { font-size: 1.3rem !important; }
-    #contact .sp-contact-badges { gap: 0.34rem; }
-    #contact .sp-contact-badges span { font-size: 0.69rem; }
-    #contact .sp-field label { font-size: 0.72rem; }
+    #contact .sp-contact-shell { padding: 0 !important; }
+    #contact .sp-contact-intro { padding: 0 !important; }
+    #contact .sp-field label { font-size: 0.74rem; }
+    #contact .section-title { margin: 0 auto 1.4rem; }
+    #contact .section-title h2 { font-size: clamp(1.85rem, 9.4vw, 2.42rem); line-height: 1.1; }
+    #contact .sp-contact-intro h3 { font-size: clamp(1.74rem, 9vw, 2.42rem); }
     #footer .footer-top { padding-top: 40px !important; }
     .sp-hero {
       margin-top: -98px;
@@ -2629,12 +2716,12 @@
       padding: 0.11rem 0.18rem;
     }
     .header .sp-brand-logo img {
-      width: 56px !important;
-      min-width: 56px;
-      max-height: 44px !important;
+      width: 120px !important;
+      min-width: 120px;
+      max-height: 36px !important;
     }
     #footer .sp-footer-logo img {
-      width: clamp(84px, 24vw, 112px);
+      width: clamp(152px, 52vw, 210px);
       max-height: none !important;
     }
     .sp-kicker {
@@ -2670,7 +2757,7 @@
       font-size: 1.56rem;
     }
     .sp-product-chip {
-      font-size: 0.62rem;
+      font-size: 0.625rem;
     }
     .sp-products-note {
       font-size: 1.3rem;
@@ -2743,7 +2830,7 @@
 
         <!-- LOGO + TEXTO -->
         <a href="{% url 'home' %}" class="logo d-flex align-items-center gap-3 me-auto sp-brand-logo">
-          <img src="{% static 'img/Logo_StarPath_1280X144.png' %}" alt="StarPath">
+          <img src="{% static 'img/starpath_logo_text.svg' %}" alt="StarPath">
 
         </a>
 
@@ -2829,11 +2916,11 @@
 
         <div class="sp-stats" data-aos="fade-up" data-aos-delay="180">
           <div class="sp-stat-item">
-            <h4>↓70%</h4>
+            <h4>-70%</h4>
             <p>Ciclo operativo<br>Supply &amp; Proveedores</p>
           </div>
           <div class="sp-stat-item">
-            <h4>↑90%</h4>
+            <h4>+90%</h4>
             <p>Precisión financiera<br>Facturación</p>
           </div>
           <div class="sp-stat-item">
@@ -2841,7 +2928,7 @@
             <p>ROI medible<br>desde primera liberación</p>
           </div>
           <div class="sp-stat-item">
-            <h4>8 sem</h4>
+            <h4>8 semanas</h4>
             <p>Blueprint aprobado<br>a producción gobernada</p>
           </div>
         </div>
@@ -2901,7 +2988,7 @@
           <p class="sp-problem-kicker">Decisión reactiva vs. decisión como infraestructura</p>
           <div class="row g-3">
             <div class="col-lg-6">
-              <div class="sp-decision-box">
+              <div class="sp-decision-box sp-decision-box--bad">
                 <h3 class="sp-decision-title sp-decision-title--bad">● Decisión reactiva → resultado: dependencia operativa</h3>
                 <ul class="sp-decision-list sp-decision-list--bad">
                   <li>Criterio individual sin documentar</li>
@@ -2952,7 +3039,7 @@
                 <p class="sp-product-desc">
                   Plataforma de cumplimiento regulatorio, automatización de compliance y control operativo para entornos de alta exigencia normativa en LatAm.
                 </p>
-                <a href="http://www.eve360.mx/" target="_blank" rel="noopener" class="sp-product-link">Explorar EVE360 <i class="bi bi-arrow-right"></i></a>
+                <a href="http://www.eve360.mx/" target="_blank" rel="noopener" class="sp-product-link">Explorar EVE360 +</a>
 
                 <div class="row g-3 sp-product-columns">
                   <div class="col-md-6">
@@ -2977,11 +3064,11 @@
 
                 <div class="sp-product-stats">
                   <div class="sp-product-stat">
-                    <strong>↑90%</strong>
+                    <strong>+90%</strong>
                     <span>Precisión en compliance</span>
                   </div>
                   <div class="sp-product-stat">
-                    <strong>↓95%</strong>
+                    <strong>-95%</strong>
                     <span>Errores críticos</span>
                   </div>
                   <div class="sp-product-stat">
@@ -2996,14 +3083,17 @@
               <article class="sp-product-panel">
                 <div class="sp-product-head">
                   <h3 class="sp-product-name">AI Agents</h3>
-                  <span class="sp-product-chip">StarPath Core</span>
+                  <span class="sp-product-chip sp-product-chip--core">STARPATH CORE</span>
                 </div>
                 <p class="sp-product-subtitle">Agentes Empresariales Gobernados</p>
                 <p class="sp-product-quote">“No automatizamos tareas. Diseñamos decisiones que escalan.”</p>
                 <p class="sp-product-desc">
                   Agentes que deciden bajo reglas explícitas, viven en infraestructura segura y miden su impacto en tiempo real. Human-in-the-loop estratégico donde el caso lo justifica.
                 </p>
-                <a href="{% url 'ats_producto' %}" class="sp-product-link">Explorar AI Agents / Órbita <i class="bi bi-arrow-right"></i></a>
+                <div class="sp-product-link-group">
+                  <a href="{% url 'orbita_producto' %}" class="sp-product-link">Explorar AI Agents +</a>
+                  <a href="/orbita/" class="sp-product-link">Ver ORBITA™ +</a>
+                </div>
 
                 <div class="row g-3 sp-product-columns">
                   <div class="col-md-6">
@@ -3028,11 +3118,11 @@
 
                 <div class="sp-product-stats">
                   <div class="sp-product-stat">
-                    <strong>↓70%</strong>
+                    <strong>-70%</strong>
                     <span>Ciclo operativo</span>
                   </div>
                   <div class="sp-product-stat">
-                    <strong>↑40%</strong>
+                    <strong>+40%</strong>
                     <span>Liberación de caja</span>
                   </div>
                   <div class="sp-product-stat">
@@ -3046,7 +3136,7 @@
 
           <div class="sp-products-footer">
             <p class="sp-products-note">Lo que no está gobernado es experimento. <em>Lo que está en StarPath es infraestructura.</em></p>
-            <a href="#contact" class="sp-products-cta">Conversa tu impacto →</a>
+            <a href="#contact" class="sp-products-cta">Contactanos →</a>
           </div>
         </div>
       </div>
@@ -3107,35 +3197,35 @@
             <div class="sp-flow-grid">
               <article class="sp-flow-card">
                 <span class="sp-flow-letter">F</span>
-                <h4>Discover &amp; Frame</h4>
+                <h4>Descubrir y Enmarcar</h4>
                 <p>Identificamos decisiones críticas, exposición a riesgo y dependencia. Definimos KPIs objetivo.</p>
                 <p class="sp-flow-outcome">→ Mapa de decisiones priorizado</p>
               </article>
 
               <article class="sp-flow-card">
                 <span class="sp-flow-letter">L</span>
-                <h4>Leverage &amp; Design</h4>
+                <h4>Diseñar y Potenciar</h4>
                 <p>Diseñamos la arquitectura, reglas explícitas y modelo versionable. Roadmap ejecutivo.</p>
                 <p class="sp-flow-outcome">→ Blueprint aprobado y ejecutable</p>
               </article>
 
               <article class="sp-flow-card">
                 <span class="sp-flow-letter">O</span>
-                <h4>Operate &amp; Build</h4>
+                <h4>Construir y Operar</h4>
                 <p>Desarrollo, automatizaciones e integraciones con demos semanales. 2 ciclos UAT.</p>
                 <p class="sp-flow-outcome">→ Decisión en producción</p>
               </article>
 
               <article class="sp-flow-card">
                 <span class="sp-flow-letter">W</span>
-                <h4>Watch &amp; Evolve</h4>
+                <h4>Observar y Evolucionar</h4>
                 <p>Monitoreo, gestión de incidentes por impacto y mejora continua con datos.</p>
                 <p class="sp-flow-outcome">→ Operación que mejora sola</p>
               </article>
             </div>
 
             <div class="sp-flow-8w">
-              <strong>8 sem</strong>
+              <strong>8 semanas</strong>
               <p>Cada 8 semanas no entregamos código.<span>Entregamos infraestructura de decisión lista para escalar.</span></p>
             </div>
 
@@ -3163,7 +3253,7 @@
           </p>
 
           <div class="row sp-services-grid">
-            <div class="col-lg-4">
+            <div class="col-lg-3">
               <article class="sp-service-card sp-service-card--active">
                 <span class="sp-service-tag">Core · Arquitectura</span>
                 <h3>Arquitectura Estratégica de Decisiones</h3>
@@ -3176,12 +3266,12 @@
                 </ul>
                 <div class="sp-service-note">
                   <h4>Impacto</h4>
-                  <p>↓30% riesgo · escalabilidad no lineal · evidencia para Dirección</p>
+                  <p>-30% riesgo · escalabilidad no lineal · evidencia para Dirección</p>
                 </div>
               </article>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-3">
               <article class="sp-service-card">
                 <span class="sp-service-tag">Procesos · Automatización</span>
                 <h3>Automatización Inteligente de Procesos</h3>
@@ -3195,12 +3285,12 @@
                 </ul>
                 <div class="sp-service-note">
                   <h4>Impacto</h4>
-                  <p>↑50% velocidad · ↓95% automatización gobernada · ↑40% liberación de capa</p>
+                  <p>+50% velocidad · -95% automatización gobernada · +40% liberación de capa</p>
                 </div>
               </article>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-3">
               <article class="sp-service-card">
                 <span class="sp-service-tag">Talent · Gobierno</span>
                 <h3>Staff Augmentation Estratégico</h3>
@@ -3218,7 +3308,7 @@
               </article>
             </div>
 
-            <div class="col-lg-5">
+            <div class="col-lg-3">
               <article class="sp-service-card">
                 <span class="sp-service-tag">Squads · Ejecución</span>
                 <h3>Squads Especializados por Capacidad Crítica</h3>
@@ -3231,18 +3321,18 @@
                 </ul>
                 <div class="sp-service-note">
                   <h4>Impacto</h4>
-                  <p>↓95% errores críticos · ↑30% eficiencia estructural · 8 semanas a producción</p>
+                  <p>-95% errores críticos · +30% eficiencia estructural · 8 semanas a producción</p>
                 </div>
               </article>
             </div>
 
-            <div class="col-lg-7">
-              <article class="sp-service-card">
+            <div class="col-lg-12">
+              <article class="sp-service-card sp-service-card--support">
                 <span class="sp-service-tag">Soporte · Evolución continua</span>
                 <h3>Soporte Operativo & Evolución Continua</h3>
                 <p class="sp-service-quote">“No reaccionamos a tickets. Prevenimos impacto.”</p>
-                <div class="row g-3">
-                  <div class="col-md-7">
+                <div class="row g-3 sp-support-grid">
+                  <div class="col-md-7 sp-support-main">
                     <ul class="sp-service-list">
                       <li>Monitoreo inteligente 24/7</li>
                       <li>SLA por criticidad, no por volumen</li>
@@ -3252,7 +3342,7 @@
                       <li>KPI ejecutivos mensuales</li>
                     </ul>
                   </div>
-                  <div class="col-md-5">
+                  <div class="col-md-5 sp-support-levels">
                     <ul class="sp-levels">
                       <li><strong>Nivel 1 · Continuidad</strong><span>Mantener la operación viva</span></li>
                       <li><strong>Nivel 2 · Estabilización</strong><span>Eliminar fricción y reincidencias</span></li>
@@ -3285,17 +3375,17 @@
           <div class="sp-method-timeline">
             <article class="sp-method-step">
               <span class="sp-method-dot">F</span>
-              <h4>Sem 0-1</h4>
+              <h4>Semanas 0-1</h4>
               <p>Intake &amp; Validation</p>
             </article>
             <article class="sp-method-step">
               <span class="sp-method-dot">L</span>
-              <h4>Sem 2-5</h4>
+              <h4>Semanas 2-5</h4>
               <p>Diseño &amp; Desarrollo</p>
             </article>
             <article class="sp-method-step">
               <span class="sp-method-dot">O</span>
-              <h4>Sem 6-8</h4>
+              <h4>Semanas 6-8</h4>
               <p>Deployment &amp; UAT</p>
             </article>
             <article class="sp-method-step">
@@ -3310,8 +3400,8 @@
               <div class="col-lg-6">
                 <article class="sp-method-card">
                   <div class="sp-method-card-head">
-                    <h3 class="sp-method-card-title">Discover &amp; Frame</h3>
-                    <span class="sp-method-chip">Sem 0-1</span>
+                    <h3 class="sp-method-card-title">Descubrir y Enmarcar</h3>
+                    <span class="sp-method-chip">Semanas 0-1</span>
                   </div>
                   <p class="sp-method-card-sub">Diseño Estratégico</p>
                   <p class="sp-method-quote">“Entendemos tu operación antes de tocar tecnología.”</p>
@@ -3322,15 +3412,15 @@
                     <li>Definición de objetivos y KPIs objetivo</li>
                     <li>Alineación con arquitectura existente</li>
                   </ul>
-                  <p class="sp-method-output">ENTREGABLE · Mapa de decisiones críticas priorizado por impacto financiero y riesgo</p>
+                  <p class="sp-method-output"><strong>Entregable:</strong><span>Mapa de decisiones críticas priorizado por impacto financiero y riesgo</span></p>
                 </article>
               </div>
 
               <div class="col-lg-6">
                 <article class="sp-method-card">
                   <div class="sp-method-card-head">
-                    <h3 class="sp-method-card-title">Design &amp; Leverage</h3>
-                    <span class="sp-method-chip">Sem 2-5</span>
+                    <h3 class="sp-method-card-title">Diseñar y Potenciar</h3>
+                    <span class="sp-method-chip">Semanas 2-5</span>
                   </div>
                   <p class="sp-method-card-sub">Propuesta Ejecutable</p>
                   <p class="sp-method-quote">“Diseñamos la arquitectura que tu operación necesita.”</p>
@@ -3341,15 +3431,15 @@
                     <li>Roadmap de implementación priorizado</li>
                     <li>Modelo de gobierno y control definido</li>
                   </ul>
-                  <p class="sp-method-output">ENTREGABLE · Blueprint aprobado, priorizado y ejecutable con VoBo del negocio</p>
+                  <p class="sp-method-output"><strong>Entregable:</strong><span>Blueprint aprobado, priorizado y ejecutable con VoBo del negocio</span></p>
                 </article>
               </div>
 
               <div class="col-lg-6">
                 <article class="sp-method-card">
                   <div class="sp-method-card-head">
-                    <h3 class="sp-method-card-title">Build &amp; Operate</h3>
-                    <span class="sp-method-chip">Sem 6-8</span>
+                    <h3 class="sp-method-card-title">Construir y Operar</h3>
+                    <span class="sp-method-chip">Semanas 6-8</span>
                   </div>
                   <p class="sp-method-card-sub">Implementación Controlada</p>
                   <p class="sp-method-quote">“Convertimos el diseño en operación real.”</p>
@@ -3360,14 +3450,14 @@
                     <li>2 ciclos de UAT + producción controlada</li>
                     <li>Configuración de plataformas y acompañamiento</li>
                   </ul>
-                  <p class="sp-method-output">ENTREGABLE · Decisión en producción, medida y gobernada desde el primer día</p>
+                  <p class="sp-method-output"><strong>Entregable:</strong><span>Decisión en producción, medida y gobernada desde el primer día</span></p>
                 </article>
               </div>
 
               <div class="col-lg-6">
                 <article class="sp-method-card">
                   <div class="sp-method-card-head">
-                    <h3 class="sp-method-card-title">Watch &amp; Evolve</h3>
+                    <h3 class="sp-method-card-title">Observar y Evolucionar</h3>
                     <span class="sp-method-chip">Continuo</span>
                   </div>
                   <p class="sp-method-card-sub">Gobierno Operativo Continuo</p>
@@ -3379,7 +3469,7 @@
                     <li>Mejora incremental mensual con datos</li>
                     <li>Reporte ejecutivo con KPIs mensuales</li>
                   </ul>
-                  <p class="sp-method-output">ENTREGABLE · Operación más eficiente, estable y rentable con evidencia auditable</p>
+                  <p class="sp-method-output"><strong>Entregable:</strong><span>Operación más eficiente, estable y rentable con evidencia auditable</span></p>
                 </article>
               </div>
             </div>
@@ -3412,10 +3502,8 @@
 
       <!-- Section Title -->
       <div class="container section-title" data-aos="fade-up">
-        <h2>Contacto</h2>
-        <p>
-          Hablemos sobre tu operación, tus retos y cómo podemos ayudarte a escalar con control.
-        </p>
+        <div class="label">Contacto</div>
+        <h2>¿Tu organización está lista<br>para gobernar su ejecución?</h2>
       </div>
 
       <!-- Mapa 
@@ -3427,81 +3515,55 @@
       </div>-->
 
       <div class="container sp-contact-shell" data-aos="fade-up" data-aos-delay="100">
-        <div class="row gy-4">
+        <div class="row gy-4 gx-lg-5 align-items-start">
 
           <!-- Info -->
-          <div class="col-lg-4 sp-contact-panel">
+          <div class="col-lg-6 sp-contact-panel">
             <div class="sp-contact-intro">
-              <p><strong>Diagnóstico ejecutivo</strong>Cuéntanos tu reto operativo y te proponemos una ruta clara en 30 minutos.</p>
+              <h3>Hablemos de tu <span class="accent">arquitectura de decisiones.</span></h3>
+              <p>No vendemos software. Construimos el sistema de governance que va a determinar cómo ejecuta tu organización en los próximos años. Si eso te resuena, vale la pena una conversación.</p>
             </div>
-            <div class="sp-contact-badges">
-              <span>Respuesta &lt; 24h</span>
-              <span>Sesión 30 min</span>
-              <span>Sin costo</span>
-            </div>
-
-            <div class="info-item d-flex">
-              <i class="bi bi-geo-alt"></i>
-              <div>
-                <h3>Ubicación</h3>
-                <p>Ciudad de México · Atención remota y presencial</p>
-              </div>
-            </div>
-
-            <div class="info-item d-flex">
-              <i class="bi bi-telephone"></i>
-              <div>
-                <h3>Teléfono</h3>
-                <p>+52 55 4044 8996</p>
-              </div>
-            </div>
-
-            <div class="info-item d-flex">
-              <i class="bi bi-envelope"></i>
-              <div>
-                <h3>Email</h3>
-                <p>soporte@starpathai.mx</p>
-              </div>
+            <div class="sp-contact-meta">
+              <div class="meta-item"><i class="bi bi-clock-history"></i>Respuesta en menos de 24 horas</div>
+              <div class="meta-item"><i class="bi bi-envelope"></i>hola@starpathai.mx</div>
+              <div class="meta-item"><i class="bi bi-geo-alt"></i>StarPath — México</div>
             </div>
 
           </div>
 
           <!-- Form -->
-          <div class="col-lg-8 sp-contact-form-panel">
+          <div class="col-lg-6 sp-contact-form-panel">
             <form id="contactForm" method="post" class="php-email-form">
               {% csrf_token %}
-              <div class="sp-contact-form-head">
-                <h3>Conversemos tu impacto</h3>
-                <p>Déjanos tus datos y te contactamos con un enfoque técnico-comercial en menos de 24 horas.</p>
-              </div>
+              <input type="hidden" name="subject" value="Arquitectura de decisiones">
 
               <div class="row gy-4">
-                <div class="col-md-6 sp-field">
+                <div class="col-md-12 sp-field">
                   <label for="contact_name">Nombre completo</label>
-                  <input id="contact_name" type="text" name="name" class="form-control" placeholder="Nombre completo" required>
-                </div>
-
-                <div class="col-md-6 sp-field">
-                  <label for="contact_email">Correo corporativo</label>
-                  <input id="contact_email" type="email" name="email" class="form-control" placeholder="Correo corporativo" required>
+                  <input id="contact_name" type="text" name="name" class="form-control" placeholder="Tu nombre" required>
                 </div>
 
                 <div class="col-md-12 sp-field">
-                  <label for="contact_subject">Asunto</label>
-                  <input id="contact_subject" type="text" name="subject" class="form-control" placeholder="Asunto" required>
+                  <label for="contact_company">Empresa</label>
+                  <input id="contact_company" type="text" name="company" class="form-control" placeholder="Nombre de tu organización" required>
                 </div>
 
                 <div class="col-md-12 sp-field">
-                  <label for="contact_message">Mensaje</label>
+                  <label for="contact_email">Correo</label>
+                  <input id="contact_email" type="email" name="email" class="form-control" placeholder="tu@empresa.com" required>
+                </div>
+
+                <div class="col-md-12 sp-field">
+                  <label for="contact_message">¿Qué quieres gobernar?</label>
                   <textarea id="contact_message" name="message" class="form-control" rows="6"
-                    placeholder="Cuéntanos brevemente sobre tu operación o necesidad" required></textarea>
+                    placeholder="Cuéntanos el reto de ejecución que estás enfrentando..." required></textarea>
                 </div>
 
                 <div class="col-md-12 text-center">
-                  <button id="contactBtn" type="submit">Agendar conversación ejecutiva</button>
+                  <button id="contactBtn" type="submit">Agendar conversación</button>
                 </div>
               </div>
-              <p class="sp-contact-note">Sin spam. Solo conversación ejecutiva y propuesta accionable.</p>
+              <p class="sp-contact-note">Sin spam. Solo una conversación ejecutiva con enfoque en ejecución gobernada.</p>
             </form>
 
           </div>
@@ -3523,7 +3585,7 @@
         <!-- Brand + Contact -->
         <div class="col-lg-4 col-md-6 footer-about">
           <a href="#hero" class="logo sp-footer-logo d-inline-flex align-items-center">
-            <img src="{% static 'img/Logo_StarPath_1280X144.png' %}" alt="StarPath">
+            <img src="{% static 'img/starpath_logo_text.svg' %}" alt="StarPath">
           </a>
 
           <p class="mt-3 footer-tagline">
@@ -3534,7 +3596,7 @@
           <div class="footer-contact pt-2">
             <p class="mb-1"><i class="bi bi-geo-alt"></i> Ciudad de México · Atención remota y presencial</p>
             <p class="mb-1"><i class="bi bi-telephone"></i> +52 55 4044 8996</p>
-            <p class="mb-0"><i class="bi bi-envelope"></i> soporte@starpathai.mx</p>
+            <p class="mb-0"><i class="bi bi-envelope"></i> hola@starpathai.mx</p>
           </div>
 
           <div class="social-links d-flex mt-4 gap-2">
@@ -3553,8 +3615,8 @@
             <li><a href="#about">Quiénes Somos</a></li>
             <li><a href="#services">Servicios</a></li>
             <li><a href="#departments">Metodología FLOW</a></li>
-            <li><a href="{% url 'ats_producto' %}">Órbita</a></li>
-            <li><a href="{% url 'ats_plataforma' %}">Plataforma Órbita</a></li>
+            <li><a href="{% url 'orbita_producto' %}">Órbita</a></li>
+            <li><a href="{% url 'orbita_plataforma' %}">Plataforma Órbita</a></li>
             <li><a href="#contact">Contacto</a></li>
           </ul>
         </div>
@@ -3576,10 +3638,10 @@
           <h4>Metodología FLOW</h4>
 
           <ul class="footer-flow">
-            <li><span class="flow-badge">F</span> Discover & Frame</li>
-            <li><span class="flow-badge">L</span> Design & Leverage</li>
-            <li><span class="flow-badge">O</span> Build & Operate</li>
-            <li><span class="flow-badge">W</span> Optimize & Evolve</li>
+            <li><span class="flow-badge">F</span> Descubrir y Enmarcar</li>
+            <li><span class="flow-badge">L</span> Diseñar y Potenciar</li>
+            <li><span class="flow-badge">O</span> Construir y Operar</li>
+            <li><span class="flow-badge">W</span> Observar y Evolucionar</li>
           </ul>
 
           <div class="footer-cta mt-3">
@@ -3634,6 +3696,7 @@
     (function () {
       const form = document.getElementById("contactForm");
       const btn = document.getElementById("contactBtn");
+      const CALENDLY_URL = "https://calendly.com/starpathai/30min";
 
       function getCookie(name) {
         const value = `; ${document.cookie}`;
@@ -3643,6 +3706,7 @@
 
       form.addEventListener("submit", async function (e) {
         e.preventDefault();
+        window.open(CALENDLY_URL, "_blank", "noopener,noreferrer");
 
         btn.disabled = true;
         const originalText = btn.textContent;
@@ -4463,3 +4527,5 @@
 </body>
 
 </html>
+
+

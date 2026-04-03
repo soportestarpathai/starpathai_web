@@ -1,20 +1,20 @@
 """Context processors para el proyecto."""
 
 
-def ats_notifications(request):
-    """Añade notificaciones (clientes o admin) y contadores al contexto en páginas ATS."""
+def orbita_notifications(request):
+    """Añade notificaciones (clientes o admin) y contadores al contexto en páginas Órbita."""
     if not request.user.is_authenticated:
         return {}
-    if not request.path.startswith("/ats/plataforma/"):
+    if not request.path.startswith("/orbita/plataforma/"):
         return {}
-    ats_client = getattr(request.user, "ats_client", None)
-    if ats_client:
+    orbita_client = getattr(request.user, "ats_client", None)
+    if orbita_client:
         from mi_app.models import ATSNotification
-        notifications = list(ATSNotification.objects.filter(client=ats_client)[:10])
-        unread_count = ATSNotification.objects.filter(client=ats_client, read=False).count()
+        notifications = list(ATSNotification.objects.filter(client=orbita_client)[:10])
+        unread_count = ATSNotification.objects.filter(client=orbita_client, read=False).count()
         return {
-            "ats_notifications": notifications,
-            "ats_unread_count": unread_count,
+            "orbita_notifications": notifications,
+            "orbita_unread_count": unread_count,
         }
     if request.user.is_staff:
         from mi_app.models import PlanChangeRequest
@@ -25,7 +25,7 @@ def ats_notifications(request):
         )
         admin_count = PlanChangeRequest.objects.filter(status=PlanChangeRequest.STATUS_PENDING).count()
         return {
-            "ats_admin_notifications": plan_requests,
-            "ats_admin_unread_count": admin_count,
+            "orbita_admin_notifications": plan_requests,
+            "orbita_admin_unread_count": admin_count,
         }
     return {}

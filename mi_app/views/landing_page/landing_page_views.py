@@ -29,6 +29,7 @@ class LandingPage(APIView):
     def post(self, request):
         logger.info("landing_contact_post inicio")
         name = (request.data.get("name") or "").strip()
+        company = (request.data.get("company") or "").strip()
         email = (request.data.get("email") or "").strip()
         subject = (request.data.get("subject") or "").strip()
         message = (request.data.get("message") or "").strip()
@@ -36,6 +37,8 @@ class LandingPage(APIView):
         errors = {}
         if not name:
             errors["name"] = "El nombre es obligatorio."
+        if not company:
+            errors["company"] = "La empresa es obligatoria."
         if not email or "@" not in email:
             errors["email"] = "Correo inválido."
         if not subject:
@@ -62,13 +65,14 @@ class LandingPage(APIView):
 
             plain_body = (
                 f"Nombre: {name}\n"
+                f"Empresa: {company}\n"
                 f"Email: {email}\n"
                 f"Asunto: {subject}\n\n"
                 f"Mensaje:\n{message}\n"
             )
             html_body = render_to_string(
                 CONTACT_EMAIL_TEMPLATE_HTML,
-                {"name": name, "email": email, "subject": subject, "message": message},
+                {"name": name, "company": company, "email": email, "subject": subject, "message": message},
             )
 
             msg = EmailMultiAlternatives(

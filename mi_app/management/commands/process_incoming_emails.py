@@ -28,9 +28,9 @@ from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.urls import reverse
 
-from mi_app.ats_notifications import notify_ats_client
+from mi_app.orbita_notifications import notify_orbita_client
 from mi_app.models import ATSClientEmailConfig, ATSForm, ATSFormSubmission, ATSFormSubmissionFile, ATSNotification
-from mi_app.views.ats.ats_views import _create_candidate_from_submission
+from mi_app.views.orbita.orbita_views import _create_candidate_from_submission
 
 logger = logging.getLogger(__name__)
 
@@ -216,7 +216,7 @@ class Command(BaseCommand):
 
         allowed_ext = {
             e.strip().lower()
-            for e in getattr(settings, "ATS_FORM_PUBLIC_ALLOWED_EXTENSIONS", ["pdf", "doc", "docx"])
+            for e in getattr(settings, "ORBITA_FORM_PUBLIC_ALLOWED_EXTENSIONS", ["pdf", "doc", "docx"])
             if e and str(e).strip()
         }
         self.stdout.write(self.style.SUCCESS("Procesador de correo entrante ATS iniciado."))
@@ -300,17 +300,21 @@ class Command(BaseCommand):
             groups.setdefault(conn, []).append(config)
             client_ids_with_imap.add(config.client_id)
 
-        fallback_host = (os.environ.get("ATS_IMAP_HOST") or "").strip()
-        fallback_user = (os.environ.get("ATS_IMAP_USER") or "").strip()
-        fallback_password = (os.environ.get("ATS_IMAP_PASSWORD") or "").strip()
+        fallback_host = (os.environ.get("ORBITA_IMAP_HOST") or os.environ.get("ATS_IMAP_HOST") or "").strip()
+        fallback_user = (os.environ.get("ORBITA_IMAP_USER") or os.environ.get("ATS_IMAP_USER") or "").strip()
+        fallback_password = (os.environ.get("ORBITA_IMAP_PASSWORD") or os.environ.get("ATS_IMAP_PASSWORD") or "").strip()
         if fallback_host and fallback_user and fallback_password:
             fallback_conn = MailboxConnection(
                 host=fallback_host,
-                port=int((os.environ.get("ATS_IMAP_PORT") or "993").strip() or "993"),
+                port=int((os.environ.get("ORBITA_IMAP_PORT") or os.environ.get("ATS_IMAP_PORT") or "993").strip() or "993"),
                 user=fallback_user,
                 password=fallback_password,
-                folder=(os.environ.get("ATS_IMAP_FOLDER") or "INBOX").strip() or "INBOX",
-                use_ssl=_env_bool("ATS_IMAP_USE_SSL", True),
+                folder=(os.environ.get("ORBITA_IMAP_FOLDER") or os.environ.get("ATS_IMAP_FOLDER") or "INBOX").strip() or "INBOX",
+                use_ssl=(
+                    _env_bool("ORBITA_IMAP_USE_SSL", True)
+                    if os.environ.get("ORBITA_IMAP_USE_SSL") is not None
+                    else _env_bool("ATS_IMAP_USE_SSL", True)
+                ),
                 source="env",
             )
             fallback_configs = [c for c in configs if c.client_id not in client_ids_with_imap]
@@ -435,20 +439,20 @@ class Command(BaseCommand):
                             candidate.save(update_fields=["name"])
 
                 if candidate:
-                    notify_ats_client(
+                    notify_orbita_client(
                         config.client,
                         ATSNotification.TYPE_CANDIDATE,
                         "Nuevo candidato (correo entrante)",
                         message=f"{candidate.name} — Correo «{subject[:120]}».",
-                        link=reverse("ats_candidate_detail", args=[candidate.pk]),
+                        link=reverse("orbita_candidate_detail", args=[candidate.pk]),
                     )
                 else:
-                    notify_ats_client(
+                    notify_orbita_client(
                         config.client,
                         ATSNotification.TYPE_SUBMISSION,
                         "Nuevo envío (correo entrante)",
                         message=f"Correo «{subject[:120]}».",
-                        link=reverse("ats_form_submissions", args=[target_form.pk]),
+                        link=reverse("orbita_form_submissions", args=[target_form.pk]),
                     )
 
                 mailbox.store(msg_id, "+FLAGS", "\\Seen")
@@ -462,3 +466,11 @@ class Command(BaseCommand):
                 mailbox.logout()
             except Exception:
                 pass
+
+
+
+
+
+
+
+

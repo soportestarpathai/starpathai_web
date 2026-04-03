@@ -30,17 +30,17 @@ DB_PORT=5432
 EMAIL_HOST_USER=tu-correo@gmail.com
 EMAIL_HOST_PASSWORD=contraseña-de-aplicacion
 DEFAULT_FROM_EMAIL=Star Path <tu-correo@gmail.com>
-CONTACT_TO_EMAIL=soporte@starpathai.mx
+CONTACT_TO_EMAIL=hola@starpathai.mx
 ```
 
 ### ATS (opcional; tienen valor por defecto)
 
 ```env
-ATS_SUPPORT_EMAIL=soporte@starpathai.mx
-ATS_FORM_PUBLIC_MAX_FILE_SIZE=10485760
-ATS_FORM_PUBLIC_ALLOWED_EXTENSIONS=pdf,doc,docx
-ATS_FORM_PUBLIC_RATE_LIMIT_COUNT=5
-ATS_FORM_PUBLIC_RATE_LIMIT_SECONDS=3600
+ORBITA_SUPPORT_EMAIL=hola@starpathai.mx
+ORBITA_FORM_PUBLIC_MAX_FILE_SIZE=10485760
+ORBITA_FORM_PUBLIC_ALLOWED_EXTENSIONS=pdf,doc,docx
+ORBITA_FORM_PUBLIC_RATE_LIMIT_COUNT=5
+ORBITA_FORM_PUBLIC_RATE_LIMIT_SECONDS=3600
 ```
 
 ### Análisis de CV con IA (OpenAI)
@@ -117,19 +117,19 @@ Indica username, email y contraseña cuando se soliciten.
 
 ## 4. Usuario administrador ATS (soporte)
 
-Para acceder al panel **Administración ATS** (`/ats/plataforma/administracion/`) hace falta un usuario con **staff**:
+Para acceder al panel **Administración ATS** (`/orbita/plataforma/administracion/`) hace falta un usuario con **staff**:
 
 ```bash
-python manage.py create_ats_admin
+python manage.py create_orbita_admin
 ```
 
-Por defecto crea el usuario `soporte` con email `soporte@starpathai.mx`. Para otro usuario/correo:
+Por defecto crea el usuario `soporte` con email `hola@starpathai.mx`. Para otro usuario/correo:
 
 ```bash
-python manage.py create_ats_admin --username adminats --email soporte@starpathai.mx
+python manage.py create_orbita_admin --username adminats --email hola@starpathai.mx
 ```
 
-Ese usuario inicia sesión en `/ats/plataforma/` y será redirigido al panel de administración ATS.
+Ese usuario inicia sesión en `/orbita/plataforma/` y será redirigido al panel de administración ATS.
 
 ---
 
@@ -146,11 +146,11 @@ Configura el servidor (Nginx, etc.) para servir los archivos en `staticfiles/` b
 ## 6. Comprobar que todo responde
 
 - Página principal: `/`
-- Producto ATS: `/ats/`
-- Login/registro ATS: `/ats/plataforma/`
-- Recuperar contraseña: `/ats/plataforma/recuperar-password/`
+- Producto ATS: `/orbita/`
+- Login/registro ATS: `/orbita/plataforma/`
+- Recuperar contraseña: `/orbita/plataforma/recuperar-password/`
 - Admin Django: `/admin/` (con superusuario)
-- Panel admin ATS: `/ats/plataforma/administracion/` (con usuario staff)
+- Panel admin ATS: `/orbita/plataforma/administracion/` (con usuario staff)
 
 ---
 
@@ -158,13 +158,13 @@ Configura el servidor (Nginx, etc.) para servir los archivos en `staticfiles/` b
 
 | Ruta | Descripción |
 |------|-------------|
-| `/ats/` | Página producto ATS |
-| `/ats/plataforma/` | Login / registro |
-| `/ats/plataforma/recuperar-password/` | Recuperar contraseña |
-| `/ats/plataforma/dashboard/` | Dashboard cliente (candidatos, reclutamiento, Mi cuenta) |
-| `/ats/plataforma/administracion/` | Panel administración (solo staff) |
-| `/ats/f/<uuid>/` | Formulario público de postulación |
-| `/ats/f/<uuid>/gracias/` | Página de agradecimiento tras enviar formulario |
+| `/orbita/` | Página producto ATS |
+| `/orbita/plataforma/` | Login / registro |
+| `/orbita/plataforma/recuperar-password/` | Recuperar contraseña |
+| `/orbita/plataforma/dashboard/` | Dashboard cliente (candidatos, reclutamiento, Mi cuenta) |
+| `/orbita/plataforma/administracion/` | Panel administración (solo staff) |
+| `/orbita/f/<uuid>/` | Formulario público de postulación |
+| `/orbita/f/<uuid>/gracias/` | Página de agradecimiento tras enviar formulario |
 
 ---
 
@@ -203,3 +203,4 @@ python manage.py process_incoming_emails --once
 Notas:
 - Si no levantas estos workers, la plataforma web funciona, pero no habrá procesamiento automático por Telegram/IMAP.
 - En Render, crea servicios tipo Worker separados para cada comando.
+

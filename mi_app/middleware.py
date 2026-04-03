@@ -34,10 +34,10 @@ class RequestLoggingMiddleware:
         return response
 
 
-class ATSStaffAdminRedirectMiddleware:
+class OrbitaStaffAdminRedirectMiddleware:
     """
-    Si un usuario staff (sin perfil ats_client) entra a rutas del dashboard cliente,
-    redirige al panel de administración ATS para evitar mezcla de vistas.
+    Si un usuario staff (sin perfil de cliente Órbita) entra a rutas del dashboard cliente,
+    redirige al panel de administración Órbita para evitar mezcla de vistas.
     """
 
     def __init__(self, get_response):
@@ -52,8 +52,11 @@ class ATSStaffAdminRedirectMiddleware:
             and user.is_authenticated
             and user.is_staff
             and not getattr(user, "ats_client", None)
-            and path.startswith("/ats/plataforma/dashboard")
+            and path.startswith("/orbita/plataforma/dashboard")
         ):
-            return redirect("ats_admin_dashboard")
+            return redirect("orbita_admin_dashboard")
 
         return self.get_response(request)
+
+
+

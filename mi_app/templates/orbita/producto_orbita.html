@@ -1,0 +1,1343 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Órbita — Reclutamiento Estratégico con IA | Star Path</title>
+  <meta name="description" content="Órbita transforma la manera en que las organizaciones atraen, organizan y seleccionan talento. Centraliza vacantes, automatiza procesos y toma decisiones más rápidas.">
+  <link href="{% static 'img/logo_star.png' %}" rel="icon">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet">
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+  <style>
+    :root { --ob-font:"Inter",system-ui,sans-serif; --ob-heading:"Plus Jakarta Sans",sans-serif; --ob-exec-font:"Manrope","Inter",system-ui,sans-serif; --ob-accent:#00C4C9; --ob-accent-soft:#26d5a8; --ob-dark:#061425; }
+    body.ob-page { font-family:var(--ob-font); -webkit-font-smoothing:antialiased; background:#fff; -webkit-hyphens:auto; hyphens:auto; word-break:break-word; }
+
+    /* ── Nav ── */
+    .ob-nav {
+      background: linear-gradient(180deg, rgba(6, 18, 34, 0.92) 0%, rgba(6, 18, 34, 0.86) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(88, 128, 161, 0.22);
+      padding:.8rem 0;
+      position:sticky;
+      top:0;
+      z-index:1040;
+      box-shadow:0 2px 24px rgba(0,0,0,.22);
+    }
+    .ob-nav .inner { display:flex; align-items:center; justify-content:space-between; min-height:56px; }
+    .ob-nav .brand { display:flex; align-items:center; gap:.72rem; text-decoration:none; color:#fff; }
+    .ob-nav .brand img { height:42px; width:auto; filter:brightness(1.08) drop-shadow(0 2px 10px rgba(0, 196, 201, 0.15)); }
+    .ob-nav .brand-copy { display:flex; flex-direction:column; line-height:1.04; }
+    .ob-nav .brand-copy strong { font-family:var(--ob-heading); font-weight:800; font-size:1.85rem; color:#f4fbff; letter-spacing:-.01em; }
+    .ob-nav .brand-copy small { font-weight:500; font-size:.78rem; color:rgba(199, 219, 236, .66); }
+    .ob-nav-links { display:flex; align-items:center; gap:1.58rem; }
+    .ob-nav-links a { color:rgba(221,236,250,.74); text-decoration:none; font-size:.95rem; font-weight:500; transition:color .15s; }
+    .ob-nav-links a:hover { color:#fff; }
+    .ob-nav-links .btn-cta {
+      background: rgba(10, 30, 49, 0.82);
+      color:#fff;
+      padding:.58rem 1.24rem;
+      border-radius:12px;
+      font-weight:700;
+      font-size:1.03rem;
+      border:1px solid rgba(145, 176, 201, 0.35);
+      transition:all .2s;
+    }
+    .ob-nav-links .btn-cta:hover { transform:translateY(-1px); border-color:rgba(38, 213, 168, 0.58); color:#fff; }
+    .ob-nav .mobile-toggle { display:none; background:none; border:none; color:#fff; font-size:1.4rem; }
+    @media(max-width:767.98px) {
+      .ob-nav-links { display:none; }
+      .ob-nav-links.show { display:flex; flex-direction:column; position:absolute; top:100%; left:0; right:0; background:var(--ob-dark); padding:1rem 1.5rem; gap:.75rem; border-top:1px solid rgba(255,255,255,.08); }
+      .ob-nav .mobile-toggle { display:block; }
+      .ob-nav .brand-copy strong { font-size:1.32rem; }
+      .ob-nav .brand-copy small { font-size:.72rem; }
+    }
+
+    /* ── Hero ── */
+    .ob-hero {
+      min-height:86vh;
+      background:linear-gradient(170deg,#05101f 0%,#07192f 35%,#0a2240 100%);
+      position:relative; overflow:hidden;
+      display:flex; align-items:center;
+      padding:6.5rem 0 5.2rem;
+    }
+    .ob-hero::before {
+      content:'';
+      position:absolute;
+      top:-34%;
+      left:50%;
+      transform:translateX(-50%);
+      width:920px;
+      height:920px;
+      background:radial-gradient(circle,rgba(38,213,168,.16) 0%, rgba(38,213,168,.06) 36%, transparent 64%);
+      animation:hFloat 12s ease-in-out infinite alternate;
+      pointer-events:none;
+    }
+    .ob-hero::after {
+      content:'';
+      position:absolute;
+      inset:0;
+      background-image:
+        linear-gradient(rgba(95, 130, 164, 0.14) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(95, 130, 164, 0.14) 1px, transparent 1px);
+      background-size:64px 64px;
+      opacity:.22;
+      pointer-events:none;
+    }
+    @keyframes hFloat { 0%{transform:translate(0,0)} 100%{transform:translate(-3%,4%)} }
+    .ob-hero .inner { position:relative; z-index:1; max-width:900px; margin:0 auto; text-align:center; }
+    .ob-hero .badge-tag {
+      display:inline-flex; align-items:center; gap:.4rem;
+      background:rgba(21, 77, 78, .46);
+      border:1px solid rgba(29,225,176,.24);
+      padding:.48rem 1.1rem;
+      border-radius:999px;
+      font-size:.78rem;
+      font-weight:700;
+      color:#8fd4cb;
+      text-transform:uppercase; letter-spacing:.08em;
+      margin-bottom:1.5rem;
+    }
+    .ob-hero .badge-tag::before {
+      content:"";
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:#1de1b0;
+      box-shadow:0 0 0 3px rgba(29, 225, 176, 0.18);
+    }
+    .ob-hero h1 {
+      font-family:var(--ob-heading); font-weight:800;
+      font-size:clamp(2.3rem,7.2vw,5.35rem);
+      line-height:1.07;
+      color:#f4fbff;
+      margin-bottom:1rem;
+      letter-spacing:-.04em; hyphens:none; word-break:normal;
+    }
+    .ob-hero h1 .accent {
+      display:block;
+      color:var(--ob-accent-soft);
+    }
+    .ob-hero .desc {
+      font-size:clamp(1rem,1.45vw,1.34rem);
+      line-height:1.66;
+      color:rgba(213, 229, 242, .66);
+      max-width:800px;
+      margin:0 auto 2.4rem;
+      text-align:center;
+    }
+    .ob-hero .hero-cta { display:flex; gap:.75rem; justify-content:center; flex-wrap:wrap; }
+    .ob-hero .btn-main {
+      background:rgba(9, 28, 45, .84);
+      border:1px solid rgba(145, 178, 204, .38);
+      color:#f1fbff;
+      padding:.85rem 2.25rem;
+      border-radius:14px;
+      font-weight:700; font-size:1rem;
+      box-shadow:none;
+      transition:all .25s; text-decoration:none;
+      display:inline-flex; align-items:center; gap:.4rem;
+    }
+    .ob-hero .btn-main:hover { transform:translateY(-1px); border-color:rgba(38, 213, 168, .6); box-shadow:0 10px 28px rgba(7, 20, 34, .45); color:#fff; }
+    .ob-hero .btn-sec {
+      background:rgba(9, 28, 45, .74);
+      border:1px solid rgba(145, 178, 204, .28);
+      color:#eef9ff;
+      padding:.85rem 2rem; border-radius:14px;
+      font-weight:600; font-size:1rem;
+      transition:all .25s; text-decoration:none;
+      display:inline-flex; align-items:center; gap:.4rem;
+    }
+    .ob-hero .btn-sec:hover { border-color:rgba(38, 213, 168, .45); color:#fff; }
+    .ob-hero .highlight-text { display:none; }
+
+    /* ── H2R Execution Map ── */
+    .ob-h2r-section {
+      padding: 1.2rem 0 3.6rem;
+      background: linear-gradient(180deg, #07192f 0%, #081a31 55%, #0a1f39 100%);
+      position: relative;
+    }
+    .ob-h2r-wrap {
+      border-radius: 24px;
+      border: 1px solid rgba(107, 145, 181, 0.26);
+      background:
+        linear-gradient(180deg, rgba(8, 22, 39, 0.86) 0%, rgba(10, 25, 46, 0.9) 100%),
+        linear-gradient(rgba(95, 130, 164, 0.11) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(95, 130, 164, 0.11) 1px, transparent 1px);
+      background-size: auto, 64px 64px, 64px 64px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.26);
+      overflow: hidden;
+    }
+    .ob-h2r-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid rgba(121, 157, 189, 0.2);
+      background: rgba(8, 23, 42, 0.76);
+    }
+    .ob-h2r-title {
+      margin: 0;
+      color: #f4f7fd;
+      font-family: var(--ob-heading);
+      font-size: 1.86rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+    .ob-h2r-sub {
+      margin: 0.22rem 0 0;
+      color: rgba(185, 207, 226, 0.72);
+      font-size: 0.9rem;
+    }
+    .ob-h2r-process {
+      color: rgba(180, 204, 226, 0.78);
+      font-size: 0.98rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-align: right;
+      margin-top: 0.3rem;
+      white-space: nowrap;
+    }
+    .ob-h2r-phases,
+    .ob-h2r-agents {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(90px, 1fr));
+    }
+    .ob-h2r-phase,
+    .ob-h2r-agent {
+      min-height: 76px;
+      border-right: 1px solid rgba(118, 155, 188, 0.16);
+      border-bottom: 1px solid rgba(118, 155, 188, 0.16);
+      padding: 0.78rem 0.66rem;
+    }
+    .ob-h2r-phase:last-child,
+    .ob-h2r-agent:last-child { border-right: 0; }
+    .ob-h2r-phase strong {
+      display: block;
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.14rem;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+    .ob-h2r-phase span {
+      color: rgba(178, 201, 222, 0.62);
+      font-size: 0.82rem;
+      line-height: 1.2;
+      display: block;
+    }
+    .h2r-c1 strong { color: #ad98ff; }
+    .h2r-c2 strong { color: #b58fff; }
+    .h2r-c3 strong { color: #9d9dff; }
+    .h2r-c4 strong { color: #1dcfa4; }
+    .h2r-c5 strong { color: #21d8af; }
+    .h2r-c6 strong { color: #f0bf52; }
+    .h2r-c7 strong { color: #e7bc63; }
+    .h2r-c8 strong { color: #e48ac4; }
+    .ob-h2r-agents-title {
+      text-align: center;
+      padding: 0.52rem 1rem;
+      color: rgba(173, 196, 218, 0.64);
+      font-size: 0.97rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(118, 155, 188, 0.16);
+      background: rgba(7, 21, 38, 0.62);
+    }
+    .ob-h2r-agent {
+      min-height: 112px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: 0.22rem;
+      padding: 0.78rem 0.46rem;
+    }
+    .ob-h2r-agent .agent-dot {
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 1.12rem;
+      border: 2px solid currentColor;
+      background: rgba(7, 19, 35, 0.8);
+      margin-bottom: 0.08rem;
+      letter-spacing: -0.01em;
+    }
+    .ob-h2r-agent .agent-step {
+      color: #e8f2fb;
+      font-size: 1.12rem;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .ob-h2r-agent .agent-label {
+      color: rgba(176, 200, 222, 0.73);
+      font-size: 0.83rem;
+      line-height: 1.2;
+    }
+    .ob-h2r-agent.violet { color: #a891ff; }
+    .ob-h2r-agent.teal { color: #1fd2a7; }
+    .ob-h2r-agent.amber { color: #ebb84d; }
+    .ob-h2r-agent.pink { color: #e68ac7; }
+    .ob-h2r-core {
+      border-top: 1px solid rgba(56, 212, 173, 0.32);
+      padding: 1rem 1.2rem 1.25rem;
+      background: linear-gradient(180deg, rgba(8, 29, 43, 0.56) 0%, rgba(8, 24, 43, 0.52) 100%);
+    }
+    .ob-h2r-core-box {
+      border: 1px solid rgba(60, 216, 176, 0.3);
+      border-radius: 15px;
+      padding: 0.84rem 0.95rem;
+      background: rgba(9, 56, 58, 0.3);
+    }
+    .ob-h2r-core-box h3 {
+      margin: 0;
+      color: #44deb6;
+      font-family: var(--ob-heading);
+      font-weight: 800;
+      font-size: 1.48rem;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+    }
+    .ob-h2r-core-box p {
+      margin: 0.24rem 0 0.78rem;
+      color: rgba(172, 215, 205, 0.75);
+      font-size: 0.87rem;
+      line-height: 1.45;
+    }
+    .ob-h2r-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.46rem;
+    }
+    .ob-h2r-chips span {
+      background: rgba(52, 111, 114, 0.4);
+      border: 1px solid rgba(71, 172, 165, 0.3);
+      color: #b8ece5;
+      border-radius: 999px;
+      padding: 0.26rem 0.66rem;
+      font-size: 0.79rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .ob-h2r-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.2rem;
+      padding: 0.84rem 0 0.62rem;
+    }
+    .ob-h2r-legend span {
+      color: rgba(163, 191, 217, 0.62);
+      font-size: 0.86rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+    }
+    .ob-h2r-legend i {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .ob-h2r-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      border-top: 1px solid rgba(118, 155, 188, 0.16);
+    }
+    .ob-h2r-kpi {
+      text-align: center;
+      padding: 0.96rem 0.5rem 0.86rem;
+      border-right: 1px solid rgba(118, 155, 188, 0.16);
+    }
+    .ob-h2r-kpi:last-child { border-right: 0; }
+    .ob-h2r-kpi strong {
+      display: block;
+      color: #2fd4a9;
+      font-size: 1.9rem;
+      line-height: 1;
+      font-family: var(--ob-heading);
+      font-weight: 800;
+    }
+    .ob-h2r-kpi span {
+      display: block;
+      margin-top: 0.3rem;
+      color: rgba(170, 194, 215, 0.62);
+      font-size: 0.84rem;
+      line-height: 1.25;
+    }
+
+    /* ── Section shared ── */
+    .ob-section { padding:5rem 0; }
+    .ob-section-dark { background:linear-gradient(160deg,#070f1a 0%,#0b1c2d 50%,#0f2a45 100%); color:#fff; }
+    .ob-section-light { background:#f8fafc; }
+    .ob-section-title {
+      text-align:center; margin-bottom:3.5rem;
+    }
+    .ob-section-title .label {
+      display:inline-flex; align-items:center; gap:.35rem;
+      font-size:.72rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:.1em; color:#00c4c9; margin-bottom:.75rem;
+    }
+    .ob-section-title h2 {
+      font-family:var(--ob-heading); font-weight:800;
+      font-size:clamp(1.5rem,3vw,2.1rem);
+      color:var(--heading-color,#1a202c); margin-bottom:.65rem;
+      hyphens:none; word-break:normal;
+    }
+    .ob-section-dark .ob-section-title h2 { color:#fff; }
+    .ob-section-title p { font-size:.95rem; color:#64748b; max-width:620px; margin:0 auto; line-height:1.65; text-align:justify; text-align-last:center; }
+    .ob-section-dark .ob-section-title p { color:rgba(255,255,255,.55); }
+
+    /* ── Funcionalidades (nuevo diseño) ── */
+    .ob-func-section {
+      font-family: var(--ob-exec-font);
+      background: linear-gradient(180deg, #08192f 0%, #081c34 58%, #0a223f 100%);
+      color: #eef7ff;
+      padding-top: 4.3rem;
+      padding-bottom: 4.2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .ob-func-section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(91, 128, 160, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(91, 128, 160, 0.08) 1px, transparent 1px);
+      background-size: 54px 54px;
+      opacity: 0.24;
+      pointer-events: none;
+    }
+    .ob-func-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    .ob-func-head {
+      max-width: 100%;
+      margin: 0 0 1.65rem;
+      text-align: left;
+    }
+    .ob-func-head .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.36rem;
+      font-size: 0.64rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #31bfae;
+      margin-bottom: 0.6rem;
+    }
+    .ob-func-head h2 {
+      font-family: var(--ob-exec-font);
+      font-weight: 800;
+      color: #f2f7fd;
+      font-size: clamp(2.2rem, 4.9vw, 3.45rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      margin: 0 0 0.76rem;
+      max-width: 690px;
+      -webkit-hyphens: none;
+      hyphens: none;
+      text-wrap: pretty;
+    }
+    .ob-func-head h2 .line { display: inline-block; white-space: nowrap; }
+    .ob-func-head p {
+      margin: 0;
+      max-width: 700px;
+      color: rgba(189, 211, 231, 0.72);
+      font-size: 0.94rem;
+      line-height: 1.58;
+      -webkit-hyphens: none;
+      hyphens: none;
+    }
+    .ob-func-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.82rem;
+      margin-top: 1rem;
+    }
+    .ob-func-card {
+      border-radius: 12px;
+      border: 1px solid rgba(86, 122, 155, 0.27);
+      background: linear-gradient(180deg, rgba(8, 25, 44, 0.96) 0%, rgba(10, 29, 50, 0.92) 100%);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+      padding: 0.85rem 0.88rem 0.76rem;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+    }
+    .ob-func-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(63, 212, 171, 0.55);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.31);
+    }
+    .ob-func-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: rgba(20, 80, 79, 0.5);
+      border: 1px solid rgba(67, 179, 170, 0.4);
+      color: #42dac1;
+      font-size: 0.82rem;
+      margin-bottom: 0.62rem;
+    }
+    .ob-func-card h3 {
+      font-family: var(--ob-exec-font);
+      font-weight: 800;
+      margin: 0 0 0.48rem;
+      font-size: 1.11rem;
+      line-height: 1.16;
+      color: #f4f8fc;
+      letter-spacing: -0.012em;
+      -webkit-hyphens: none;
+      hyphens: none;
+    }
+    .ob-func-card p {
+      margin: 0;
+      color: rgba(177, 201, 223, 0.78);
+      font-size: 0.815rem;
+      line-height: 1.5;
+      flex: 1;
+      -webkit-hyphens: none;
+      hyphens: none;
+    }
+    .ob-func-chip {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid rgba(74, 163, 158, 0.45);
+      background: rgba(17, 76, 75, 0.34);
+      color: #9fefe1;
+      font-size: 0.66rem;
+      font-weight: 600;
+      padding: 0.21rem 0.56rem;
+      margin-top: 0.72rem;
+      letter-spacing: 0.01em;
+    }
+    .ob-oei-panel {
+      margin-top: 0.86rem;
+      border-radius: 14px;
+      border: 1px solid rgba(89, 127, 161, 0.3);
+      background: linear-gradient(180deg, rgba(11, 31, 54, 0.9) 0%, rgba(9, 29, 52, 0.88) 100%);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.23);
+      padding: 0.82rem;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 0.72rem;
+    }
+    .ob-oei-main {
+      border-radius: 11px;
+      border: 1px solid rgba(90, 128, 160, 0.26);
+      background: rgba(7, 24, 43, 0.65);
+      padding: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .ob-oei-main h3 {
+      margin: 0 0 0.35rem;
+      font-family: var(--ob-heading);
+      font-size: 1.45rem;
+      line-height: 1.06;
+      letter-spacing: -0.01em;
+      color: #2dd0aa;
+      text-wrap: balance;
+    }
+    .ob-oei-main p {
+      margin: 0;
+      font-size: 0.81rem;
+      line-height: 1.56;
+      color: rgba(183, 207, 227, 0.78);
+    }
+    .ob-oei-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.52rem;
+    }
+    .ob-oei-metric {
+      border-radius: 10px;
+      border: 1px solid rgba(93, 131, 164, 0.38);
+      background: rgba(16, 50, 79, 0.53);
+      padding: 0.58rem 0.62rem;
+      min-height: 70px;
+    }
+    .ob-oei-metric h4 {
+      margin: 0 0 0.2rem;
+      font-size: 0.79rem;
+      color: #eff7ff;
+      line-height: 1.22;
+      font-weight: 700;
+    }
+    .ob-oei-metric p {
+      margin: 0;
+      font-size: 0.7rem;
+      line-height: 1.34;
+      color: rgba(182, 206, 229, 0.82);
+    }
+    .ob-oei-metric.full {
+      grid-column: 1 / -1;
+      min-height: auto;
+    }
+
+    /* ── Cómo funciona (nuevo diseño) ── */
+    .ob-flow-section {
+      font-family: var(--ob-exec-font);
+      background: linear-gradient(180deg, #081a31 0%, #0a1e38 56%, #0a223f 100%);
+      color: #ecf5ff;
+      position: relative;
+      overflow: hidden;
+    }
+    .ob-flow-section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(89, 126, 158, 0.09) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(89, 126, 158, 0.09) 1px, transparent 1px);
+      background-size: 56px 56px;
+      opacity: 0.24;
+      pointer-events: none;
+    }
+    .ob-flow-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    .ob-flow-head .label {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      color: #30c0ad;
+      text-transform: uppercase;
+      letter-spacing: .13em;
+      font-size: .66rem;
+      font-weight: 700;
+      margin-bottom: .62rem;
+    }
+    .ob-flow-head h2 {
+      margin: 0 0 .7rem;
+      font-family: var(--ob-exec-font);
+      font-weight: 800;
+      color: #f2f7fd;
+      font-size: clamp(2.1rem, 4.95vw, 3.3rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      max-width: 650px;
+      -webkit-hyphens: none;
+      hyphens: none;
+    }
+    .ob-flow-head h2 .line { display: inline-block; white-space: nowrap; }
+    .ob-flow-head p {
+      margin: 0;
+      max-width: 760px;
+      color: rgba(189, 212, 232, .76);
+      font-size: .94rem;
+      line-height: 1.58;
+      -webkit-hyphens: none;
+      hyphens: none;
+    }
+    .ob-flow-steps {
+      margin-top: 1.45rem;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: .72rem;
+      position: relative;
+    }
+    .ob-flow-steps::before {
+      content: "";
+      position: absolute;
+      left: 2%;
+      right: 2%;
+      top: 18px;
+      border-top: 1px solid rgba(96, 130, 161, .28);
+      z-index: 0;
+    }
+    .ob-flow-step {
+      position: relative;
+      z-index: 1;
+      padding: 0 .34rem;
+    }
+    .ob-flow-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid rgba(69, 192, 172, .42);
+      background: rgba(6, 26, 43, .88);
+      display: grid;
+      place-items: center;
+      color: #31c9b0;
+      font-weight: 800;
+      font-size: .82rem;
+      margin-bottom: .55rem;
+      box-shadow: 0 0 0 4px rgba(9, 30, 49, .74);
+    }
+    .ob-flow-step h3 {
+      margin: 0 0 .34rem;
+      font-family: var(--ob-exec-font);
+      font-weight: 800;
+      color: #f3f8fd;
+      font-size: .98rem;
+      line-height: 1.18;
+      letter-spacing: -0.012em;
+      min-height: 2.45em;
+      -webkit-hyphens: none;
+      hyphens: none;
+    }
+    .ob-flow-step .mini {
+      margin: 0 0 .34rem;
+      color: rgba(140, 175, 205, .78);
+      font-size: .73rem;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+    .ob-flow-step p {
+      margin: 0;
+      color: rgba(172, 199, 221, .78);
+      font-size: .75rem;
+      line-height: 1.42;
+      -webkit-hyphens: none;
+      hyphens: none;
+    }
+    .ob-flow-engine {
+      margin-top: 1.5rem;
+      border-radius: 14px;
+      border: 1px solid rgba(93, 129, 160, .3);
+      background: linear-gradient(180deg, rgba(9, 31, 54, .9) 0%, rgba(8, 28, 50, .88) 100%);
+      padding: .94rem;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, .23);
+    }
+    .ob-flow-engine h3 {
+      margin: .02rem 0 .72rem;
+      color: #33cfb0;
+      font-family: var(--ob-heading);
+      font-size: 1.25rem;
+      letter-spacing: -0.01em;
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+    }
+    .ob-flow-engine h3::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #2fd4b2;
+      box-shadow: 0 0 0 3px rgba(47, 212, 178, .16);
+    }
+    .ob-flow-cap-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .64rem;
+    }
+    .ob-flow-cap {
+      border-radius: 10px;
+      border: 1px solid rgba(89, 125, 157, .33);
+      background: rgba(13, 42, 67, .54);
+      padding: .64rem .68rem;
+      min-height: 118px;
+    }
+    .ob-flow-cap h4 {
+      margin: 0 0 .3rem;
+      color: #ecf7ff;
+      font-size: .86rem;
+      line-height: 1.23;
+      font-weight: 700;
+    }
+    .ob-flow-cap p {
+      margin: 0;
+      color: rgba(176, 201, 222, .8);
+      font-size: .74rem;
+      line-height: 1.45;
+    }
+    .ob-flow-zone-title {
+      margin: .86rem 0 .44rem;
+      color: rgba(155, 188, 214, .72);
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      font-size: .69rem;
+      font-weight: 700;
+    }
+    .ob-flow-zones {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: .6rem;
+    }
+    .ob-flow-zone {
+      border-radius: 10px;
+      border: 1px solid rgba(92, 129, 161, .34);
+      background: rgba(12, 37, 60, .57);
+      padding: .58rem .62rem;
+      min-height: 86px;
+    }
+    .ob-flow-zone h5 {
+      margin: 0 0 .2rem;
+      font-size: .77rem;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #f1f8ff;
+    }
+    .ob-flow-zone p {
+      margin: 0;
+      color: rgba(175, 200, 223, .76);
+      font-size: .69rem;
+      line-height: 1.35;
+    }
+    .zone-ready h5 { color: #55d2b1; }
+    .zone-governed h5 { color: #6ea1ff; }
+    .zone-dependent h5 { color: #e0ba68; }
+    .zone-pre h5 { color: #dc8dc6; }
+
+    /* ── Steps ── */
+    .ob-steps { counter-reset:step; }
+    .ob-step {
+      display:flex; align-items:flex-start; gap:1.5rem;
+      margin-bottom:2rem; position:relative;
+    }
+    .ob-step .step-num {
+      width:52px; height:52px; min-width:52px;
+      border-radius:14px;
+      background:linear-gradient(135deg,rgba(0,196,201,.12),rgba(0,229,160,.06));
+      display:flex; align-items:center; justify-content:center;
+      font-family:var(--ob-heading); font-weight:800; font-size:1.15rem;
+      color:#00c4c9;
+    }
+    .ob-step .step-body h4 { font-family:var(--ob-heading); font-weight:700; font-size:1rem; margin-bottom:.3rem; color:var(--heading-color,#1a202c); hyphens:none; word-break:normal; }
+    .ob-step .step-body p { font-size:.88rem; color:#64748b; line-height:1.65; margin:0; text-align:justify; }
+
+    /* ── Audience tags ── */
+    .ob-audience { display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; }
+    .ob-audience .tag {
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.6rem 1.15rem; border-radius:12px;
+      background:#fff; border:1px solid rgba(11,28,45,.08);
+      font-size:.85rem; font-weight:600; color:#475569;
+      box-shadow:0 2px 8px rgba(11,28,45,.04);
+      transition:all .25s;
+    }
+    .ob-audience .tag:hover { border-color:rgba(0,196,201,.3); box-shadow:0 4px 16px rgba(0,196,201,.1); transform:translateY(-2px); }
+    .ob-audience .tag i { color:#00c4c9; font-size:.9rem; }
+
+    /* ── CTA ── */
+    .ob-cta-box {
+      background:rgba(255,255,255,.04); border:1px solid rgba(0,196,201,.2);
+      border-radius:24px; padding:3.5rem 2.5rem;
+      text-align:center;
+      box-shadow:0 20px 60px rgba(0,0,0,.15);
+    }
+    .ob-cta-box h2 { font-family:var(--ob-heading); font-weight:800; font-size:clamp(1.4rem,3vw,1.9rem); color:#fff; margin-bottom:.5rem; }
+    .ob-cta-box p { color:rgba(255,255,255,.6); font-size:1rem; margin-bottom:2rem; max-width:600px; margin-left:auto; margin-right:auto; text-align:justify; text-align-last:center; line-height:1.7; }
+
+    /* ── Plans ── */
+    .ob-plan-card {
+      background:#fff; border:1px solid rgba(11,28,45,.06);
+      border-radius:18px; overflow:hidden;
+      box-shadow:0 4px 20px rgba(11,28,45,.04);
+      transition:all .3s; height:100%;
+      display:flex; flex-direction:column;
+    }
+    .ob-plan-card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(11,28,45,.08); }
+    .ob-plan-card.featured { border:2px solid #00c4c9; box-shadow:0 8px 32px rgba(0,196,201,.12); }
+    .ob-plan-card .plan-head { padding:1.75rem 1.5rem 1rem; }
+    .ob-plan-card .plan-name { font-family:var(--ob-heading); font-weight:700; font-size:1.05rem; color:var(--heading-color,#1a202c); margin-bottom:.25rem; }
+    .ob-plan-card .plan-desc { font-size:.82rem; color:#94a3b8; margin-bottom:.75rem; }
+    .ob-plan-card .plan-price { font-family:var(--ob-heading); font-weight:800; font-size:1.75rem; color:var(--heading-color,#1a202c); }
+    .ob-plan-card .plan-price .per { font-size:.82rem; font-weight:500; color:#94a3b8; }
+    .ob-plan-card .plan-feats { padding:0 1.5rem 1rem; flex:1; }
+    .ob-plan-card .plan-feats li { font-size:.84rem; color:#64748b; display:flex; align-items:center; gap:.5rem; margin-bottom:.5rem; }
+    .ob-plan-card .plan-feats li i { color:#10b981; font-size:.75rem; }
+    .ob-plan-card .plan-cta { padding:0 1.5rem 1.75rem; }
+    .ob-plan-card .plan-cta .btn { width:100%; border-radius:11px; font-weight:700; padding:.65rem; }
+
+    /* ── Footer ── */
+    .ob-footer {
+      background: linear-gradient(180deg, #071527 0%, #061425 100%);
+      color: rgba(188, 211, 231, 0.72);
+      padding: 3.2rem 0 1.6rem;
+      border-top: 1px solid rgba(72, 111, 145, 0.3);
+    }
+    .ob-footer a { color:rgba(188, 211, 231, 0.72); text-decoration:none; transition:color .15s; }
+    .ob-footer a:hover { color:#00c4c9; }
+    .ob-footer .f-brand { display:flex; align-items:center; gap:.72rem; margin-bottom:1rem; }
+    .ob-footer .f-brand img { height:44px; width:auto; filter:brightness(1.06) drop-shadow(0 2px 12px rgba(0,196,201,.2)); }
+    .ob-footer .f-brand-text { display:flex; flex-direction:column; line-height:1.05; }
+    .ob-footer .f-brand-text span { font-family:var(--ob-heading); font-weight:800; color:#f6fbff; font-size:1.14rem; letter-spacing:-.01em; }
+    .ob-footer .f-brand-text small { color:rgba(179,206,229,.68); font-size:.74rem; font-weight:600; }
+    .ob-footer .f-desc { font-size:.85rem; line-height:1.68; margin-bottom:1.25rem; color:rgba(183,206,228,.72); text-align:justify; }
+    .ob-footer h5 { font-family:var(--ob-heading); font-weight:700; color:#f6fbff; font-size:.88rem; margin-bottom:.85rem; }
+    .ob-footer ul { list-style:none; padding:0; margin:0; }
+    .ob-footer ul li { margin-bottom:.45rem; font-size:.84rem; }
+    .ob-footer .f-bottom { border-top:1px solid rgba(98, 134, 166, 0.2); margin-top:2rem; padding-top:1.25rem; text-align:center; font-size:.78rem; color:rgba(176,199,221,.7); }
+
+    @media(max-width:767.98px) {
+      .ob-hero { padding:4rem 0 3rem; min-height:auto; }
+      .ob-hero h1 { font-size:2.25rem; line-height:1.08; }
+      .ob-hero .desc { font-size:1.02rem; }
+      .ob-func-section { padding-top: 3.3rem; padding-bottom: 3.3rem; }
+      .ob-func-head { margin-bottom: 1.25rem; }
+      .ob-func-head h2 { font-size: 2.03rem; line-height: 1.07; }
+      .ob-func-head h2 .line { white-space: normal; }
+      .ob-func-head p { font-size: .95rem; line-height: 1.68; }
+      .ob-func-grid { grid-template-columns: 1fr; gap: .8rem; margin-top: .8rem; }
+      .ob-func-card { min-height: auto; padding: .95rem .9rem .8rem; }
+      .ob-func-card h3 { font-size: 1.08rem; }
+      .ob-func-card p { font-size: .88rem; }
+      .ob-oei-panel { grid-template-columns: 1fr; padding: .85rem; }
+      .ob-oei-main h3 { font-size: 1.28rem; }
+      .ob-oei-main p { font-size: .87rem; }
+      .ob-oei-metrics { grid-template-columns: 1fr; }
+      .ob-flow-head h2 { font-size: 1.95rem; max-width: 100%; }
+      .ob-flow-head h2 .line { white-space: normal; }
+      .ob-flow-head p { font-size: .93rem; line-height: 1.62; }
+      .ob-flow-steps { grid-template-columns: 1fr; gap: .9rem; margin-top: 1.1rem; }
+      .ob-flow-steps::before { display: none; }
+      .ob-flow-step { border: 1px solid rgba(93, 130, 162, .24); border-radius: 11px; background: rgba(9, 31, 52, .6); padding: .64rem; }
+      .ob-flow-step h3 { min-height: auto; font-size: .98rem; }
+      .ob-flow-step p { font-size: .77rem; }
+      .ob-flow-engine { margin-top: 1.05rem; padding: .72rem; }
+      .ob-flow-engine h3 { font-size: 1.06rem; }
+      .ob-flow-cap-grid { grid-template-columns: 1fr; }
+      .ob-flow-zones { grid-template-columns: 1fr; }
+      .ob-h2r-section { padding: 0.8rem 0 3rem; }
+      .ob-h2r-head { padding: .88rem .9rem; flex-direction: column; align-items: flex-start; }
+      .ob-h2r-title { font-size: 1.33rem; }
+      .ob-h2r-sub { font-size: .8rem; }
+      .ob-h2r-process { text-align: left; font-size: .78rem; margin-top: .15rem; }
+      .ob-h2r-phases { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .ob-h2r-agents { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ob-h2r-phase { min-height: 68px; }
+      .ob-h2r-phase strong { font-size: .98rem; }
+      .ob-h2r-phase span { font-size: .72rem; }
+      .ob-h2r-agent { min-height: 96px; }
+      .ob-h2r-agent .agent-dot { width: 40px; height: 40px; font-size: .95rem; }
+      .ob-h2r-agent .agent-step { font-size: .98rem; }
+      .ob-h2r-agent .agent-label { font-size: .76rem; }
+      .ob-h2r-core { padding: .85rem .75rem 1rem; }
+      .ob-h2r-core-box h3 { font-size: 1.14rem; }
+      .ob-h2r-chips span { font-size: .74rem; }
+      .ob-h2r-legend { gap: .65rem .85rem; justify-content: flex-start; }
+      .ob-h2r-legend span { font-size: .78rem; }
+      .ob-h2r-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ob-h2r-kpi { border-right: 0; border-bottom: 1px solid rgba(118, 155, 188, 0.16); }
+      .ob-h2r-kpi:nth-child(2n+1) { border-right: 1px solid rgba(118, 155, 188, 0.16); }
+      .ob-h2r-kpi strong { font-size: 1.58rem; }
+      .ob-h2r-kpi span { font-size: .78rem; }
+      .ob-section { padding:3.5rem 0; }
+      .ob-step { gap:1rem; }
+      .ob-cta-box { padding:2.5rem 1.5rem; }
+    }
+    @media (min-width: 768px) and (max-width: 1199.98px) {
+      .ob-func-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ob-func-card { min-height: 235px; }
+      .ob-oei-panel { grid-template-columns: 1fr; }
+      .ob-oei-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ob-flow-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .ob-flow-zones { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ob-flow-cap-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ob-flow-cap:last-child { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body class="ob-page">
+
+  <nav class="ob-nav">
+    <div class="container inner">
+      <a href="{% url 'home' %}" class="brand">
+        <img src="{% static 'img/logo_orbita.png' %}" alt="Órbita">
+        <span class="brand-copy">
+          <strong>Órbita</strong>
+          <small>by Star Path</small>
+        </span>
+      </a>
+      <button class="mobile-toggle" id="obMobileToggle"><i class="bi bi-list"></i></button>
+      <div class="ob-nav-links" id="obNavLinks">
+        <a href="#features">Funcionalidades</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#h2r-map">Agentes</a>
+        <a href="{% url 'home' %}#contact">Contacto</a>
+        <a href="{% url 'orbita_plataforma' %}" class="btn-cta">Ir a la plataforma</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ══ HERO ══ -->
+    <section class="ob-hero">
+      <div class="container">
+        <div class="inner" data-aos="fade-up">
+          <div class="badge-tag">Execution Governance Platform</div>
+          <h1>No contratamos talento.<span class="accent">Gobernamos ejecución.</span></h1>
+          <p class="desc">
+            La primera plataforma de arquitectura de decisiones gobernadas para el ciclo completo Hire to Retire. Inteligencia de ejecución, no solo reclutamiento.
+          </p>
+          <div class="hero-cta">
+            <a href="{% url 'orbita_plataforma' %}" class="btn-main"><i class="bi bi-check-circle"></i> Ver la plataforma</a>
+            <a href="#como-funciona" class="btn-sec"><i class="bi bi-play-circle"></i> Cómo funciona</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ H2R EXECUTION MAP ══ -->
+    <section class="ob-h2r-section" id="h2r-map">
+      <div class="container">
+        <div class="ob-h2r-wrap" data-aos="fade-up">
+          <div class="ob-h2r-head">
+            <div>
+              <h2 class="ob-h2r-title">ÓRBITA™ — H2R Agent Platform</h2>
+              <p class="ob-h2r-sub">Arquitectura unificada · StarPath</p>
+            </div>
+            <div class="ob-h2r-process">Proceso E2E — Hire to Retire</div>
+          </div>
+
+          <div class="ob-h2r-phases">
+            <div class="ob-h2r-phase h2r-c1"><strong>Workforce</strong><span>Planning</span></div>
+            <div class="ob-h2r-phase h2r-c2"><strong>Talent</strong><span>Acquisition</span></div>
+            <div class="ob-h2r-phase h2r-c3"><strong>Onboarding</strong><span>Activation</span></div>
+            <div class="ob-h2r-phase h2r-c4"><strong>Performance</strong><span>&amp; Execution</span></div>
+            <div class="ob-h2r-phase h2r-c5"><strong>Development</strong><span>Evolution</span></div>
+            <div class="ob-h2r-phase h2r-c6"><strong>Comp &amp;</strong><span>Benefits</span></div>
+            <div class="ob-h2r-phase h2r-c7"><strong>Engagement</strong><span>&amp; Retention</span></div>
+            <div class="ob-h2r-phase h2r-c8"><strong>Offboarding</strong><span>Closure</span></div>
+          </div>
+
+          <div class="ob-h2r-agents-title">Agentes Órbita™ — Capa de ejecución inteligente</div>
+
+          <div class="ob-h2r-agents">
+            <div class="ob-h2r-agent violet">
+              <div class="agent-dot">OA</div>
+              <div class="agent-step">Attract</div>
+              <div class="agent-label">Orquestación</div>
+            </div>
+            <div class="ob-h2r-agent violet">
+              <div class="agent-dot">OS</div>
+              <div class="agent-step">Screen</div>
+              <div class="agent-label">Scoring inicial</div>
+            </div>
+            <div class="ob-h2r-agent violet">
+              <div class="agent-dot">OB</div>
+              <div class="agent-step">Board</div>
+              <div class="agent-label">Activación</div>
+            </div>
+            <div class="ob-h2r-agent teal">
+              <div class="agent-dot">OP</div>
+              <div class="agent-step">Pulse</div>
+              <div class="agent-label">Monitoreo</div>
+            </div>
+            <div class="ob-h2r-agent teal">
+              <div class="agent-dot">OG</div>
+              <div class="agent-step">Grow</div>
+              <div class="agent-label">Mejora continua</div>
+            </div>
+            <div class="ob-h2r-agent amber">
+              <div class="agent-dot">OP</div>
+              <div class="agent-step">Pay</div>
+              <div class="agent-label">Compensación</div>
+            </div>
+            <div class="ob-h2r-agent amber">
+              <div class="agent-dot">OK</div>
+              <div class="agent-step">Keep</div>
+              <div class="agent-label">Retención</div>
+            </div>
+            <div class="ob-h2r-agent pink">
+              <div class="agent-dot">OE</div>
+              <div class="agent-step">Exit</div>
+              <div class="agent-label">Transferencia</div>
+            </div>
+          </div>
+
+          <div class="ob-h2r-core">
+            <div class="ob-h2r-core-box">
+              <h3>ÓRBITA™ Core — Capa transversal de governance</h3>
+              <p>Operando sobre todo el ciclo E2E con trazabilidad y evidencia auditable.</p>
+              <div class="ob-h2r-chips">
+                <span>Scoring</span>
+                <span>Alertas de riesgo</span>
+                <span>OEI continuo</span>
+                <span>Activación gobernada</span>
+                <span>Gov. + Escalation</span>
+                <span>Predicción</span>
+              </div>
+            </div>
+
+            <div class="ob-h2r-legend">
+              <span><i style="background:#9e88ff;"></i>Fase Hire</span>
+              <span><i style="background:#1fd2a7;"></i>Fase Develop</span>
+              <span><i style="background:#ebb84d;"></i>Fase Reward</span>
+              <span><i style="background:#e68ac7;"></i>Fase Retire</span>
+            </div>
+          </div>
+
+          <div class="ob-h2r-kpis">
+            <div class="ob-h2r-kpi">
+              <strong>8</strong>
+              <span>Agentes especializados</span>
+            </div>
+            <div class="ob-h2r-kpi">
+              <strong>E2E</strong>
+              <span>Ciclo completo H2R</span>
+            </div>
+            <div class="ob-h2r-kpi">
+              <strong>OEI</strong>
+              <span>Scoring continuo</span>
+            </div>
+            <div class="ob-h2r-kpi">
+              <strong>1</strong>
+              <span>Plataforma gobernada</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ FEATURES ══ -->
+    <section class="ob-section ob-func-section" id="features">
+      <div class="container">
+        <div class="ob-func-inner">
+          <div class="ob-func-head" data-aos="fade-up">
+            <div class="label">Funcionalidades</div>
+            <h2><span class="line">La diferencia entre filtrar</span><br><span class="line">candidatos</span><br><span class="line">y gobernar ejecución</span></h2>
+            <p>Órbita no es un ATS. Es una plataforma de inteligencia de ejecución que opera sobre cada decisión del ciclo H2R con criterios gobernados.</p>
+          </div>
+
+          <div class="ob-func-grid">
+            <article class="ob-func-card" data-aos="fade-up" data-aos-delay="40">
+              <div class="ob-func-icon"><i class="bi bi-clock-history"></i></div>
+              <h3>Decisiones gobernadas en tiempo real</h3>
+              <p>Cada acción en el ciclo H2R pasa por el motor de governance de Órbita. Sin decisiones aisladas, sin criterios inconsistentes entre managers.</p>
+              <span class="ob-func-chip">Órbita Core</span>
+            </article>
+            <article class="ob-func-card" data-aos="fade-up" data-aos-delay="80">
+              <div class="ob-func-icon"><i class="bi bi-diagram-3"></i></div>
+              <h3>8 Agentes especializados H2R</h3>
+              <p>De Attract a Exit, cada etapa tiene su agente: Fer, Lucas, Isa, Pulse, Grow, Pay, Keep y Cleo. Inteligencia contextual por fase, no inteligencia genérica.</p>
+              <span class="ob-func-chip">Agentes Órbita™</span>
+            </article>
+            <article class="ob-func-card" data-aos="fade-up" data-aos-delay="120">
+              <div class="ob-func-icon"><i class="bi bi-activity"></i></div>
+              <h3>Alertas de riesgo predictivas</h3>
+              <p>El sistema detecta señales de riesgo de ejecución antes de que se conviertan en problemas. Escalamiento automático con criterio, no con ruido.</p>
+              <span class="ob-func-chip">Gov. + Escalation</span>
+            </article>
+            <article class="ob-func-card" data-aos="fade-up" data-aos-delay="160">
+              <div class="ob-func-icon"><i class="bi bi-speedometer2"></i></div>
+              <h3>Scoring de ejecución continuo</h3>
+              <p>El OEI evalúa cada perfil en 5 dimensiones en tiempo real. No es un score puntual: evoluciona con el colaborador.</p>
+              <span class="ob-func-chip">OEI Continuo</span>
+            </article>
+            <article class="ob-func-card" data-aos="fade-up" data-aos-delay="200">
+              <div class="ob-func-icon"><i class="bi bi-sliders"></i></div>
+              <h3>Activación gobernada por zona</h3>
+              <p>Cuatro zonas de activación: Execution-Ready, Governed, Dependent y Pre-Activation determinan el siguiente paso sin ambigüedad.</p>
+              <span class="ob-func-chip">Activación gobernada</span>
+            </article>
+            <article class="ob-func-card" data-aos="fade-up" data-aos-delay="240">
+              <div class="ob-func-icon"><i class="bi bi-columns-gap"></i></div>
+              <h3>Visibilidad E2E en una sola plataforma</h3>
+              <p>Desde workforce planning hasta offboarding, toda la inteligencia de ejecución de tu organización en un único sistema gobernado. Sin silos.</p>
+              <span class="ob-func-chip">H2R Unificado</span>
+            </article>
+          </div>
+
+          <div class="ob-oei-panel" data-aos="fade-up" data-aos-delay="100">
+            <div class="ob-oei-main">
+              <h3>Órbita Execution Index (OEI)</h3>
+              <p>El corazón del modelo de governance. Cinco dimensiones que miden cómo ejecuta un perfil: no solo qué dice en una entrevista. Escala 0–40 con criterios de falla automática y cuatro zonas de activación.</p>
+            </div>
+            <div class="ob-oei-metrics">
+              <article class="ob-oei-metric">
+                <h4>Precision Under Complexity</h4>
+                <p>Calidad de ejecución bajo presión.</p>
+              </article>
+              <article class="ob-oei-metric">
+                <h4>Governance Adherence</h4>
+                <p>Cumplimiento de reglas y consistencia.</p>
+              </article>
+              <article class="ob-oei-metric">
+                <h4>Delivery Predictability</h4>
+                <p>Fiabilidad y estabilidad del resultado.</p>
+              </article>
+              <article class="ob-oei-metric">
+                <h4>Escalation Intelligence</h4>
+                <p>Detección y escalamiento con criterio.</p>
+              </article>
+              <article class="ob-oei-metric full">
+                <h4>Adaptation Rate</h4>
+                <p>Velocidad de ajuste ante cambios del contexto.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ CÓMO FUNCIONA ══ -->
+    <section class="ob-section ob-flow-section" id="como-funciona">
+      <div class="container">
+        <div class="ob-flow-inner">
+          <div class="ob-flow-head" data-aos="fade-up">
+            <div class="label">Cómo funciona</div>
+            <h2><span class="line">Arquitectura de decisiones</span><br><span class="line">en 5 pasos</span></h2>
+            <p>Órbita no automatiza tareas. Estructura y gobierna el ciclo completo de decisiones de ejecución humana dentro de tu organización.</p>
+          </div>
+
+          <div class="ob-flow-steps">
+            <article class="ob-flow-step" data-aos="fade-up" data-aos-delay="40">
+              <div class="ob-flow-dot">01</div>
+              <h3>Señal de necesidad</h3>
+              <p class="mini">Attract</p>
+              <p>El agente Attract detecta y canaliza vacantes con criterios gobernados desde workforce planning.</p>
+            </article>
+            <article class="ob-flow-step" data-aos="fade-up" data-aos-delay="70">
+              <div class="ob-flow-dot">02</div>
+              <h3>Evaluación OEI</h3>
+              <p class="mini">Screen y Board</p>
+              <p>Screen y Board evalúan perfiles contra las 5 dimensiones del Órbita Execution Index.</p>
+            </article>
+            <article class="ob-flow-step" data-aos="fade-up" data-aos-delay="100">
+              <div class="ob-flow-dot">03</div>
+              <h3>Activación gobernada</h3>
+              <p class="mini">Execution zone</p>
+              <p>El Core asigna Execution-Ready, Governed, Dependent o Pre-Activation como siguiente paso sin ambigüedad.</p>
+            </article>
+            <article class="ob-flow-step" data-aos="fade-up" data-aos-delay="130">
+              <div class="ob-flow-dot">04</div>
+              <h3>Monitoreo continuo</h3>
+              <p class="mini">Pulse, Grow y Keep</p>
+              <p>Monitorean la ejecución real vs. el OEI proyectado con alertas de riesgo en tiempo real.</p>
+            </article>
+            <article class="ob-flow-step" data-aos="fade-up" data-aos-delay="160">
+              <div class="ob-flow-dot">05</div>
+              <h3>Cierre gobernado</h3>
+              <p class="mini">Exit y Core</p>
+              <p>Documentan el ciclo completo y convierten la ejecución en inteligencia organizacional acumulada.</p>
+            </article>
+          </div>
+
+          <div class="ob-flow-engine" data-aos="fade-up" data-aos-delay="100">
+            <h3>Motor de decisiones gobernadas — Órbita Core</h3>
+
+            <div class="ob-flow-cap-grid">
+              <article class="ob-flow-cap">
+                <h4>Criterios consistentes</h4>
+                <p>Las decisiones no dependen del criterio individual del manager. El Core establece los parámetros de governance por cada etapa.</p>
+              </article>
+              <article class="ob-flow-cap">
+                <h4>Escalation con inteligencia</h4>
+                <p>El sistema sabe cuándo escalar y a quién. No genera ruido: identifica señales relevantes y las convierte en acciones gobernadas.</p>
+              </article>
+              <article class="ob-flow-cap">
+                <h4>Predicción de ejecución</h4>
+                <p>El OEI no mide el pasado: proyecta la probabilidad de ejecución futura basada en patrones gobernados del ciclo H2R.</p>
+              </article>
+            </div>
+
+            <div class="ob-flow-zone-title">Zonas de activación OEI</div>
+            <div class="ob-flow-zones">
+              <article class="ob-flow-zone zone-ready">
+                <h5>Execution-Ready</h5>
+                <p>Perfil listo para ejecutar con mínima supervisión.</p>
+              </article>
+              <article class="ob-flow-zone zone-governed">
+                <h5>Governed</h5>
+                <p>Opera bien con estructura y criterios definidos.</p>
+              </article>
+              <article class="ob-flow-zone zone-dependent">
+                <h5>Dependent</h5>
+                <p>Requiere acompañamiento activo para ejecutar.</p>
+              </article>
+              <article class="ob-flow-zone zone-pre">
+                <h5>Pre-Activation</h5>
+                <p>No cumple criterios mínimos de ejecución gobernada.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="ob-footer">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="f-brand">
+            <img src="{% static 'img/logo_orbita.png' %}" alt="Órbita">
+            <div class="f-brand-text">
+              <span>Órbita</span>
+              <small>by Star Path</small>
+            </div>
+          </div>
+          <p class="f-desc">Plataforma de execution governance para el ciclo H2R. Diseñada para operar reclutamiento y ejecución con trazabilidad, control y decisiones medibles.</p>
+          <div style="font-size:.84rem;">
+            <p style="margin-bottom:.3rem;"><i class="bi bi-geo-alt me-1"></i> Ciudad de México</p>
+            <p style="margin-bottom:.3rem;"><i class="bi bi-telephone me-1"></i> +52 55 4044 8996</p>
+            <p style="margin-bottom:0;"><i class="bi bi-envelope me-1"></i> hola@starpathai.mx</p>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <h5>Navegación</h5>
+          <ul>
+            <li><a href="{% url 'home' %}">Inicio</a></li>
+            <li><a href="{% url 'orbita_producto' %}">Órbita</a></li>
+            <li><a href="{% url 'orbita_plataforma' %}">Plataforma</a></li>
+            <li><a href="{% url 'home' %}#contact">Contacto</a></li>
+          </ul>
+        </div>
+        <div class="col-6 col-lg-2">
+          <h5>Star Path</h5>
+          <ul>
+            <li><a href="{% url 'home' %}#about">Quiénes Somos</a></li>
+            <li><a href="{% url 'home' %}#services">Servicios</a></li>
+            <li><a href="{% url 'home' %}#departments">Metodología</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4">
+          <h5>Órbita</h5>
+          <p class="f-desc">Plataforma estratégica de reclutamiento. Centraliza vacantes, automatiza procesos y selecciona talento con IA.</p>
+          <a href="{% url 'orbita_plataforma' %}" class="btn-main" style="padding:.55rem 1.25rem; font-size:.84rem; border-radius:10px;">Ir a la plataforma</a>
+        </div>
+      </div>
+      <div class="f-bottom">
+        © <span id="year"></span> <strong style="color:#fff;">Órbita by Star Path</strong> · Todos los derechos reservados ·
+        <a href="{% url 'home' %}#contact">Soporte</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'vendor/aos/aos.js' %}"></script>
+  <script>AOS.init({ duration: 600, once: true });</script>
+  <script>
+    document.getElementById('obMobileToggle').addEventListener('click', function() {
+      document.getElementById('obNavLinks').classList.toggle('show');
+    });
+  </script>
+</body>
+</html>
+
+
+

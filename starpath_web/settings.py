@@ -70,7 +70,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    "mi_app.middleware.ATSStaffAdminRedirectMiddleware",
+    "mi_app.middleware.OrbitaStaffAdminRedirectMiddleware",
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -88,7 +88,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'mi_app.context_processors.ats_notifications',
+                'mi_app.context_processors.orbita_notifications',
             ],
         },
     },
@@ -137,8 +137,8 @@ elif _use_pg:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("DB_NAME", "ats_postgresql_cv"),
-            "USER": os.environ.get("DB_USER", "ats_postgresql_cv_user"),
+            "NAME": os.environ.get("DB_NAME", "orbita_postgresql"),
+            "USER": os.environ.get("DB_USER", "orbita_postgresql_user"),
             "PASSWORD": os.environ.get("DB_PASSWORD", ""),
             "HOST": os.environ.get("DB_HOST", "dpg-d63lnmn5r7bs73dav0b0-a.virginia-postgres.render.com"),
             "PORT": os.environ.get("DB_PORT", "5432"),
@@ -245,7 +245,7 @@ CONTACT_TO_EMAILS = [
     e.strip()
     for e in os.environ.get(
         "CONTACT_TO_EMAILS",
-        "soporte@starpathai.mx,gerardo.cruz@starpathai.mx,j.jimenez@starpathai.mx,brandon.sotelo@starpathai.mx,enrique.badillo@starpathai.mx,oscar.fernandez@starpathai.mx",
+        "hola@starpathai.mx,gerardo.cruz@starpathai.mx,j.jimenez@starpathai.mx,brandon.sotelo@starpathai.mx,enrique.badillo@starpathai.mx,oscar.fernandez@starpathai.mx",
     ).split(",")
     if e.strip()
 ]
@@ -267,22 +267,45 @@ if _extra_csrf:
     CSRF_TRUSTED_ORIGINS.extend(origin.strip() for origin in _extra_csrf.split(",") if origin.strip())
 
 
-# ATS: login y redirección para clientes de la plataforma
-LOGIN_URL = "/ats/plataforma/"
-LOGIN_REDIRECT_URL = "/ats/plataforma/dashboard/"
-# ATS: correo al que se notifica cuando un cliente solicita cambio de plan (activación manual / pago posterior)
-ATS_SUPPORT_EMAIL = os.environ.get("ATS_SUPPORT_EMAIL", "soporte@starpathai.mx")
-# ATS formulario público: validación de archivos (tamaño en bytes, extensiones para CV/archivos)
-ATS_FORM_PUBLIC_MAX_FILE_SIZE = int(os.environ.get("ATS_FORM_PUBLIC_MAX_FILE_SIZE", 10 * 1024 * 1024))  # 10 MB
-ATS_FORM_PUBLIC_ALLOWED_EXTENSIONS = [e.strip().lower() for e in os.environ.get("ATS_FORM_PUBLIC_ALLOWED_EXTENSIONS", "pdf,doc,docx").split(",") if e.strip()]
-# ATS formulario público: rate limit (máx envíos por IP por ventana)
-ATS_FORM_PUBLIC_RATE_LIMIT_COUNT = int(os.environ.get("ATS_FORM_PUBLIC_RATE_LIMIT_COUNT", 5))
-ATS_FORM_PUBLIC_RATE_LIMIT_SECONDS = int(os.environ.get("ATS_FORM_PUBLIC_RATE_LIMIT_SECONDS", 3600))  # 1 hora
+# Órbita: login y redirección para clientes de la plataforma
+LOGIN_URL = "/orbita/plataforma/"
+LOGIN_REDIRECT_URL = "/orbita/plataforma/dashboard/"
+# Órbita: correo al que se notifica cuando un cliente solicita cambio de plan (activación manual / pago posterior)
+ORBITA_SUPPORT_EMAIL = os.environ.get(
+    "ORBITA_SUPPORT_EMAIL",
+    os.environ.get("ATS_SUPPORT_EMAIL", "hola@starpathai.mx"),
+)
+# Órbita formulario público: validación de archivos (tamaño en bytes, extensiones para CV/archivos)
+ORBITA_FORM_PUBLIC_MAX_FILE_SIZE = int(
+    os.environ.get("ORBITA_FORM_PUBLIC_MAX_FILE_SIZE", os.environ.get("ATS_FORM_PUBLIC_MAX_FILE_SIZE", 10 * 1024 * 1024))
+)  # 10 MB
+ORBITA_FORM_PUBLIC_ALLOWED_EXTENSIONS = [
+    e.strip().lower()
+    for e in os.environ.get(
+        "ORBITA_FORM_PUBLIC_ALLOWED_EXTENSIONS",
+        os.environ.get("ATS_FORM_PUBLIC_ALLOWED_EXTENSIONS", "pdf,doc,docx"),
+    ).split(",")
+    if e.strip()
+]
+# Órbita formulario público: rate limit (máx envíos por IP por ventana)
+ORBITA_FORM_PUBLIC_RATE_LIMIT_COUNT = int(
+    os.environ.get("ORBITA_FORM_PUBLIC_RATE_LIMIT_COUNT", os.environ.get("ATS_FORM_PUBLIC_RATE_LIMIT_COUNT", 5))
+)
+ORBITA_FORM_PUBLIC_RATE_LIMIT_SECONDS = int(
+    os.environ.get("ORBITA_FORM_PUBLIC_RATE_LIMIT_SECONDS", os.environ.get("ATS_FORM_PUBLIC_RATE_LIMIT_SECONDS", 3600))
+)  # 1 hora
+
+# Alias legacy (compatibilidad temporal interna)
+ATS_SUPPORT_EMAIL = ORBITA_SUPPORT_EMAIL
+ATS_FORM_PUBLIC_MAX_FILE_SIZE = ORBITA_FORM_PUBLIC_MAX_FILE_SIZE
+ATS_FORM_PUBLIC_ALLOWED_EXTENSIONS = ORBITA_FORM_PUBLIC_ALLOWED_EXTENSIONS
+ATS_FORM_PUBLIC_RATE_LIMIT_COUNT = ORBITA_FORM_PUBLIC_RATE_LIMIT_COUNT
+ATS_FORM_PUBLIC_RATE_LIMIT_SECONDS = ORBITA_FORM_PUBLIC_RATE_LIMIT_SECONDS
 
 # Telegram Bot
 TELEGRAM_BOT_TOKEN = (os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip()
 
-# ATS análisis de CV con IA (OpenAI). Si OPENAI_API_KEY está vacío, se usa evaluación stub.
+# Órbita análisis de CV con IA (OpenAI). Si OPENAI_API_KEY está vacío, se usa evaluación stub.
 OPENAI_API_KEY = (os.environ.get("OPENAI_API_KEY") or "").strip()
 # Extracción de documentos (INE, comprobante). Si está vacío, usa OPENAI_API_KEY como fallback.
 OPENAI_API_KEY_DOCUMENTS = (os.environ.get("OPENAI_API_KEY_DOCUMENTS") or "").strip() or OPENAI_API_KEY

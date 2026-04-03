@@ -57,8 +57,8 @@ Estado actual: funcional y desplegable en producción, con separación de canale
 - Logging: consola + archivo (`logs/starpath.log`).
 
 ### 3.2 Módulos clave
-- `mi_app/views/ats/ats_views.py`: flujo principal ATS (dashboard, candidatos, vacantes, formularios, correo, admin).
-- `mi_app/views/ats/form_chat_views.py`: chat web de formularios y sesiones.
+- `mi_app/views/orbita/orbita_views.py`: flujo principal ATS (dashboard, candidatos, vacantes, formularios, correo, admin).
+- `mi_app/views/orbita/form_chat_views.py`: chat web de formularios y sesiones.
 - `mi_app/services/cv_analysis.py`: extracción + análisis IA de CV.
 - `mi_app/telegram_bot.py`: bot conversacional para postulaciones.
 - `mi_app/management/commands/process_incoming_emails.py`: worker IMAP.

@@ -1,0 +1,446 @@
+{% extends "orbita/base_orbita.html" %}
+{% load static %}
+
+{% block orbita_title %}Notificaciones{% endblock %}
+{% block orbita_header_title %}Notificaciones{% endblock %}
+
+{% block orbita_extra_css %}
+  .np-hero {
+    background: linear-gradient(135deg,#0b1c2d 0%,#162d4a 50%,#1a3a5c 100%);
+    border-radius: 18px;
+    padding: 2.25rem 2rem;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .np-hero::before {
+    content: '';
+    position: absolute;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(0,196,201,.18) 0%, transparent 70%);
+    top: -80px; right: -60px;
+    pointer-events: none;
+  }
+  .np-hero-left { position: relative; z-index: 1; }
+  .np-hero h1 {
+    font-family: var(--ats-heading);
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 .3rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  .np-hero h1 .hero-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: rgba(0,196,201,.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    color: #00c4c9;
+  }
+  .np-hero .sub { color: rgba(255,255,255,.7); font-size: .9rem; margin: 0; }
+  .np-hero-right { position: relative; z-index: 1; display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  .np-hero-right .btn { border-radius: 10px; font-weight: 600; font-size: .85rem; }
+  .np-badge-count {
+    display: inline-flex; align-items: center; gap: .35rem;
+    background: rgba(0,196,201,.18);
+    color: #00c4c9;
+    padding: .35rem .85rem;
+    border-radius: 20px;
+    font-size: .82rem;
+    font-weight: 700;
+  }
+
+  .np-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid rgba(11,28,45,.06);
+    box-shadow: 0 6px 32px rgba(11,28,45,.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 520px;
+  }
+  .np-two-col { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  @media (min-width: 768px) { .np-two-col { flex-direction: row; } }
+
+  .np-list-col {
+    width: 100%;
+    border-bottom: 1px solid rgba(11,28,45,.07);
+    display: flex;
+    flex-direction: column;
+    min-height: 260px;
+  }
+  @media (min-width: 768px) {
+    .np-list-col {
+      width: 340px; min-width: 340px;
+      border-right: 1px solid rgba(11,28,45,.07);
+      border-bottom: none;
+      min-height: 0;
+    }
+  }
+  .np-list-head {
+    padding: .85rem 1.15rem;
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--heading-color);
+    border-bottom: 1px solid rgba(11,28,45,.06);
+    background: linear-gradient(135deg, rgba(0,196,201,.04) 0%, transparent 100%);
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .np-list-head i { color: var(--ats-accent, var(--accent-color)); font-size: .85rem; }
+  .np-scroll {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    max-height: 450px;
+  }
+  .np-scroll::-webkit-scrollbar { width: 6px; }
+  .np-scroll::-webkit-scrollbar-track { background: transparent; }
+  .np-scroll::-webkit-scrollbar-thumb { background: rgba(0,196,201,.25); border-radius: 3px; }
+  .np-list { padding: 0; margin: 0; list-style: none; }
+
+  .np-item {
+    border-bottom: 1px solid rgba(11,28,45,.05);
+    transition: all .2s;
+    cursor: pointer;
+    position: relative;
+  }
+  .np-item:last-child { border-bottom: none; }
+  .np-item:hover { background: rgba(0,196,201,.05); }
+  .np-item.active {
+    background: linear-gradient(90deg, rgba(0,196,201,.1) 0%, rgba(0,196,201,.03) 100%);
+  }
+  .np-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #00c4c9, #00e5a0);
+    border-radius: 0 3px 3px 0;
+  }
+  .np-item-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: .8rem;
+    padding: .95rem 1.15rem;
+    text-decoration: none;
+    color: inherit;
+  }
+  .np-icon {
+    width: 42px; height: 42px; min-width: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(0,196,201,.1) 0%, rgba(0,196,201,.05) 100%);
+    color: var(--ats-accent, var(--accent-color));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem;
+    transition: all .2s;
+  }
+  .np-item.unread .np-icon {
+    background: linear-gradient(135deg, rgba(0,196,201,.2) 0%, rgba(0,229,160,.1) 100%);
+    box-shadow: 0 2px 8px rgba(0,196,201,.15);
+  }
+  .np-item:hover .np-icon { transform: scale(1.05); }
+  .np-body { flex: 1; min-width: 0; }
+  .np-title {
+    font-weight: 700;
+    font-size: .88rem;
+    color: var(--heading-color);
+    margin-bottom: .15rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .np-item.unread .np-title { color: #0b1c2d; }
+  .np-time {
+    font-size: .73rem;
+    color: var(--default-color);
+    opacity: .7;
+  }
+  .np-dot {
+    width: 9px; height: 9px; min-width: 9px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00c4c9, #00e5a0);
+    margin-top: .4rem;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(0,196,201,.4);
+    animation: npPulse 2s ease-in-out infinite;
+  }
+  @keyframes npPulse {
+    0%,100% { box-shadow: 0 0 6px rgba(0,196,201,.4); }
+    50% { box-shadow: 0 0 12px rgba(0,196,201,.6); }
+  }
+
+  .np-detail-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+    background: linear-gradient(180deg, rgba(11,28,45,.015) 0%, rgba(0,196,201,.015) 100%);
+  }
+  @media (min-width: 768px) { .np-detail-col { min-height: 0; } }
+
+  .np-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem;
+    text-align: center;
+  }
+  .np-placeholder .ph-icon {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(0,196,201,.12) 0%, rgba(0,229,160,.08) 100%);
+    color: var(--ats-accent, var(--accent-color));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem;
+    margin-bottom: 1.25rem;
+  }
+  .np-placeholder h3 {
+    font-family: var(--ats-heading);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--heading-color);
+    margin-bottom: .35rem;
+  }
+  .np-placeholder p { margin: 0; font-size: .88rem; color: var(--default-color); opacity: .8; }
+
+  .np-detail {
+    flex: 1;
+    padding: 2rem;
+    display: none;
+    flex-direction: column;
+  }
+  .np-detail.show { display: flex; }
+  .np-detail .dt-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .25rem .7rem;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(0,196,201,.1) 0%, rgba(0,229,160,.06) 100%);
+    color: #00a0a4;
+    font-size: .75rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  .np-detail .dt-title {
+    font-family: var(--ats-heading);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--heading-color);
+    margin-bottom: .6rem;
+  }
+  .np-detail .dt-meta {
+    font-size: .82rem;
+    color: var(--default-color);
+    opacity: .75;
+    margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: .35rem;
+  }
+  .np-detail .dt-msg {
+    font-size: .95rem;
+    color: var(--default-color);
+    line-height: 1.65;
+    flex: 1;
+    padding: 1.25rem;
+    background: rgba(11,28,45,.025);
+    border-radius: 12px;
+    border: 1px solid rgba(11,28,45,.05);
+    margin-bottom: 1.5rem;
+  }
+  .np-detail .dt-cta .btn {
+    border-radius: 10px;
+    font-weight: 600;
+    padding: .55rem 1.5rem;
+    background: linear-gradient(135deg, #00c4c9, #00b09b);
+    border: none;
+    color: #fff;
+    transition: all .2s;
+  }
+  .np-detail .dt-cta .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,196,201,.3); }
+
+  .np-pagination {
+    padding: .8rem 1rem;
+    border-top: 1px solid rgba(11,28,45,.06);
+    background: rgba(11,28,45,.02);
+    flex-shrink: 0;
+  }
+  .np-pagination .pagination { margin: 0; justify-content: center; }
+  .np-pagination .page-link { border-radius: 8px; font-size: .85rem; font-weight: 600; }
+
+  .np-empty {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .np-empty .empty-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(0,196,201,.1) 0%, rgba(0,229,160,.06) 100%);
+    color: var(--ats-accent, var(--accent-color));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+  }
+  .np-empty p { color: var(--default-color); opacity: .8; font-size: .9rem; margin: 0; }
+
+  @media (max-width: 767.98px) {
+    .np-hero { padding: 1.5rem 1.25rem; border-radius: 14px; }
+    .np-hero h1 { font-size: 1.2rem; }
+    .np-card { border-radius: 14px; min-height: 400px; }
+    .np-detail { padding: 1.25rem; }
+  }
+{% endblock %}
+
+{% block orbita_content %}
+<div style="max-width:1020px; margin:0 auto;">
+
+  <div class="np-hero">
+    <div class="np-hero-left">
+      <h1>
+        <span class="hero-icon"><i class="bi bi-bell-fill"></i></span>
+        Notificaciones
+      </h1>
+      <p class="sub">Revisa tus alertas y actualizaciones recientes</p>
+    </div>
+    <div class="np-hero-right">
+      {% if orbita_unread_count > 0 %}
+      <span class="np-badge-count"><i class="bi bi-circle-fill" style="font-size:.45rem"></i> {{ orbita_unread_count }} sin leer</span>
+      <form method="post" action="{% url 'orbita_notification_panel' %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);">
+          <i class="bi bi-check2-all me-1"></i>Marcar todas como leídas
+        </button>
+      </form>
+      {% endif %}
+      <a href="{% url 'orbita_dashboard' %}" class="btn btn-sm" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.12);">
+        <i class="bi bi-arrow-left me-1"></i>Panel
+      </a>
+    </div>
+  </div>
+
+  <div class="np-card">
+    <div class="np-two-col">
+
+      <div class="np-list-col">
+        <div class="np-list-head"><i class="bi bi-inbox"></i> Mensajes</div>
+        {% if notifications %}
+        <div class="np-scroll">
+          <ul class="np-list" id="notifList">
+            {% for n in notifications %}
+            <li class="np-item {% if not n.read %}unread{% endif %}"
+                data-pk="{{ n.pk }}"
+                data-title="{{ n.title|default:'' }}"
+                data-message="{{ n.message|default:'' }}"
+                data-created="{{ n.created_at|date:'d/m/Y H:i' }}"
+                data-go-url="{% url 'orbita_notification_go' n.pk %}">
+              <div class="np-item-inner">
+                <div class="np-icon"><i class="bi bi-bell-fill"></i></div>
+                <div class="np-body">
+                  <div class="np-title">{{ n.title }}</div>
+                  <div class="np-time"><i class="bi bi-clock me-1"></i>{{ n.created_at|timesince }} atrás</div>
+                </div>
+                {% if not n.read %}<div class="np-dot" aria-hidden="true"></div>{% endif %}
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% if page_obj.has_other_pages %}
+        <nav class="np-pagination" aria-label="Paginación">
+          <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a></li>{% endif %}
+            <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a></li>{% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="np-empty">
+          <div class="empty-icon"><i class="bi bi-bell-slash"></i></div>
+          <p>No hay notificaciones</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="np-detail-col">
+        <div class="np-placeholder" id="notifPlaceholder">
+          <div class="ph-icon"><i class="bi bi-cursor"></i></div>
+          <h3>Selecciona una notificación</h3>
+          <p>Elige una de la lista para ver el detalle completo</p>
+        </div>
+        <div class="np-detail" id="notifDetail">
+          <span class="dt-badge"><i class="bi bi-bell"></i> <span id="detailBadge">Notificación</span></span>
+          <div class="dt-title" id="detailTitle"></div>
+          <div class="dt-meta"><i class="bi bi-calendar3"></i> <span id="detailMeta"></span></div>
+          <div class="dt-msg" id="detailMessage"></div>
+          <div class="dt-cta">
+            <a href="#" id="detailGoBtn" class="btn"><i class="bi bi-box-arrow-up-right me-1"></i>Ir al enlace</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var list = document.getElementById('notifList');
+  var placeholder = document.getElementById('notifPlaceholder');
+  var detail = document.getElementById('notifDetail');
+  var detailTitle = document.getElementById('detailTitle');
+  var detailMeta = document.getElementById('detailMeta');
+  var detailMessage = document.getElementById('detailMessage');
+  var detailGoBtn = document.getElementById('detailGoBtn');
+
+  if (!list) return;
+
+  function selectItem(item) {
+    var title = item.getAttribute('data-title');
+    var message = item.getAttribute('data-message');
+    var created = item.getAttribute('data-created');
+    var goUrl = item.getAttribute('data-go-url');
+
+    list.querySelectorAll('.np-item').forEach(function(el) { el.classList.remove('active'); });
+    item.classList.add('active');
+
+    detailTitle.textContent = title || '';
+    detailMeta.textContent = created || '';
+    detailMessage.textContent = message || '(Sin mensaje)';
+    detailGoBtn.href = goUrl || '#';
+
+    placeholder.style.display = 'none';
+    detail.classList.add('show');
+  }
+
+  list.querySelectorAll('.np-item').forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      selectItem(item);
+    });
+  });
+
+  var first = list.querySelector('.np-item');
+  if (first) selectItem(first);
+})();
+</script>
+{% endblock %}
+
+
+
+
+

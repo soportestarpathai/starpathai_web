@@ -86,12 +86,12 @@ def _get_form(uuid_str):
         return None
 
 
-def _build_steps(ats_form):
-    from mi_app.views.ats.form_chat_views import _build_steps as _bs
-    return _bs(ats_form)
+def _build_steps(orbita_form):
+    from mi_app.views.orbita.form_chat_views import _build_steps as _bs
+    return _bs(orbita_form)
 
 
-def _create_session(ats_form, steps, telegram_user_id, telegram_display_name="", telegram_username=""):
+def _create_session(orbita_form, steps, telegram_user_id, telegram_display_name="", telegram_username=""):
     from mi_app.models import FormChatSession
     answers = {
         "_telegram": {
@@ -101,7 +101,7 @@ def _create_session(ats_form, steps, telegram_user_id, telegram_display_name="",
         }
     }
     session = FormChatSession(
-        form=ats_form,
+        form=orbita_form,
         session_uuid=_uuid.uuid4(),
         status=FormChatSession.STATUS_STARTED,
         current_step=0,
@@ -116,7 +116,7 @@ def _create_session(ats_form, steps, telegram_user_id, telegram_display_name="",
     return session
 
 
-def _save_answer(session, step, value, ats_form):
+def _save_answer(session, step, value, orbita_form):
     from mi_app.models import FormChatSession
 
     answers = session.answers or {}
@@ -157,19 +157,19 @@ def _save_answer(session, step, value, ats_form):
     return is_last
 
 
-def _finalize(ats_form, session):
+def _finalize(orbita_form, session):
     """Replica la lógica de FormChatAnswerAPI._finalize_submission sin request."""
     from mi_app.models import (
         ATSFormSubmission, ATSFormSubmissionFile, ATSFormField,
         ATSNotification, FormChatSession,
     )
-    from mi_app.ats_notifications import notify_ats_client
+    from mi_app.orbita_notifications import notify_orbita_client
 
     session = FormChatSession.objects.get(pk=session.pk)
     answers = session.answers or {}
     pending_files = answers.pop("_pending_files", {})
     logger.info("telegram_bot _finalize: pending_files=%s", list(pending_files.keys()))
-    steps = _build_steps(ats_form)
+    steps = _build_steps(orbita_form)
 
     payload = {}
     submitter_email = session.candidate_email or ""
@@ -183,7 +183,7 @@ def _finalize(ats_form, session):
             submitter_email = val
 
     submission = ATSFormSubmission.objects.create(
-        form=ats_form,
+        form=orbita_form,
         payload=payload,
         submitter_email=submitter_email,
     )
@@ -212,8 +212,8 @@ def _finalize(ats_form, session):
         except Exception as e:
             logger.warning("telegram_bot: could not attach file %s: %s", file_info.get("path"), e)
 
-    if ats_form.vacancy_id:
-        from mi_app.views.ats.ats_views import _create_candidate_from_submission
+    if orbita_form.vacancy_id:
+        from mi_app.views.orbita.orbita_views import _create_candidate_from_submission
         _create_candidate_from_submission(submission, payload, submitter_email)
         if submission.candidate_id:
             tg_meta = (session.answers or {}).get("_telegram", {})
@@ -221,22 +221,22 @@ def _finalize(ats_form, session):
             if tg_name and _candidate_name_is_generic(submission.candidate.name, submitter_email):
                 submission.candidate.name = tg_name[:255]
                 submission.candidate.save(update_fields=["name"])
-            notify_ats_client(
-                ats_form.client,
+            notify_orbita_client(
+                orbita_form.client,
                 ATSNotification.TYPE_CANDIDATE,
                 "Nuevo candidato (Telegram)",
-                message=f"{submission.candidate.name} — Telegram «{ats_form.name}».",
-                link=reverse("ats_candidate_detail", args=[submission.candidate.pk]),
+                message=f"{submission.candidate.name} — Telegram «{orbita_form.name}».",
+                link=reverse("orbita_candidate_detail", args=[submission.candidate.pk]),
             )
     else:
-        notify_ats_client(
-            ats_form.client,
+        notify_orbita_client(
+            orbita_form.client,
             ATSNotification.TYPE_SUBMISSION,
             "Nuevo envío (Telegram)",
-            message=f"Telegram «{ats_form.name}»: {submitter_email or 'Sin correo'}.",
-            link=reverse("ats_form_submissions", args=[ats_form.pk]),
+            message=f"Telegram «{orbita_form.name}»: {submitter_email or 'Sin correo'}.",
+            link=reverse("orbita_form_submissions", args=[orbita_form.pk]),
         )
-    logger.info("telegram_bot: session completed form=%s session=%s", ats_form.pk, session.session_uuid)
+    logger.info("telegram_bot: session completed form=%s session=%s", orbita_form.pk, session.session_uuid)
 
 
 # ──────────────────────────── Handlers ────────────────────────────
@@ -252,8 +252,8 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
 
     form_uuid = args[0]
-    ats_form = await sync_to_async(_get_form)(form_uuid)
-    if not ats_form:
+    orbita_form = await sync_to_async(_get_form)(form_uuid)
+    if not orbita_form:
         await update.message.reply_text(
             "❌ No encontré esa vacante o el formulario no está activo.\n"
             "Verifica el enlace e intenta de nuevo.",
@@ -261,9 +261,9 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
 
     context.user_data["form_uuid"] = form_uuid
-    context.user_data["ats_form_id"] = ats_form.pk
+    context.user_data["orbita_form_id"] = orbita_form.pk
 
-    vacancy = ats_form.vacancy
+    vacancy = orbita_form.vacancy
     if vacancy:
         text = (
             f"🏢 *{vacancy.title}*\n\n"
@@ -273,8 +273,8 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     else:
         text = (
-            f"📋 *{ats_form.name}*\n\n"
-            f"{ats_form.description[:1000] if ats_form.description else ''}\n\n"
+            f"📋 *{orbita_form.name}*\n\n"
+            f"{orbita_form.description[:1000] if orbita_form.description else ''}\n\n"
             "¿Listo para completar tu postulación? Presiona el botón para comenzar."
         )
 
@@ -298,12 +298,12 @@ async def apply_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
 
     form_uuid = context.user_data.get("form_uuid")
-    ats_form = await sync_to_async(_get_form)(form_uuid)
-    if not ats_form:
+    orbita_form = await sync_to_async(_get_form)(form_uuid)
+    if not orbita_form:
         await query.edit_message_text("❌ Formulario no disponible.")
         return ConversationHandler.END
 
-    steps = await sync_to_async(_build_steps)(ats_form)
+    steps = await sync_to_async(_build_steps)(orbita_form)
     if not steps:
         await query.edit_message_text("⚠️ Este formulario no tiene campos configurados.")
         return ConversationHandler.END
@@ -312,7 +312,7 @@ async def apply_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_display_name = _telegram_display_name(tg_user)
     tg_username = (getattr(tg_user, "username", "") or "").strip()
     session = await sync_to_async(_create_session)(
-        ats_form,
+        orbita_form,
         steps,
         update.effective_user.id,
         tg_display_name,
@@ -398,11 +398,11 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from mi_app.models import FormChatSession
     session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
 
-    ats_form = await sync_to_async(_get_form)(form_uuid)
-    is_last = await sync_to_async(_save_answer)(session, step, value, ats_form)
+    orbita_form = await sync_to_async(_get_form)(form_uuid)
+    is_last = await sync_to_async(_save_answer)(session, step, value, orbita_form)
 
     if is_last:
-        await sync_to_async(_finalize)(ats_form, session)
+        await sync_to_async(_finalize)(orbita_form, session)
         session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
         name = _thanks_name(session)
         intro = f"Gracias, {name}. " if name else "Gracias. "
@@ -447,7 +447,7 @@ async def _download_and_store_file(update, context, session, step_id):
     file_bytes = await tg_file.download_as_bytearray()
     logger.info("telegram_bot: downloaded %d bytes", len(file_bytes))
 
-    save_dir = f"ats/chat_uploads/{session.session_uuid}"
+    save_dir = f"orbita/chat_uploads/{session.session_uuid}"
     saved_path = await sync_to_async(default_storage.save)(
         f"{save_dir}/{file_name}",
         ContentFile(bytes(file_bytes)),
@@ -490,7 +490,7 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     from mi_app.models import FormChatSession
     session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
-    ats_form = await sync_to_async(_get_form)(form_uuid)
+    orbita_form = await sync_to_async(_get_form)(form_uuid)
 
     file_name, saved_path = await _download_and_store_file(
         update, context, session, step["id"]
@@ -510,7 +510,7 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await sync_to_async(session.save)()
 
     if is_last:
-        await sync_to_async(_finalize)(ats_form, session)
+        await sync_to_async(_finalize)(orbita_form, session)
         session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
         name = _thanks_name(session)
         intro = f"Gracias, {name}. " if name else "Gracias. "
@@ -571,3 +571,8 @@ def build_application():
 
     app.add_handler(conv_handler)
     return app
+
+
+
+
+
