@@ -119,6 +119,7 @@ if _use_mysql:
     pymysql.__version__ = "2.2.1"
     pymysql.install_as_MySQLdb()
 
+    _db_conn_max_age = int(os.environ.get("DB_CONN_MAX_AGE", "60"))
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.mysql",
@@ -127,13 +128,15 @@ if _use_mysql:
             "PASSWORD": os.environ.get("MYSQL_PASSWORD", os.environ.get("DB_PASSWORD", "")),
             "HOST": os.environ.get("MYSQL_HOST", os.environ.get("DB_HOST", "127.0.0.1")),
             "PORT": os.environ.get("MYSQL_PORT", os.environ.get("DB_PORT", "3306")),
-            "CONN_MAX_AGE": 60,
+            "CONN_MAX_AGE": _db_conn_max_age,
+            "CONN_HEALTH_CHECKS": True,
             "OPTIONS": {
                 "charset": "utf8mb4",
             },
         }
     }
 elif _use_pg:
+    _db_conn_max_age = int(os.environ.get("DB_CONN_MAX_AGE", "60"))
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -142,7 +145,8 @@ elif _use_pg:
             "PASSWORD": os.environ.get("DB_PASSWORD", ""),
             "HOST": os.environ.get("DB_HOST", "dpg-d63lnmn5r7bs73dav0b0-a.virginia-postgres.render.com"),
             "PORT": os.environ.get("DB_PORT", "5432"),
-            "CONN_MAX_AGE": 60,
+            "CONN_MAX_AGE": _db_conn_max_age,
+            "CONN_HEALTH_CHECKS": True,
             "OPTIONS": {"sslmode": "require"},
         }
     }

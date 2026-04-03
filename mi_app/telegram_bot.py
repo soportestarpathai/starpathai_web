@@ -12,6 +12,8 @@ import uuid as _uuid
 
 from asgiref.sync import sync_to_async
 from django.conf import settings
+from django.db import close_old_connections
+from django.db.utils import InterfaceError, OperationalError
 from django.urls import reverse
 from django.utils import timezone
 
@@ -78,10 +80,23 @@ def _thanks_name(session):
 
 def _get_form(uuid_str):
     from mi_app.models import ATSForm
+    close_old_connections()
     try:
         return ATSForm.objects.select_related("vacancy", "client").get(
             uuid=uuid_str, is_active=True
         )
+    except (InterfaceError, OperationalError):
+        logger.warning("telegram_bot: DB connection stale while loading form, retrying once")
+        close_old_connections()
+        try:
+            return ATSForm.objects.select_related("vacancy", "client").get(
+                uuid=uuid_str, is_active=True
+            )
+        except (ATSForm.DoesNotExist, ValueError):
+            return None
+        except (InterfaceError, OperationalError):
+            logger.exception("telegram_bot: DB unavailable while loading form")
+            return None
     except (ATSForm.DoesNotExist, ValueError):
         return None
 
@@ -93,6 +108,7 @@ def _build_steps(orbita_form):
 
 def _create_session(orbita_form, steps, telegram_user_id, telegram_display_name="", telegram_username=""):
     from mi_app.models import FormChatSession
+    close_old_connections()
     answers = {
         "_telegram": {
             "id": telegram_user_id,
@@ -116,9 +132,27 @@ def _create_session(orbita_form, steps, telegram_user_id, telegram_display_name=
     return session
 
 
+def _get_session(session_id):
+    from mi_app.models import FormChatSession
+    close_old_connections()
+    try:
+        return FormChatSession.objects.get(pk=session_id)
+    except (InterfaceError, OperationalError):
+        logger.warning("telegram_bot: DB connection stale while loading session, retrying once")
+        close_old_connections()
+        try:
+            return FormChatSession.objects.get(pk=session_id)
+        except (FormChatSession.DoesNotExist, InterfaceError, OperationalError):
+            logger.exception("telegram_bot: failed to load chat session")
+            return None
+    except FormChatSession.DoesNotExist:
+        return None
+
+
 def _save_answer(session, step, value, orbita_form):
     from mi_app.models import FormChatSession
 
+    close_old_connections()
     answers = session.answers or {}
     answers[step["id"]] = value
     session.answers = answers
@@ -165,6 +199,7 @@ def _finalize(orbita_form, session):
     )
     from mi_app.orbita_notifications import notify_orbita_client
 
+    close_old_connections()
     session = FormChatSession.objects.get(pk=session.pk)
     answers = session.answers or {}
     pending_files = answers.pop("_pending_files", {})
@@ -395,15 +430,24 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Este campo es obligatorio. Por favor, responde.")
         return ANSWERING
 
-    from mi_app.models import FormChatSession
-    session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
+    session = await sync_to_async(_get_session)(session_id)
+    if not session:
+        await update.message.reply_text(
+            "⚠️ Tuvimos un problema temporal de conexión. Intenta de nuevo en unos segundos."
+        )
+        return ConversationHandler.END
 
     orbita_form = await sync_to_async(_get_form)(form_uuid)
     is_last = await sync_to_async(_save_answer)(session, step, value, orbita_form)
 
     if is_last:
         await sync_to_async(_finalize)(orbita_form, session)
-        session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
+        session = await sync_to_async(_get_session)(session_id)
+        if not session:
+            await update.message.reply_text(
+                "Tu postulación se envió, pero no pude refrescar el estado. Si quieres, vuelve a abrir el enlace."
+            )
+            return ConversationHandler.END
         name = _thanks_name(session)
         intro = f"Gracias, {name}. " if name else "Gracias. "
         await update.message.reply_text(
@@ -488,8 +532,12 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return ANSWERING
 
-    from mi_app.models import FormChatSession
-    session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
+    session = await sync_to_async(_get_session)(session_id)
+    if not session:
+        await update.message.reply_text(
+            "⚠️ Tuvimos un problema temporal de conexión. Intenta de nuevo en unos segundos."
+        )
+        return ConversationHandler.END
     orbita_form = await sync_to_async(_get_form)(form_uuid)
 
     file_name, saved_path = await _download_and_store_file(
@@ -499,7 +547,12 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ No pude recibir el archivo. Intenta de nuevo.")
         return ANSWERING
 
-    session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
+    session = await sync_to_async(_get_session)(session_id)
+    if not session:
+        await update.message.reply_text(
+            "Tu archivo se recibió, pero no pude continuar por un problema temporal. Intenta nuevamente."
+        )
+        return ConversationHandler.END
     session.current_step = min(session.current_step + 1, session.total_steps)
     session.status = FormChatSession.STATUS_IN_PROGRESS
 
@@ -511,7 +564,12 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if is_last:
         await sync_to_async(_finalize)(orbita_form, session)
-        session = await sync_to_async(FormChatSession.objects.get)(pk=session_id)
+        session = await sync_to_async(_get_session)(session_id)
+        if not session:
+            await update.message.reply_text(
+                "Tu postulación se envió, pero no pude refrescar el estado. Si quieres, vuelve a abrir el enlace."
+            )
+            return ConversationHandler.END
         name = _thanks_name(session)
         intro = f"Gracias, {name}. " if name else "Gracias. "
         await update.message.reply_text(
@@ -554,6 +612,11 @@ def build_application():
         raise ValueError("TELEGRAM_BOT_TOKEN no configurado en settings/env.")
 
     app = Application.builder().token(token).build()
+
+    async def _on_error(update, context):
+        logger.exception("telegram_bot: unhandled error", exc_info=context.error)
+
+    app.add_error_handler(_on_error)
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", cmd_start)],
