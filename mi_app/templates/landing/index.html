@@ -3867,13 +3867,19 @@
       width: 32px;
       height: 32px;
       border-radius: 10px;
-      background: linear-gradient(135deg, #00C4C9, #00E5A0);
+      background: rgba(8, 25, 44, 0.95);
+      border: 1px solid rgba(0, 196, 201, 0.34);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
-      color: #fff;
+      overflow: hidden;
       flex-shrink: 0;
+    }
+    .sp-chat-title .sp-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
     .sp-chat-title .sp-title-text { display: flex; flex-direction: column; }
     .sp-chat-title .sp-title-name { font-weight: 700; font-size: 0.88rem; line-height: 1.2; }
@@ -4178,10 +4184,12 @@
   <div id="sp-chat-hint">Hola, soy tu asistente Star Path</div>
 
   <!-- Panel Chat -->
-  <div id="sp-chat-panel">
+    <div id="sp-chat-panel">
     <div class="sp-chat-header">
       <div class="sp-chat-title">
-        <div class="sp-avatar"><i class="bi bi-stars"></i></div>
+        <div class="sp-avatar">
+          <img src="{% static 'img/logo_star.png' %}" alt="Star Path AI">
+        </div>
         <div class="sp-title-text">
           <span class="sp-title-name">Star Path AI</span>
           <span class="sp-title-status">En línea</span>

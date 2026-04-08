@@ -481,12 +481,12 @@
       min-height: 260px;
       display: flex;
       flex-direction: column;
-      transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+      transition: none;
     }
     .ob-func-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(63, 212, 171, 0.55);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.31);
+      transform: none;
+      border-color: rgba(86, 122, 155, 0.27);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
     }
     .ob-func-icon {
       width: 30px;
@@ -974,7 +974,7 @@
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#h2r-map">Agentes</a>
         <a href="{% url 'home' %}#contact">Contacto</a>
-        <a href="{% url 'orbita_plataforma' %}" class="btn-cta">Ir a la plataforma</a>
+        <a href="{% url 'orbita_plataforma' %}" class="btn-cta">Iniciar sesión</a>
       </div>
     </div>
   </nav>
@@ -1317,7 +1317,7 @@
         <div class="col-lg-4">
           <h5>Órbita</h5>
           <p class="f-desc">Plataforma estratégica de reclutamiento. Centraliza vacantes, automatiza procesos y selecciona talento con IA.</p>
-          <a href="{% url 'orbita_plataforma' %}" class="btn-main" style="padding:.55rem 1.25rem; font-size:.84rem; border-radius:10px;">Ir a la plataforma</a>
+          <a href="{% url 'orbita_plataforma' %}" class="btn-main" style="padding:.55rem 1.25rem; font-size:.84rem; border-radius:10px;">Iniciar sesión</a>
         </div>
       </div>
       <div class="f-bottom">
