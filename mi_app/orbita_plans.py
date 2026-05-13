@@ -95,6 +95,24 @@ PLAN_CAPABILITIES = {
     },
 }
 
+MODULE_FLAGS = {
+    "candidates": "module_candidates",
+    "vacancies": "module_vacancies",
+    "forms": "module_forms",
+    "account": "module_account",
+    "notifications": "module_notifications",
+    "email_config": "module_email_config",
+    "cv_analysis": "module_cv_analysis",
+}
+
+MODULE_CAPABILITIES = {
+    "candidates": "candidates",
+    "vacancies": "vacancies",
+    "forms": "forms",
+    "email_config": "email_config",
+    "cv_analysis": "cvs_scan",
+}
+
 
 def plan_can(plan_id, capability):
     """Indica si un plan tiene una capacidad. plan_id ej: 'FREE', 'PRO', 'ENTERPRISE'."""
@@ -112,6 +130,27 @@ def subscription_can(subscription, capability):
     if capability == "cvs_scan":
         return plan_can(subscription.plan, "cvs_scan") and subscription.cvs_used < subscription.cvs_limit
     return plan_can(subscription.plan, capability)
+
+
+def subscription_module_enabled(subscription, module):
+    """True si el plan y el switch admin permiten ver/usar un módulo de la plataforma."""
+    if not subscription or not subscription.active:
+        return False
+    flag_name = MODULE_FLAGS.get(module)
+    if flag_name and not getattr(subscription, flag_name, True):
+        return False
+    capability = MODULE_CAPABILITIES.get(module)
+    if capability:
+        return plan_can(subscription.plan, capability)
+    return True
+
+
+def get_subscription_module_flags(subscription):
+    """Mapa de módulos visible en templates y navegación."""
+    return {
+        module: subscription_module_enabled(subscription, module)
+        for module in MODULE_FLAGS
+    }
 
 
 def get_plan_capabilities_display(plan_id):

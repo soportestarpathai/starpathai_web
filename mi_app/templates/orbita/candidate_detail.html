@@ -335,11 +335,13 @@
           <a href="{{ candidate.cv_file.url }}" target="_blank" rel="noopener" class="btn-cv-download">
             <i class="bi bi-download"></i>Descargar CV
           </a>
-          {% if subscription_can_process_cv %}
+          {% if subscription_can_process_cv and orbita_modules.cv_analysis %}
             <form method="post" action="{% url 'orbita_candidate_analyze_cv' candidate.pk %}" class="d-inline" onsubmit="return atsConfirmSubmit(event, { title: 'Analizar CV con IA', text: 'Se usará 1 de tus análisis disponibles ({{ kpi_cvs_used }}/{{ kpi_cvs_limit }}). ¿Continuar?', icon: 'question', confirmButtonText: 'Sí, analizar' });">
               {% csrf_token %}
               <button type="submit" class="btn-cv-analyze"><i class="bi bi-cpu"></i>Analizar con IA</button>
             </form>
+          {% elif not orbita_modules.cv_analysis %}
+            <span class="text-muted small">Análisis de CV no habilitado para tu cuenta.</span>
           {% else %}
             <span class="text-muted small">Sin análisis disponibles ({{ kpi_cvs_used }}/{{ kpi_cvs_limit }})</span>
           {% endif %}

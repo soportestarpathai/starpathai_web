@@ -70,6 +70,8 @@ from mi_app.orbita_plans import (
     subscription_can_add_candidate,
     subscription_can_add_vacancy,
     apply_plan_to_subscription,
+    get_subscription_module_flags,
+    subscription_module_enabled,
 )
 from mi_app.orbita_notifications import notify_orbita_client, notify_support_plan_change, notify_support_account_deletion_request, send_email_to_candidate
 
@@ -86,6 +88,20 @@ class StaffRequiredMixin(LoginRequiredMixin):
             return self.handle_no_permission()
         if not request.user.is_staff:
             return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class OrbitaModuleRequiredMixin:
+    """Bloquea vistas de cliente cuando soporte apagó el módulo en la suscripción."""
+    module_required = None
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.module_required and not _request_module_enabled(request, self.module_required):
+            messages.warning(request, "Este módulo no está habilitado para tu cuenta.")
+            fallback = _first_enabled_dashboard_url(request)
+            if fallback:
+                return redirect(fallback)
+            return HttpResponseForbidden("No tienes módulos habilitados para tu cuenta.")
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -198,6 +214,27 @@ def _get_or_create_subscription(user):
     return sub
 
 
+def _request_module_enabled(request, module):
+    if request.user.is_staff and not getattr(request.user, "ats_client", None):
+        return True
+    if not request.user.is_authenticated:
+        return False
+    subscription = _get_or_create_subscription(request.user)
+    return subscription_module_enabled(subscription, module)
+
+
+def _first_enabled_dashboard_url(request):
+    modules_by_section = (
+        ("candidates", "candidatos"),
+        ("vacancies", "reclutamiento"),
+        ("account", "cuenta"),
+    )
+    for module, section in modules_by_section:
+        if _request_module_enabled(request, module):
+            return reverse("orbita_dashboard") + f"?section={section}"
+    return None
+
+
 def user_can_process_cv(user):
     """
     Verifica si el usuario puede procesar un CV más (límite de plan).
@@ -211,6 +248,21 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
     """Panel del cliente ATS: KPIs, candidatos (filtro), gráfica, reclutamiento (vacantes), cuenta."""
     template_name = "orbita/dashboard.html"
     login_url = reverse_lazy("orbita_plataforma")
+
+    def dispatch(self, request, *args, **kwargs):
+        section = request.GET.get("section", "candidatos")
+        required = {
+            "candidatos": "candidates",
+            "reclutamiento": "vacancies",
+            "cuenta": "account",
+        }.get(section, "candidates")
+        if not _request_module_enabled(request, required):
+            messages.warning(request, "Este módulo no está habilitado para tu cuenta.")
+            fallback = _first_enabled_dashboard_url(request)
+            if fallback:
+                return redirect(fallback)
+            return HttpResponseForbidden("No tienes módulos habilitados para tu cuenta.")
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -303,13 +355,14 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class ATSChangePlanView(LoginRequiredMixin, View):
+class ATSChangePlanView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """
     El cliente solicita cambio de plan. No se aplica el cambio aquí: se envía correo
     a soporte para validar, gestionar pago externo y activar el plan desde el admin.
     """
     login_url = reverse_lazy("orbita_plataforma")
     http_method_names = ["post"]
+    module_required = "account"
 
     def post(self, request):
         plan_id = (request.POST.get("plan") or "").strip().upper()
@@ -348,9 +401,10 @@ class ATSChangePlanView(LoginRequiredMixin, View):
         return redirect(reverse("orbita_dashboard") + "?section=cuenta")
 
 
-class ATSRequestAccountDeletionView(LoginRequiredMixin, View):
+class ATSRequestAccountDeletionView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Solicitar baja de cuenta: envía correo a soporte y redirige a Mi cuenta."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "account"
 
     def get(self, request):
         client = _get_client_or_403(request)
@@ -373,10 +427,11 @@ class ATSRequestAccountDeletionView(LoginRequiredMixin, View):
         return redirect(reverse("orbita_dashboard") + "?section=cuenta")
 
 
-class ATSCandidateDetailView(LoginRequiredMixin, View):
+class ATSCandidateDetailView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Detalle de candidato: score, estado, explicación, habilidades y evaluación manual (Cumple/No cumple)."""
     template_name = "orbita/candidate_detail.html"
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "candidates"
 
     def _get_candidate_and_form(self, request, pk):
         orbita_client = getattr(request.user, "ats_client", None)
@@ -505,9 +560,10 @@ class ATSCandidateDetailView(LoginRequiredMixin, View):
         return redirect("orbita_candidate_detail", pk=pk)
 
 
-class ATSCandidateUploadCVView(LoginRequiredMixin, View):
+class ATSCandidateUploadCVView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Subir o reemplazar el CV de un candidato (PDF/DOCX)."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "candidates"
     http_method_names = ["post"]
 
     def post(self, request, pk):
@@ -539,9 +595,10 @@ class ATSCandidateUploadCVView(LoginRequiredMixin, View):
         return redirect("orbita_candidate_detail", pk=pk)
 
 
-class ATSCandidateAnalyzeCVView(LoginRequiredMixin, View):
+class ATSCandidateAnalyzeCVView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Ejecutar análisis del CV con IA y guardar score/habilidades en la BD."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "cv_analysis"
     http_method_names = ["post"]
 
     def post(self, request, pk):
@@ -576,9 +633,10 @@ class ATSCandidateAnalyzeCVView(LoginRequiredMixin, View):
         return redirect("orbita_candidate_detail", pk=pk)
 
 
-class ATSCandidateSendEmailView(LoginRequiredMixin, View):
+class ATSCandidateSendEmailView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Envía correo al candidato: apto para reclutar o no seleccionado (rechazo)."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "candidates"
     http_method_names = ["post"]
 
     def post(self, request, pk):
@@ -608,9 +666,10 @@ class ATSCandidateSendEmailView(LoginRequiredMixin, View):
         return redirect("orbita_candidate_detail", pk=pk)
 
 
-class ATSCandidateExportView(LoginRequiredMixin, View):
+class ATSCandidateExportView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Exporta candidatos a CSV/Excel o sus CVs en ZIP. Solo planes PRO y ENTERPRISE."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "candidates"
     http_method_names = ["get"]
 
     def get(self, request):
@@ -726,9 +785,10 @@ class ATSCandidateExportView(LoginRequiredMixin, View):
         return response
 
 
-class ATSCandidateDeleteView(LoginRequiredMixin, View):
+class ATSCandidateDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """POST: elimina un candidato."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "candidates"
     http_method_names = ["post"]
 
     def post(self, request, pk):
@@ -789,12 +849,13 @@ def _sync_criteria_from_form_fields(orbita_form):
 
 # --- Formularios ATS (crear, editar, listar, ver envíos) ---
 
-class ATSFormListView(LoginRequiredMixin, ListView):
+class ATSFormListView(OrbitaModuleRequiredMixin, LoginRequiredMixin, ListView):
     """Lista de formularios del cliente con enlace público y envíos."""
     model = ATSForm
     template_name = "orbita/form_list.html"
     login_url = reverse_lazy("orbita_plataforma")
     context_object_name = "forms"
+    module_required = "forms"
 
     def get_queryset(self):
         client = _get_client_or_403(self.request)
@@ -819,9 +880,10 @@ class ATSFormListView(LoginRequiredMixin, ListView):
         return context
 
 
-class ATSFormCreateView(LoginRequiredMixin, View):
+class ATSFormCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Crear formulario (nombre, descripción, vacante) y redirigir a editar para añadir campos."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "forms"
 
     def get(self, request):
         client = _get_client_or_403(request)
@@ -856,9 +918,10 @@ class ATSFormCreateView(LoginRequiredMixin, View):
         })
 
 
-class ATSFormEditView(LoginRequiredMixin, View):
+class ATSFormEditView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Editar formulario, sus campos y criterios de evaluación manual (formsets)."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "forms"
 
     def get(self, request, pk):
         client = _get_client_or_403(request)
@@ -1014,9 +1077,10 @@ class ATSFormEditView(LoginRequiredMixin, View):
             ).update(score_value=score_value)
 
 
-class ATSFormDeleteView(LoginRequiredMixin, View):
+class ATSFormDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Eliminar formulario."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "forms"
 
     def post(self, request, pk):
         client = _get_client_or_403(request)
@@ -1028,12 +1092,13 @@ class ATSFormDeleteView(LoginRequiredMixin, View):
         return redirect("orbita_form_list")
 
 
-class ATSFormSubmissionsView(LoginRequiredMixin, ListView):
+class ATSFormSubmissionsView(OrbitaModuleRequiredMixin, LoginRequiredMixin, ListView):
     """Envíos recibidos de un formulario."""
     model = ATSFormSubmission
     template_name = "orbita/form_submissions.html"
     login_url = reverse_lazy("orbita_plataforma")
     context_object_name = "submissions"
+    module_required = "forms"
 
     def get_queryset(self):
         client = _get_client_or_403(self.request)
@@ -1052,9 +1117,10 @@ class ATSFormSubmissionsView(LoginRequiredMixin, ListView):
         return context
 
 
-class ATSFormSubmissionDeleteView(LoginRequiredMixin, View):
+class ATSFormSubmissionDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """POST: elimina un envío individual."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "forms"
 
     def post(self, request, pk, sub_pk):
         client = _get_client_or_403(request)
@@ -1066,9 +1132,10 @@ class ATSFormSubmissionDeleteView(LoginRequiredMixin, View):
         return redirect("orbita_form_submissions", pk=pk)
 
 
-class ATSFormSubmissionDeleteAllView(LoginRequiredMixin, View):
+class ATSFormSubmissionDeleteAllView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """POST: elimina todos los envíos de un formulario."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "forms"
 
     def post(self, request, pk):
         client = _get_client_or_403(request)
@@ -1084,8 +1151,14 @@ class ATSFormPublicView(View):
     template_name = "orbita/form_public.html"
     thank_you_template = "orbita/form_public_thankyou.html"
 
+    def _module_is_enabled(self, orbita_form):
+        subscription = getattr(getattr(orbita_form.client, "user", None), "ats_subscription", None)
+        return subscription_module_enabled(subscription, "forms")
+
     def get(self, request, uuid):
         orbita_form = get_object_or_404(ATSForm, uuid=uuid, is_active=True)
+        if not self._module_is_enabled(orbita_form):
+            return HttpResponseForbidden("Este formulario no está disponible.")
         has_email_field = orbita_form.fields.filter(field_type=ATSFormField.FIELD_EMAIL).exists()
         return render(request, self.template_name, {
             "orbita_form": orbita_form,
@@ -1094,6 +1167,8 @@ class ATSFormPublicView(View):
 
     def post(self, request, uuid):
         orbita_form = get_object_or_404(ATSForm, uuid=uuid, is_active=True)
+        if not self._module_is_enabled(orbita_form):
+            return HttpResponseForbidden("Este formulario no está disponible.")
         # Rate limit por IP + formulario
         ip = request.META.get("REMOTE_ADDR", "") or "unknown"
         cache_key = f"orbita_form_submit:{ip}:{uuid}"
@@ -1222,6 +1297,9 @@ class ATSFormPublicThanksView(View):
 
     def get(self, request, uuid):
         orbita_form = get_object_or_404(ATSForm, uuid=uuid, is_active=True)
+        subscription = getattr(getattr(orbita_form.client, "user", None), "ats_subscription", None)
+        if not subscription_module_enabled(subscription, "forms"):
+            return HttpResponseForbidden("Este formulario no está disponible.")
         return render(request, self.template_name, {"orbita_form": orbita_form})
 
 
@@ -1316,12 +1394,13 @@ def _auto_analyze_candidate_if_applicable(candidate):
         return False
 
 
-class ATSEmailConfigView(LoginRequiredMixin, FormView):
+class ATSEmailConfigView(OrbitaModuleRequiredMixin, LoginRequiredMixin, FormView):
     """Configuración de correo: notificaciones y correo de la empresa (conectar inbox)."""
     template_name = "orbita/email_config.html"
     form_class = ATSEmailConfigForm
     login_url = reverse_lazy("orbita_plataforma")
     success_url = reverse_lazy("orbita_email_config")
+    module_required = "email_config"
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -1435,12 +1514,13 @@ class ATSEmailConfigView(LoginRequiredMixin, FormView):
         return render(request, self.template_name, self.get_context_data(form=form))
 
 
-class ATSProfileConfigView(LoginRequiredMixin, FormView):
+class ATSProfileConfigView(OrbitaModuleRequiredMixin, LoginRequiredMixin, FormView):
     """Configurar cuenta: foto de perfil, nombre, teléfono, empresa."""
     template_name = "orbita/profile_config.html"
     form_class = ATSProfileForm
     login_url = reverse_lazy("orbita_plataforma")
     success_url = reverse_lazy("orbita_profile_config")
+    module_required = "account"
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -1465,9 +1545,10 @@ class ATSProfileConfigView(LoginRequiredMixin, FormView):
         return redirect(self.get_success_url())
 
 
-class ATSVacancyCreateView(LoginRequiredMixin, View):
+class ATSVacancyCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Crear vacante (puesto) desde Reclutamiento."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "vacancies"
 
     def get(self, request):
         client = _get_client_or_403(request)
@@ -1509,9 +1590,10 @@ class ATSVacancyCreateView(LoginRequiredMixin, View):
         })
 
 
-class ATSVacancyEditView(LoginRequiredMixin, View):
+class ATSVacancyEditView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Editar vacante (título, descripción, perfil para análisis con IA)."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "vacancies"
 
     def get(self, request, pk):
         client = _get_client_or_403(request)
@@ -1548,9 +1630,10 @@ class ATSVacancyEditView(LoginRequiredMixin, View):
         })
 
 
-class ATSVacancyDeleteView(LoginRequiredMixin, View):
+class ATSVacancyDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Eliminar vacante."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "vacancies"
 
     def post(self, request, pk):
         client = _get_client_or_403(request)
@@ -1562,9 +1645,10 @@ class ATSVacancyDeleteView(LoginRequiredMixin, View):
         return redirect(reverse("orbita_dashboard") + "?section=reclutamiento")
 
 
-class ATSCVAnalysisConfigView(LoginRequiredMixin, View):
+class ATSCVAnalysisConfigView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Configuración por defecto del análisis de CV con IA (perfil e instrucciones)."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "cv_analysis"
 
     def get(self, request):
         client = _get_client_or_403(request)
@@ -1597,9 +1681,10 @@ class ATSCVAnalysisConfigView(LoginRequiredMixin, View):
         })
 
 
-class ATSBackfillCandidatesFromSubmissionsView(LoginRequiredMixin, View):
+class ATSBackfillCandidatesFromSubmissionsView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Crea Candidatos desde envíos de formularios que tienen vacante pero aún no tienen candidato vinculado."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "vacancies"
     http_method_names = ["post"]
 
     def post(self, request):
@@ -1633,9 +1718,10 @@ class ATSBackfillCandidatesFromSubmissionsView(LoginRequiredMixin, View):
         return redirect(reverse("orbita_dashboard") + "?section=reclutamiento")
 
 
-class ATSNotificationGoView(LoginRequiredMixin, View):
+class ATSNotificationGoView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Marca una notificación como leída y redirige a su enlace."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "notifications"
     http_method_names = ["get"]
 
     def get(self, request, pk):
@@ -1658,9 +1744,10 @@ class ATSNotificationGoView(LoginRequiredMixin, View):
         return redirect(link or reverse("orbita_dashboard"))
 
 
-class ATSNotificationMarkAllReadView(LoginRequiredMixin, View):
+class ATSNotificationMarkAllReadView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Marca todas las notificaciones del cliente como leídas."""
     login_url = reverse_lazy("orbita_plataforma")
+    module_required = "notifications"
     http_method_names = ["post"]
 
     def post(self, request):
@@ -1671,11 +1758,12 @@ class ATSNotificationMarkAllReadView(LoginRequiredMixin, View):
         return redirect(ref)
 
 
-class ATSNotificationPanelView(LoginRequiredMixin, View):
+class ATSNotificationPanelView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Panel de notificaciones: lista paginada con opción de marcar todas como leídas."""
     login_url = reverse_lazy("orbita_plataforma")
     template_name = "orbita/notification_panel.html"
     paginate_by = 25
+    module_required = "notifications"
 
     def get(self, request):
         client = _get_client_or_403(request)
@@ -1857,6 +1945,33 @@ class ATSAdminChangePlanView(StaffRequiredMixin, View):
                 link=reverse("orbita_dashboard") + "?section=cuenta",
                 request=request,
             )
+        return redirect("orbita_admin_dashboard")
+
+
+class ATSAdminUpdateModulesView(StaffRequiredMixin, View):
+    """POST: activar/desactivar módulos visibles para un cliente."""
+    http_method_names = ["post"]
+
+    MODULE_FIELDS = (
+        "module_candidates",
+        "module_vacancies",
+        "module_forms",
+        "module_account",
+        "module_notifications",
+        "module_email_config",
+        "module_cv_analysis",
+    )
+
+    def post(self, request):
+        subscription_id = request.POST.get("subscription_id")
+        if not subscription_id:
+            messages.error(request, "Falta la suscripción.")
+            return redirect("orbita_admin_dashboard")
+        subscription = get_object_or_404(Subscription, pk=subscription_id)
+        for field in self.MODULE_FIELDS:
+            setattr(subscription, field, request.POST.get(field) == "on")
+        subscription.save(update_fields=[*self.MODULE_FIELDS, "updated_at"])
+        messages.success(request, f"Módulos actualizados para {subscription.user.email}.")
         return redirect("orbita_admin_dashboard")
 
 

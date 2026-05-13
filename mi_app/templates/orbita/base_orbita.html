@@ -304,13 +304,27 @@
       <nav class="sidebar-nav">
         {% if orbita_client %}
         <div class="nav-label">Menú</div>
+        {% if orbita_modules.candidates %}
         <div class="nav-item"><a href="{% url 'orbita_dashboard' %}?section=candidatos" class="nav-link {% if orbita_page == 'candidatos' %}active{% endif %}"><i class="bi bi-people"></i> Candidatos</a></div>
+        {% endif %}
+        {% if orbita_modules.vacancies %}
         <div class="nav-item"><a href="{% url 'orbita_dashboard' %}?section=reclutamiento" class="nav-link {% if orbita_page == 'reclutamiento' %}active{% endif %}"><i class="bi bi-briefcase"></i> Vacantes</a></div>
+        {% endif %}
+        {% if orbita_modules.forms %}
         <div class="nav-item"><a href="{% url 'orbita_form_list' %}" class="nav-link {% if orbita_page == 'formularios' %}active{% endif %}"><i class="bi bi-ui-checks"></i> Formularios</a></div>
+        {% endif %}
+        {% if orbita_modules.account %}
         <div class="nav-item"><a href="{% url 'orbita_dashboard' %}?section=cuenta" class="nav-link {% if orbita_page == 'cuenta' %}active{% endif %}"><i class="bi bi-credit-card"></i> Mi cuenta</a></div>
+        {% endif %}
+        {% if orbita_modules.notifications %}
         <div class="nav-item"><a href="{% url 'orbita_notification_panel' %}" class="nav-link {% if orbita_page == 'notificaciones' %}active{% endif %}"><i class="bi bi-bell"></i> Notificaciones</a></div>
+        {% endif %}
+        {% if orbita_modules.email_config %}
         <div class="nav-item"><a href="{% url 'orbita_email_config' %}" class="nav-link {% if orbita_page == 'correo' %}active{% endif %}"><i class="bi bi-envelope"></i> Config. correo</a></div>
+        {% endif %}
+        {% if orbita_modules.cv_analysis %}
         <div class="nav-item"><a href="{% url 'orbita_cv_analysis_config' %}" class="nav-link {% if orbita_page == 'analisis_cv' %}active{% endif %}"><i class="bi bi-cpu"></i> Config. análisis CV</a></div>
+        {% endif %}
         {% if user.is_staff %}
         <div class="nav-divider"></div>
         <div class="nav-label">Administración</div>
@@ -350,7 +364,9 @@
         <div class="nav-divider"></div>
         <div class="nav-label">Cuenta</div>
         {% if orbita_client %}
+        {% if orbita_modules.account %}
         <div class="nav-item"><a href="{% url 'orbita_profile_config' %}" class="nav-link {% if orbita_page == 'perfil' %}active{% endif %}"><i class="bi bi-person-gear"></i> Configurar cuenta</a></div>
+        {% endif %}
         {% endif %}
         <div class="nav-item"><a href="{% url 'orbita_logout' %}" class="nav-link text-danger"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a></div>
       </nav>
@@ -443,9 +459,13 @@
           </button>
           <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-2 py-2" style="min-width: 200px;">
             {% if orbita_client %}
+            {% if orbita_modules.account %}
             <li><a class="dropdown-item py-2" href="{% url 'orbita_dashboard' %}?section=cuenta"><i class="bi bi-credit-card me-2"></i>Mi cuenta</a></li>
             <li><a class="dropdown-item py-2" href="{% url 'orbita_profile_config' %}"><i class="bi bi-person-gear me-2"></i>Configurar cuenta</a></li>
+            {% endif %}
+            {% if orbita_modules.cv_analysis %}
             <li><a class="dropdown-item py-2" href="{% url 'orbita_cv_analysis_config' %}"><i class="bi bi-cpu me-2"></i>Config. análisis CV</a></li>
+            {% endif %}
             {% else %}
             <li><a class="dropdown-item py-2" href="{% url 'orbita_staff_account' %}"><i class="bi bi-person me-2"></i>Mi cuenta</a></li>
             {% endif %}

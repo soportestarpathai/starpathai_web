@@ -10,7 +10,7 @@ import logging
 import uuid as _uuid
 from django.conf import settings
 from django.core.cache import cache
-from django.http import JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -26,8 +26,14 @@ from mi_app.models import (
     FormChatSession,
 )
 from mi_app.orbita_notifications import notify_orbita_client
+from mi_app.orbita_plans import subscription_module_enabled
 
 logger = logging.getLogger(__name__)
+
+
+def _form_module_enabled(orbita_form):
+    subscription = getattr(getattr(orbita_form.client, "user", None), "ats_subscription", None)
+    return subscription_module_enabled(subscription, "forms")
 
 
 def _build_steps(orbita_form):
@@ -74,6 +80,8 @@ class FormChatPageView(View):
 
     def get(self, request, uuid):
         orbita_form = get_object_or_404(ATSForm, uuid=uuid, is_active=True)
+        if not _form_module_enabled(orbita_form):
+            return HttpResponseForbidden("Este formulario no está disponible.")
         steps = _build_steps(orbita_form)
         return render(request, self.template_name, {
             "orbita_form": orbita_form,
@@ -87,6 +95,8 @@ class FormChatStartAPI(View):
 
     def post(self, request, uuid):
         orbita_form = get_object_or_404(ATSForm, uuid=uuid, is_active=True)
+        if not _form_module_enabled(orbita_form):
+            return JsonResponse({"ok": False, "error": "Este formulario no está disponible."}, status=403)
 
         ip = request.META.get("REMOTE_ADDR", "") or "unknown"
         cache_key = f"orbita_chat_start:{ip}:{uuid}"
@@ -122,6 +132,8 @@ class FormChatAnswerAPI(View):
 
     def post(self, request, uuid):
         orbita_form = get_object_or_404(ATSForm, uuid=uuid, is_active=True)
+        if not _form_module_enabled(orbita_form):
+            return JsonResponse({"ok": False, "error": "Este formulario no está disponible."}, status=403)
 
         try:
             body = json.loads(request.body)
@@ -272,6 +284,8 @@ class FormChatFileUploadAPI(View):
 
     def post(self, request, uuid):
         orbita_form = get_object_or_404(ATSForm, uuid=uuid, is_active=True)
+        if not _form_module_enabled(orbita_form):
+            return JsonResponse({"ok": False, "error": "Este formulario no está disponible."}, status=403)
 
         session_uuid = request.POST.get("session_uuid", "")
         step_id = request.POST.get("step_id", "")
@@ -336,6 +350,8 @@ class FormChatSessionsView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
         orbita_form = get_object_or_404(ATSForm, pk=pk)
+        if not _form_module_enabled(orbita_form):
+            return HttpResponseForbidden("Este módulo no está disponible.")
         orbita_client = getattr(request.user, "ats_client", None)
         if not request.user.is_staff and (not orbita_client or orbita_form.client_id != orbita_client.pk):
             return redirect("orbita_dashboard")
@@ -359,6 +375,8 @@ class FormChatSessionsListAPI(LoginRequiredMixin, View):
 
     def get(self, request, pk):
         orbita_form = get_object_or_404(ATSForm, pk=pk)
+        if not _form_module_enabled(orbita_form):
+            return JsonResponse({"ok": False}, status=403)
         orbita_client = getattr(request.user, "ats_client", None)
         if not request.user.is_staff and (not orbita_client or orbita_form.client_id != orbita_client.pk):
             return JsonResponse({"ok": False}, status=403)
@@ -389,6 +407,8 @@ class FormChatSessionDeleteAPI(LoginRequiredMixin, View):
 
     def post(self, request, pk, session_uuid):
         orbita_form = get_object_or_404(ATSForm, pk=pk)
+        if not _form_module_enabled(orbita_form):
+            return JsonResponse({"ok": False}, status=403)
         orbita_client = getattr(request.user, "ats_client", None)
         if not request.user.is_staff and (not orbita_client or orbita_form.client_id != orbita_client.pk):
             return JsonResponse({"ok": False}, status=403)
@@ -409,6 +429,8 @@ class FormChatSessionDetailAPI(LoginRequiredMixin, View):
 
     def get(self, request, pk, session_uuid):
         orbita_form = get_object_or_404(ATSForm, pk=pk)
+        if not _form_module_enabled(orbita_form):
+            return JsonResponse({"ok": False}, status=403)
         orbita_client = getattr(request.user, "ats_client", None)
         if not request.user.is_staff and (not orbita_client or orbita_form.client_id != orbita_client.pk):
             return JsonResponse({"ok": False}, status=403)
@@ -459,6 +481,8 @@ class CandidateChatSessionAPI(LoginRequiredMixin, View):
             session = FormChatSession.objects.select_related("form").get(session_uuid=session_uuid)
         except FormChatSession.DoesNotExist:
             return JsonResponse({"ok": False, "error": "Sesión no encontrada."}, status=404)
+        if not _form_module_enabled(session.form):
+            return JsonResponse({"ok": False}, status=403)
 
         if not request.user.is_staff and session.form.client_id != orbita_client.pk:
             return JsonResponse({"ok": False}, status=403)

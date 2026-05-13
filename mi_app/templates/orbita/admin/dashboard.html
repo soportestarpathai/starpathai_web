@@ -204,6 +204,37 @@
   background: rgba(239,68,68,0.08);
   border-color: rgba(239,68,68,0.4);
 }
+.adm-module-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(108px, 1fr));
+  gap: 0.35rem 0.65rem;
+  min-width: 250px;
+}
+.adm-module-form .form-check {
+  min-height: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.adm-module-form .form-check-input {
+  margin: 0;
+  cursor: pointer;
+}
+.adm-module-form .form-check-label {
+  font-size: 0.72rem;
+  color: #64748b;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.adm-module-form .btn-save-modules {
+  grid-column: 1 / -1;
+  justify-self: start;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+}
 
 /* ─── Search bar ─── */
 .adm-search-form {
@@ -576,6 +607,7 @@
           <th>Empresa</th>
           <th>Email</th>
           <th>Plan</th>
+          <th>Módulos</th>
           <th style="text-align:center;">Vacantes</th>
           <th style="text-align:center;">Candidatos</th>
           <th style="text-align:center;">Formularios</th>
@@ -604,6 +636,43 @@
               {% else %}
                 <span class="plan-badge free">{{ row.subscription.get_plan_display }}</span>
               {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if row.subscription %}
+            <form method="post" action="{% url 'orbita_admin_update_modules' %}" class="adm-module-form">
+              {% csrf_token %}
+              <input type="hidden" name="subscription_id" value="{{ row.subscription.id }}">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="module_candidates" id="mod_candidates_{{ row.subscription.id }}" {% if row.subscription.module_candidates %}checked{% endif %}>
+                <label class="form-check-label" for="mod_candidates_{{ row.subscription.id }}">Candidatos</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="module_vacancies" id="mod_vacancies_{{ row.subscription.id }}" {% if row.subscription.module_vacancies %}checked{% endif %}>
+                <label class="form-check-label" for="mod_vacancies_{{ row.subscription.id }}">Vacantes</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="module_forms" id="mod_forms_{{ row.subscription.id }}" {% if row.subscription.module_forms %}checked{% endif %}>
+                <label class="form-check-label" for="mod_forms_{{ row.subscription.id }}">Formularios</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="module_account" id="mod_account_{{ row.subscription.id }}" {% if row.subscription.module_account %}checked{% endif %}>
+                <label class="form-check-label" for="mod_account_{{ row.subscription.id }}">Mi cuenta</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="module_notifications" id="mod_notifications_{{ row.subscription.id }}" {% if row.subscription.module_notifications %}checked{% endif %}>
+                <label class="form-check-label" for="mod_notifications_{{ row.subscription.id }}">Notificaciones</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="module_email_config" id="mod_email_{{ row.subscription.id }}" {% if row.subscription.module_email_config %}checked{% endif %}>
+                <label class="form-check-label" for="mod_email_{{ row.subscription.id }}">Config. correo</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="module_cv_analysis" id="mod_cv_{{ row.subscription.id }}" {% if row.subscription.module_cv_analysis %}checked{% endif %}>
+                <label class="form-check-label" for="mod_cv_{{ row.subscription.id }}">Análisis CV</label>
+              </div>
+              <button type="submit" class="btn btn-sm btn-outline-primary btn-save-modules">Guardar módulos</button>
+            </form>
             {% else %}—{% endif %}
           </td>
           <td style="text-align:center;">
@@ -652,7 +721,7 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="10" class="text-center py-5" style="color:#94a3b8;">
+        <tr><td colspan="11" class="text-center py-5" style="color:#94a3b8;">
           <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.4;"></i>
           No hay clientes Órbita registrados.
         </td></tr>

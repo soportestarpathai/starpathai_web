@@ -181,6 +181,13 @@ class Subscription(models.Model):
     amount = models.DecimalField("Monto (MXN)", max_digits=10, decimal_places=2, null=True, blank=True)
     active = models.BooleanField("Activa", default=True)
     paypal_subscription_id = models.CharField(max_length=255, blank=True)
+    module_candidates = models.BooleanField("Módulo candidatos", default=True)
+    module_vacancies = models.BooleanField("Módulo vacantes", default=True)
+    module_forms = models.BooleanField("Módulo formularios", default=True)
+    module_account = models.BooleanField("Módulo mi cuenta", default=True)
+    module_notifications = models.BooleanField("Módulo notificaciones", default=True)
+    module_email_config = models.BooleanField("Módulo config. correo", default=True)
+    module_cv_analysis = models.BooleanField("Módulo config. análisis CV", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -10,11 +10,14 @@ def orbita_notifications(request):
     orbita_client = getattr(request.user, "ats_client", None)
     if orbita_client:
         from mi_app.models import ATSNotification
+        from mi_app.orbita_plans import get_subscription_module_flags
         notifications = list(ATSNotification.objects.filter(client=orbita_client)[:10])
         unread_count = ATSNotification.objects.filter(client=orbita_client, read=False).count()
+        subscription = getattr(request.user, "ats_subscription", None)
         return {
             "orbita_notifications": notifications,
             "orbita_unread_count": unread_count,
+            "orbita_modules": get_subscription_module_flags(subscription),
         }
     if request.user.is_staff:
         from mi_app.models import PlanChangeRequest
