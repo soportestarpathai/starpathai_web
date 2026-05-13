@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import json
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -62,6 +63,10 @@ INSTALLED_APPS = [
     'mi_app',
     'rest_framework',
 ]
+
+USE_GCS = os.environ.get("USE_GCS", "0").strip().lower() in ("1", "true", "yes")
+if USE_GCS:
+    INSTALLED_APPS.append("storages")
 
 MIDDLEWARE = [
     "mi_app.middleware.RequestLoggingMiddleware",
@@ -206,19 +211,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-        "OPTIONS": {
-            "location": BASE_DIR / "media",
-            "base_url": "/media/",
-        },
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
@@ -230,6 +222,50 @@ STATIC_ROOT = BASE_DIR / "staticfiles"     # aquí se juntan para producción
 # Archivos subidos por usuarios (avatares, CVs, etc.)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME", os.environ.get("GOOGLE_CLOUD_STORAGE_BUCKET_NAME", "")).strip()
+GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID", os.environ.get("GOOGLE_CLOUD_PROJECT", "")).strip()
+GS_LOCATION = os.environ.get("GS_LOCATION", "media").strip().strip("/")
+GS_QUERYSTRING_AUTH = os.environ.get("GS_QUERYSTRING_AUTH", "1").strip().lower() in ("1", "true", "yes")
+GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": MEDIA_ROOT,
+            "base_url": MEDIA_URL,
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+if USE_GCS:
+    if not GS_BUCKET_NAME:
+        raise RuntimeError("USE_GCS=1 requiere configurar GS_BUCKET_NAME.")
+    gcs_options = {
+        "bucket_name": GS_BUCKET_NAME,
+        "project_id": GS_PROJECT_ID or None,
+        "location": GS_LOCATION,
+        "default_acl": None,
+        "querystring_auth": GS_QUERYSTRING_AUTH,
+        "file_overwrite": False,
+    }
+    if GOOGLE_SERVICE_ACCOUNT_JSON:
+        try:
+            from google.oauth2 import service_account
+            gcs_options["credentials"] = service_account.Credentials.from_service_account_info(
+                json.loads(GOOGLE_SERVICE_ACCOUNT_JSON)
+            )
+        except Exception as exc:
+            raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_JSON no contiene un JSON de cuenta de servicio válido.") from exc
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+        "OPTIONS": gcs_options,
+    }
+    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_LOCATION}/"
 
 
 

@@ -1,6 +1,30 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
+
+
+def _dated_upload_path(*parts, filename):
+    date_path = timezone.now().strftime("%Y/%m")
+    clean_parts = [str(part).strip("/") for part in parts if str(part).strip("/")]
+    return "/".join(["ats", "clients", *clean_parts, date_path, filename])
+
+
+def ats_client_avatar_upload_to(instance, filename):
+    client_id = instance.pk or getattr(instance, "user_id", None) or "pending"
+    return _dated_upload_path(client_id, "avatar", filename=filename)
+
+
+def candidate_cv_upload_to(instance, filename):
+    client_id = getattr(instance, "client_id", None) or "pending"
+    return _dated_upload_path(client_id, "cvs", filename=filename)
+
+
+def submission_file_upload_to(instance, filename):
+    submission = getattr(instance, "submission", None)
+    form = getattr(submission, "form", None)
+    client_id = getattr(form, "client_id", None) or "pending"
+    return _dated_upload_path(client_id, "form_uploads", filename=filename)
 
 
 class ATSClient(models.Model):
@@ -16,7 +40,7 @@ class ATSClient(models.Model):
     company_name = models.CharField("Empresa", max_length=200)
     contact_name = models.CharField("Nombre del contacto", max_length=150, blank=True)
     contact_phone = models.CharField("Teléfono", max_length=30, blank=True)
-    avatar = models.ImageField("Foto de perfil", upload_to="ats/avatars/%Y/%m/", blank=True, null=True)
+    avatar = models.ImageField("Foto de perfil", upload_to=ats_client_avatar_upload_to, blank=True, null=True)
     # LangSmith: proyecto opcional por cliente. Si está vacío se usa LANGSMITH_PROJECT global.
     langsmith_project = models.CharField(
         "Proyecto LangSmith",
@@ -326,7 +350,7 @@ class Candidate(models.Model):
         blank=True,
         help_text="Por qué es apto / no apto en lenguaje humano.",
     )
-    cv_file = models.FileField("Archivo CV", upload_to="ats/cvs/%Y/%m/", blank=True, null=True)
+    cv_file = models.FileField("Archivo CV", upload_to=candidate_cv_upload_to, blank=True, null=True)
     raw_text = models.TextField("Texto extraído del CV (OCR)", blank=True)
 
     class Meta:
@@ -561,7 +585,7 @@ class ATSFormSubmissionFile(models.Model):
         blank=True,
         related_name="submission_files",
     )
-    file = models.FileField("Archivo", upload_to="ats/form_uploads/%Y/%m/")
+    file = models.FileField("Archivo", upload_to=submission_file_upload_to)
     original_name = models.CharField("Nombre original", max_length=255, blank=True)
 
     class Meta:

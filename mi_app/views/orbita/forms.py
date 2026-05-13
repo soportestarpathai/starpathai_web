@@ -3,9 +3,11 @@ Formularios para registro e inicio de sesión de clientes ATS.
 """
 import json
 import re
+from io import BytesIO
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
 
 User = get_user_model()
@@ -515,6 +517,34 @@ class ATSProfileForm(forms.ModelForm):
             "contact_phone": forms.TextInput(attrs={"class": "form-control", "placeholder": "+52 55 1234 5678"}),
             "company_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre de la empresa"}),
         }
+
+    def clean_avatar(self):
+        avatar = self.cleaned_data.get("avatar")
+        uploaded_avatar = self.files.get(self.add_prefix("avatar")) or self.files.get("avatar")
+        if not avatar or not uploaded_avatar:
+            return avatar
+        try:
+            from PIL import Image
+            image = Image.open(uploaded_avatar)
+            image.verify()
+            uploaded_avatar.seek(0)
+            image = Image.open(uploaded_avatar)
+            image.thumbnail((512, 512), Image.Resampling.LANCZOS)
+            if image.mode in ("RGBA", "LA", "P"):
+                background = Image.new("RGB", image.size, (255, 255, 255))
+                if image.mode == "P":
+                    image = image.convert("RGBA")
+                background.paste(image, mask=image.split()[-1] if image.mode in ("RGBA", "LA") else None)
+                image = background
+            else:
+                image = image.convert("RGB")
+            output = BytesIO()
+            image.save(output, format="JPEG", quality=85, optimize=True)
+            output.seek(0)
+            base_name = (getattr(uploaded_avatar, "name", "avatar") or "avatar").rsplit(".", 1)[0]
+            return ContentFile(output.read(), name=f"{base_name}.jpg")
+        except Exception:
+            raise forms.ValidationError("No se pudo procesar la imagen. Sube un JPG, PNG o WebP válido.")
 
 
 def _parse_skills_text(value):

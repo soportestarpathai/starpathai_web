@@ -26,7 +26,7 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 from django.core.mail.backends.smtp import EmailBackend
 from django.contrib import messages
-from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse, JsonResponse
+from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse, JsonResponse, FileResponse
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
 from django.utils import timezone
 
@@ -609,7 +609,7 @@ class ATSCandidateSendEmailView(LoginRequiredMixin, View):
 
 
 class ATSCandidateExportView(LoginRequiredMixin, View):
-    """Exporta candidatos a CSV o Excel. Solo planes PRO y ENTERPRISE."""
+    """Exporta candidatos a CSV/Excel o sus CVs en ZIP. Solo planes PRO y ENTERPRISE."""
     login_url = reverse_lazy("orbita_plataforma")
     http_method_names = ["get"]
 
@@ -622,7 +622,7 @@ class ATSCandidateExportView(LoginRequiredMixin, View):
             messages.error(request, "La exportación de candidatos está disponible en planes Pro y Enterprise.")
             return redirect(reverse("orbita_dashboard") + "?section=candidatos")
         fmt = (request.GET.get("format") or "csv").strip().lower()
-        if fmt not in ("csv", "xlsx"):
+        if fmt not in ("csv", "xlsx", "zip"):
             fmt = "csv"
         base_qs = Candidate.objects.filter(client=orbita_client).select_related("vacancy")
         q = (request.GET.get("q") or "").strip()
@@ -639,6 +639,8 @@ class ATSCandidateExportView(LoginRequiredMixin, View):
             except ValueError:
                 pass
         qs = qs.order_by("-analysis_date", "-id")[:5000]
+        if fmt == "zip":
+            return self._response_zip(qs, orbita_client)
         rows = []
         for c in qs:
             rows.append({
@@ -658,6 +660,39 @@ class ATSCandidateExportView(LoginRequiredMixin, View):
             messages.error(request, "Exportación Excel no disponible. Instala openpyxl o usa formato CSV.")
             return redirect(reverse("orbita_dashboard") + "?section=candidatos")
         return self._response_xlsx(rows)
+
+    def _response_zip(self, candidates, orbita_client):
+        import os
+        import tempfile
+        import zipfile
+        from django.utils.text import slugify
+
+        tmp = tempfile.TemporaryFile()
+        added = 0
+        with zipfile.ZipFile(tmp, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for candidate in candidates:
+                if not candidate.cv_file:
+                    continue
+                try:
+                    original = os.path.basename(candidate.cv_file.name) or "cv.pdf"
+                    stem, ext = os.path.splitext(original)
+                    ext = ext or ".pdf"
+                    safe_name = slugify(candidate.name or f"candidato-{candidate.pk}") or f"candidato-{candidate.pk}"
+                    archive_name = f"cvs/{candidate.pk}-{safe_name}{ext.lower()}"
+                    with candidate.cv_file.open("rb") as fh:
+                        zf.writestr(archive_name, fh.read())
+                    added += 1
+                except Exception as exc:
+                    logger.warning("No se pudo agregar CV al ZIP candidate=%s: %s", candidate.pk, exc)
+
+            if added == 0:
+                zf.writestr("sin_cvs.txt", "No hay CVs disponibles para los filtros seleccionados.")
+
+        tmp.seek(0)
+        company = slugify(getattr(orbita_client, "company_name", "") or "orbita") or "orbita"
+        response = FileResponse(tmp, as_attachment=True, filename=f"cvs-{company}.zip")
+        response["Content-Type"] = "application/zip"
+        return response
 
     def _response_csv(self, rows):
         import csv

@@ -8,6 +8,7 @@ Servicio de análisis de CV con IA.
 """
 import logging
 import os
+import tempfile
 from typing import Optional
 
 from django.utils import timezone
@@ -71,6 +72,43 @@ def extract_text_from_cv(file_path: str, filename: Optional[str] = None) -> str:
     return extract_text_from_pdf(file_path)
 
 
+def extract_text_from_cv_field(field_file) -> str:
+    """
+    Extrae texto desde un FieldFile de Django sin depender de .path.
+    Esto permite analizar CVs guardados tanto en disco local como en Google Cloud Storage.
+    """
+    if not field_file:
+        return ""
+
+    original_name = os.path.basename(getattr(field_file, "name", "") or "")
+    suffix = os.path.splitext(original_name)[1] or ".pdf"
+    tmp_name = None
+
+    try:
+        field_file.open("rb")
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp_name = tmp.name
+            for chunk in field_file.chunks():
+                tmp.write(chunk)
+    except Exception as exc:
+        logger.exception("Error leyendo CV desde storage %s: %s", getattr(field_file, "name", ""), exc)
+        return ""
+    finally:
+        try:
+            field_file.close()
+        except Exception:
+            pass
+
+    try:
+        return extract_text_from_cv(tmp_name, original_name)
+    finally:
+        if tmp_name:
+            try:
+                os.unlink(tmp_name)
+            except OSError:
+                pass
+
+
 def get_profile_config_for_candidate(candidate) -> dict:
     """
     Devuelve la configuración de perfil para analizar el CV de un candidato.
@@ -121,7 +159,7 @@ def _analyze_with_openai(raw_text: str, profile_config: dict) -> tuple[dict | No
     vacancy_title = profile_config.get("vacancy_title") or "la vacante"
     cv_snippet = (raw_text or "")[:12000].strip()
     if not cv_snippet:
-        return None
+        return None, None
     skills_list = ", ".join(desired) if desired else "las que consideres relevantes"
     system_prompt = (
         "Eres un evaluador de CVs para reclutamiento. Analiza el texto del CV y evalúa al candidato "
@@ -322,12 +360,8 @@ def run_cv_analysis_and_save(candidate) -> dict:
     if not candidate.cv_file:
         return {"ok": False, "error": "El candidato no tiene archivo de CV."}
 
-    file_path = getattr(candidate.cv_file, "path", None)
-    if not file_path or not os.path.isfile(file_path):
-        return {"ok": False, "error": "No se encontró el archivo del CV en el servidor."}
-
     profile_config = get_profile_config_for_candidate(candidate)
-    raw_text = extract_text_from_cv(file_path, os.path.basename(candidate.cv_file.name))
+    raw_text = extract_text_from_cv_field(candidate.cv_file)
     result, usage = analyze_cv_with_ai(raw_text, profile_config)
 
     # Actualizar candidato: score referente al perfil/vacante, estado, explicación, texto crudo, fecha
