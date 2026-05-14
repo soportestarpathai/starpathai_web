@@ -33,7 +33,7 @@
         <div class="mb-3">
           <label class="form-label fw-bold">Nombre del formulario</label>
           {{ form.name }}
-          {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+          {% for error in form.name.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
         </div>
         <div class="mb-3">
           <label class="form-label">Descripción (instrucciones para el candidato)</label>

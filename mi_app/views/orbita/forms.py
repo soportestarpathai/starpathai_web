@@ -201,6 +201,20 @@ class ATSFormCreateEditForm(forms.ModelForm):
     class Meta:
         model = ATSForm
         fields = ("name", "description", "vacancy", "layout", "request_email", "request_cv")
+        labels = {
+            "name": "Nombre del formulario",
+            "description": "Descripción",
+            "vacancy": "Vacante asociada",
+            "layout": "Vista del formulario",
+            "request_email": "Solicitar correo electrónico",
+            "request_cv": "Solicitar CV",
+        }
+        error_messages = {
+            "name": {
+                "required": "El nombre del formulario es obligatorio.",
+                "max_length": "El nombre no puede superar 200 caracteres.",
+            },
+        }
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej. Postulación Desarrollador"}),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Instrucciones para el candidato (opcional)"}),
@@ -577,6 +591,18 @@ class ATSVacancyForm(forms.ModelForm):
     class Meta:
         model = Vacancy
         fields = ("title", "description", "profile_for_analysis", "ai_enabled")
+        labels = {
+            "title": "Título del puesto",
+            "description": "Descripción completa",
+            "profile_for_analysis": "Perfil del candidato ideal",
+            "ai_enabled": "Análisis de CV con IA",
+        }
+        error_messages = {
+            "title": {
+                "required": "El título del puesto es obligatorio.",
+                "max_length": "El título no puede superar 255 caracteres.",
+            },
+        }
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej. Desarrollador Python"}),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 6, "placeholder": "Describe el puesto: responsabilidades, requisitos, beneficios, ubicación..."}),

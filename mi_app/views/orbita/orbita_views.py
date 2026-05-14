@@ -6,6 +6,7 @@ Vistas para el producto ATS (Applicant Tracking System) de Star Path.
 """
 import json
 import logging
+import uuid as uuid_lib
 
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
@@ -29,6 +30,8 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse, JsonResponse, FileResponse
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 
 from mi_app.views.orbita.forms import (
     ATSRegisterForm,
@@ -77,6 +80,14 @@ from mi_app.orbita_notifications import notify_orbita_client, notify_support_pla
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+
+
+def _is_valid_uuid(value):
+    try:
+        uuid_lib.UUID(str(value))
+    except (TypeError, ValueError, AttributeError):
+        return False
+    return True
 
 
 class StaffRequiredMixin(LoginRequiredMixin):
@@ -272,14 +283,26 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
     """Panel del cliente ATS: KPIs, candidatos (filtro), gráfica, reclutamiento (vacantes), cuenta."""
     template_name = "orbita/dashboard.html"
     login_url = reverse_lazy("orbita_plataforma")
+    allowed_sections = {"candidatos", "reclutamiento", "cuenta"}
 
     def dispatch(self, request, *args, **kwargs):
         section = request.GET.get("section", "candidatos")
+        if section not in self.allowed_sections:
+            return redirect(reverse("orbita_dashboard") + "?section=candidatos")
+        vacancy_filter = request.GET.get("vacancy", "")
+        if vacancy_filter and not _is_valid_uuid(vacancy_filter):
+            clean_query = request.GET.copy()
+            clean_query.pop("vacancy", None)
+            if not clean_query.get("section"):
+                clean_query["section"] = "candidatos"
+            query_string = clean_query.urlencode()
+            clean_url = reverse("orbita_dashboard")
+            return redirect(f"{clean_url}?{query_string}" if query_string else clean_url)
         required = {
             "candidatos": "candidates",
             "reclutamiento": "vacancies",
             "cuenta": "account",
-        }.get(section, "candidates")
+        }[section]
         if not _request_module_enabled(request, required):
             messages.warning(request, "Este módulo no está habilitado para tu cuenta.")
             fallback = _first_enabled_dashboard_url(request)
@@ -321,17 +344,17 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
             # Filtros
             q = (self.request.GET.get("q") or "").strip()
             status_filter = self.request.GET.get("status", "")
-            vacancy_id = self.request.GET.get("vacancy", "")
+            vacancy_public_id = self.request.GET.get("vacancy", "")
             qs = base_qs
             if q:
                 qs = qs.filter(Q(name__icontains=q) | Q(email__icontains=q))
             if status_filter and status_filter in (Candidate.STATUS_APTO, Candidate.STATUS_REVISION, Candidate.STATUS_NO_APTO):
                 qs = qs.filter(status=status_filter)
-            if vacancy_id:
-                try:
-                    qs = qs.filter(vacancy_id=int(vacancy_id))
-                except ValueError:
-                    pass
+            selected_vacancy = None
+            if vacancy_public_id:
+                selected_vacancy = Vacancy.objects.filter(client=orbita_client, public_id=vacancy_public_id).first()
+                if selected_vacancy:
+                    qs = qs.filter(vacancy=selected_vacancy)
             # KPIs de vista candidatos (sí respetan filtros activos, incluida vacante)
             context["kpi_total"] = qs.count()
             context["kpi_aptos"] = qs.filter(status=Candidate.STATUS_APTO).count()
@@ -344,13 +367,8 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
             context["candidates"] = qs.order_by("-score", "-analysis_date").prefetch_related("skill_evaluations")[:200]
             context["filter_q"] = q
             context["filter_status"] = status_filter
-            context["filter_vacancy"] = vacancy_id
-            context["selected_vacancy"] = None
-            if vacancy_id:
-                try:
-                    context["selected_vacancy"] = Vacancy.objects.filter(client=orbita_client, pk=int(vacancy_id)).first()
-                except ValueError:
-                    context["selected_vacancy"] = None
+            context["filter_vacancy"] = str(selected_vacancy.public_id) if selected_vacancy else ""
+            context["selected_vacancy"] = selected_vacancy
             # Vacantes (para filtro y sección Reclutamiento)
             context["vacancies"] = Vacancy.objects.filter(client=orbita_client).annotate(
                 candidates_count=Count("candidates")
@@ -457,7 +475,7 @@ class ATSCandidateDetailView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View
     login_url = reverse_lazy("orbita_plataforma")
     module_required = "candidates"
 
-    def _get_candidate_and_form(self, request, pk):
+    def _get_candidate_and_form(self, request, public_id):
         orbita_client = getattr(request.user, "ats_client", None)
         if not orbita_client:
             return None, None, False
@@ -467,7 +485,7 @@ class ATSCandidateDetailView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View
                 "criterion_responses",
                 "form_submissions__files",
                 "form_submissions__form",
-            ).get(pk=pk, client=orbita_client)
+            ).get(public_id=public_id, client=orbita_client)
         except Candidate.DoesNotExist:
             return None, None, True
         orbita_form = None
@@ -476,10 +494,9 @@ class ATSCandidateDetailView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View
             orbita_form = first_sub.form
         return candidate, orbita_form, False
 
-    def get(self, request, pk):
-        candidate, orbita_form, was_deleted = self._get_candidate_and_form(request, pk)
+    def get(self, request, public_id):
+        candidate, orbita_form, was_deleted = self._get_candidate_and_form(request, public_id)
         if was_deleted:
-            messages.warning(request, "El candidato ya no existe o fue eliminado.")
             return redirect("orbita_dashboard")
         if not candidate:
             return render(request, self.template_name, {"candidate": None, "orbita_page": "candidatos"})
@@ -530,11 +547,10 @@ class ATSCandidateDetailView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View
         }
         return render(request, self.template_name, context)
 
-    def post(self, request, pk):
+    def post(self, request, public_id):
         """Guardar evaluación manual (Cumple/No cumple por criterio) y recalcular score."""
-        candidate, orbita_form, was_deleted = self._get_candidate_and_form(request, pk)
+        candidate, orbita_form, was_deleted = self._get_candidate_and_form(request, public_id)
         if was_deleted:
-            messages.warning(request, "El candidato ya no existe o fue eliminado.")
             return redirect("orbita_dashboard")
         if not candidate or not orbita_form:
             return redirect("orbita_dashboard")
@@ -581,7 +597,7 @@ class ATSCandidateDetailView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View
             candidate.status = Candidate.STATUS_REVISION
             candidate.save(update_fields=["score", "status"])
         messages.success(request, "Evaluación guardada. Score actualizado.")
-        return redirect("orbita_candidate_detail", pk=pk)
+        return redirect("orbita_candidate_detail", public_id=candidate.public_id)
 
 
 class ATSCandidateUploadCVView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
@@ -590,15 +606,15 @@ class ATSCandidateUploadCVView(OrbitaModuleRequiredMixin, LoginRequiredMixin, Vi
     module_required = "candidates"
     http_method_names = ["post"]
 
-    def post(self, request, pk):
+    def post(self, request, public_id):
         orbita_client = getattr(request.user, "ats_client", None)
         if not orbita_client:
             return redirect("orbita_dashboard")
-        candidate = get_object_or_404(Candidate, pk=pk, client=orbita_client)
+        candidate = get_object_or_404(Candidate, public_id=public_id, client=orbita_client)
         cv_file = request.FILES.get("cv_file")
         if not cv_file:
             messages.error(request, "Selecciona un archivo (PDF o DOCX).")
-            return redirect("orbita_candidate_detail", pk=pk)
+            return redirect("orbita_candidate_detail", public_id=candidate.public_id)
         # Validar extensión y tamaño (mismo que formulario público)
         from django.conf import settings as django_settings
         allowed = getattr(django_settings, "ORBITA_FORM_PUBLIC_ALLOWED_EXTENSIONS", ["pdf", "doc", "docx"])
@@ -606,17 +622,17 @@ class ATSCandidateUploadCVView(OrbitaModuleRequiredMixin, LoginRequiredMixin, Vi
         ext = (cv_file.name or "").split(".")[-1].lower()
         if ext not in allowed:
             messages.error(request, f"Formato no permitido. Usa: {', '.join(allowed)}.")
-            return redirect("orbita_candidate_detail", pk=pk)
+            return redirect("orbita_candidate_detail", public_id=candidate.public_id)
         if cv_file.size > max_size:
             messages.error(request, f"El archivo es demasiado grande. Máximo {max_size // (1024*1024)} MB.")
-            return redirect("orbita_candidate_detail", pk=pk)
+            return redirect("orbita_candidate_detail", public_id=candidate.public_id)
         from django.core.files.base import ContentFile
         name = cv_file.name or "cv.pdf"
         if candidate.cv_file:
             candidate.cv_file.delete(save=False)
         candidate.cv_file.save(name, ContentFile(cv_file.read()), save=True)
         messages.success(request, "CV cargado correctamente. Ya puedes analizarlo con IA si lo deseas.")
-        return redirect("orbita_candidate_detail", pk=pk)
+        return redirect("orbita_candidate_detail", public_id=candidate.public_id)
 
 
 class ATSCandidateAnalyzeCVView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
@@ -625,36 +641,36 @@ class ATSCandidateAnalyzeCVView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
     module_required = "cv_analysis"
     http_method_names = ["post"]
 
-    def post(self, request, pk):
+    def post(self, request, public_id):
         orbita_client = getattr(request.user, "ats_client", None)
         if not orbita_client:
             return redirect("orbita_dashboard")
-        candidate = get_object_or_404(Candidate, pk=pk, client=orbita_client)
+        candidate = get_object_or_404(Candidate, public_id=public_id, client=orbita_client)
         cv_config, _ = CVAnalysisConfig.objects.get_or_create(client=orbita_client)
         if not cv_config.enabled:
             messages.error(
                 request,
                 "El análisis de CV con IA está deshabilitado en tu configuración. Actívalo en Config. análisis CV.",
             )
-            return redirect("orbita_candidate_detail", pk=pk)
+            return redirect("orbita_candidate_detail", public_id=candidate.public_id)
         if candidate.vacancy_id and not getattr(candidate.vacancy, "ai_enabled", False):
             messages.error(
                 request,
                 "La IA está desactivada para la vacante de este candidato. Actívala en Vacantes > Editar vacante.",
             )
-            return redirect("orbita_candidate_detail", pk=pk)
+            return redirect("orbita_candidate_detail", public_id=candidate.public_id)
         subscription = _get_or_create_subscription(request.user)
         if not subscription_can(subscription, "cvs_scan"):
             messages.error(request, "No tienes análisis de CV disponibles o tu plan no incluye escaneo con IA.")
-            return redirect("orbita_candidate_detail", pk=pk)
+            return redirect("orbita_candidate_detail", public_id=candidate.public_id)
         from mi_app.services.cv_analysis import run_cv_analysis_and_save
         result = run_cv_analysis_and_save(candidate)
         if not result.get("ok"):
             messages.error(request, result.get("error", "Error al analizar el CV."))
-            return redirect("orbita_candidate_detail", pk=pk)
+            return redirect("orbita_candidate_detail", public_id=candidate.public_id)
         subscription.increment_cvs_used()
         messages.success(request, "Análisis completado. Score y habilidades guardados según el perfil de la vacante.")
-        return redirect("orbita_candidate_detail", pk=pk)
+        return redirect("orbita_candidate_detail", public_id=candidate.public_id)
 
 
 class ATSCandidateSendEmailView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
@@ -663,18 +679,18 @@ class ATSCandidateSendEmailView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
     module_required = "candidates"
     http_method_names = ["post"]
 
-    def post(self, request, pk):
+    def post(self, request, public_id):
         orbita_client = getattr(request.user, "ats_client", None)
         if not orbita_client:
             return redirect("orbita_dashboard")
-        candidate = get_object_or_404(Candidate, pk=pk, client=orbita_client)
+        candidate = get_object_or_404(Candidate, public_id=public_id, client=orbita_client)
         if not (candidate.email or "").strip():
             messages.error(request, "Este candidato no tiene correo registrado.")
-            return redirect("orbita_candidate_detail", pk=pk)
+            return redirect("orbita_candidate_detail", public_id=candidate.public_id)
         email_type = (request.POST.get("email_type") or "").strip().lower()
         if email_type not in ("apto", "rechazo"):
             messages.error(request, "Tipo de correo no válido.")
-            return redirect("orbita_candidate_detail", pk=pk)
+            return redirect("orbita_candidate_detail", public_id=candidate.public_id)
         subscription = _get_or_create_subscription(request.user)
         custom_message = (request.POST.get("custom_message") or "").strip() or None
         if custom_message and not subscription_can(subscription, "custom_email_message"):
@@ -687,7 +703,7 @@ class ATSCandidateSendEmailView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
             )
         else:
             messages.error(request, "No se pudo enviar el correo. Revisa la configuración de correo en Config. correo.")
-        return redirect("orbita_candidate_detail", pk=pk)
+        return redirect("orbita_candidate_detail", public_id=candidate.public_id)
 
 
 class ATSCandidateExportView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
@@ -710,17 +726,16 @@ class ATSCandidateExportView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View
         base_qs = Candidate.objects.filter(client=orbita_client).select_related("vacancy")
         q = (request.GET.get("q") or "").strip()
         status_filter = request.GET.get("status", "")
-        vacancy_id = request.GET.get("vacancy", "")
+        vacancy_public_id = request.GET.get("vacancy", "")
         qs = base_qs
         if q:
             qs = qs.filter(Q(name__icontains=q) | Q(email__icontains=q))
         if status_filter and status_filter in (Candidate.STATUS_APTO, Candidate.STATUS_REVISION, Candidate.STATUS_NO_APTO):
             qs = qs.filter(status=status_filter)
-        if vacancy_id:
-            try:
-                qs = qs.filter(vacancy_id=int(vacancy_id))
-            except ValueError:
-                pass
+        if vacancy_public_id and _is_valid_uuid(vacancy_public_id):
+            vacancy = Vacancy.objects.filter(client=orbita_client, public_id=vacancy_public_id).first()
+            if vacancy:
+                qs = qs.filter(vacancy=vacancy)
         qs = qs.order_by("-analysis_date", "-id")[:5000]
         if fmt == "zip":
             return self._response_zip(qs, orbita_client)
@@ -815,11 +830,11 @@ class ATSCandidateDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View
     module_required = "candidates"
     http_method_names = ["post"]
 
-    def post(self, request, pk):
+    def post(self, request, public_id):
         orbita_client = getattr(request.user, "ats_client", None)
         if not orbita_client:
             return redirect("orbita_dashboard")
-        candidate = get_object_or_404(Candidate, pk=pk, client=orbita_client)
+        candidate = get_object_or_404(Candidate, public_id=public_id, client=orbita_client)
         candidate.delete()
         messages.success(request, "Candidato eliminado correctamente.")
         return redirect(reverse("orbita_dashboard") + "?section=candidatos")
@@ -955,7 +970,7 @@ class ATSFormEditView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
         _sync_criteria_from_form_fields(orbita_form)
         form = ATSFormCreateEditForm(instance=orbita_form)
         form.fields["vacancy"].queryset = client.vacancies.all()
-        formset = get_orbita_form_field_formset(extra=1, form_instance=orbita_form)
+        formset = get_orbita_form_field_formset(extra=0, form_instance=orbita_form)
         criteria_formset = get_orbita_form_criterion_formset(extra=0, form_instance=orbita_form)
         return render(request, "orbita/form_edit.html", {
             "orbita_form": orbita_form,
@@ -976,7 +991,7 @@ class ATSFormEditView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
             return self._autosave_criteria(request, orbita_form)
         form = ATSFormCreateEditForm(request.POST, instance=orbita_form)
         form.fields["vacancy"].queryset = client.vacancies.all()
-        formset = get_orbita_form_field_formset(extra=1, form_instance=orbita_form, data=request.POST, files=request.FILES)
+        formset = get_orbita_form_field_formset(extra=0, form_instance=orbita_form, data=request.POST, files=request.FILES)
         criteria_formset = get_orbita_form_criterion_formset(extra=0, form_instance=orbita_form, data=request.POST)
         if form.is_valid() and formset.is_valid():
             form.save()
@@ -1130,7 +1145,37 @@ class ATSFormSubmissionsView(OrbitaModuleRequiredMixin, LoginRequiredMixin, List
             return ATSFormSubmission.objects.none()
         orbita_form = get_object_or_404(ATSForm, pk=self.kwargs["pk"], client=client)
         self.orbita_form = orbita_form
-        return ATSFormSubmission.objects.filter(form=orbita_form).prefetch_related("files").order_by("-submitted_at")
+        submissions = list(
+            ATSFormSubmission.objects.filter(form=orbita_form).prefetch_related("files").order_by("-submitted_at")
+        )
+        self._attach_ordered_payload_items(submissions, orbita_form)
+        return submissions
+
+    def _attach_ordered_payload_items(self, submissions, orbita_form):
+        fields = list(orbita_form.fields.all().order_by("order", "id"))
+        file_labels = {field.label for field in fields if field.field_type == ATSFormField.FIELD_FILE}
+        file_labels.add("CV")
+        ordered_labels = [field.label for field in fields if field.field_type != ATSFormField.FIELD_FILE]
+
+        for submission in submissions:
+            payload = submission.payload or {}
+            items = []
+            seen = set()
+            for label in ordered_labels:
+                if label in payload and label not in file_labels:
+                    items.append({"label": label, "value": self._format_payload_value(payload.get(label))})
+                    seen.add(label)
+            for label, value in payload.items():
+                if label in seen or label in file_labels:
+                    continue
+                items.append({"label": label, "value": self._format_payload_value(value)})
+                seen.add(label)
+            submission.display_payload_items = items
+
+    def _format_payload_value(self, value):
+        if isinstance(value, list):
+            return ", ".join(str(v) for v in value if str(v).strip())
+        return value
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1296,7 +1341,7 @@ class ATSFormPublicView(View):
                     ATSNotification.TYPE_CANDIDATE,
                     "Nuevo candidato",
                     message=f"{submission.candidate.name} — Formulario «{orbita_form.name}».",
-                    link=reverse("orbita_candidate_detail", args=[submission.candidate.pk]),
+                    link=reverse("orbita_candidate_detail", args=[submission.candidate.public_id]),
                     request=request,
                 )
         else:
@@ -1574,6 +1619,10 @@ class ATSVacancyCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     login_url = reverse_lazy("orbita_plataforma")
     module_required = "vacancies"
 
+    @method_decorator(never_cache)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request):
         client = _get_client_or_403(request)
         if not client:
@@ -1619,11 +1668,11 @@ class ATSVacancyEditView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     login_url = reverse_lazy("orbita_plataforma")
     module_required = "vacancies"
 
-    def get(self, request, pk):
+    def get(self, request, public_id):
         client = _get_client_or_403(request)
         if not client:
             return redirect("orbita_dashboard")
-        vacancy = get_object_or_404(Vacancy, pk=pk, client=client)
+        vacancy = get_object_or_404(Vacancy, public_id=public_id, client=client)
         form = ATSVacancyForm(instance=vacancy)
         return render(request, "orbita/vacancy_form.html", {
             "form": form,
@@ -1634,11 +1683,11 @@ class ATSVacancyEditView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
             "is_edit": True,
         })
 
-    def post(self, request, pk):
+    def post(self, request, public_id):
         client = _get_client_or_403(request)
         if not client:
             return redirect("orbita_dashboard")
-        vacancy = get_object_or_404(Vacancy, pk=pk, client=client)
+        vacancy = get_object_or_404(Vacancy, public_id=public_id, client=client)
         form = ATSVacancyForm(request.POST, instance=vacancy)
         if form.is_valid():
             form.save()
@@ -1659,11 +1708,11 @@ class ATSVacancyDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     login_url = reverse_lazy("orbita_plataforma")
     module_required = "vacancies"
 
-    def post(self, request, pk):
+    def post(self, request, public_id):
         client = _get_client_or_403(request)
         if not client:
             return redirect("orbita_dashboard")
-        vacancy = get_object_or_404(Vacancy, pk=pk, client=client)
+        vacancy = get_object_or_404(Vacancy, public_id=public_id, client=client)
         vacancy.delete()
         messages.success(request, "Vacante eliminada.")
         return redirect(reverse("orbita_dashboard") + "?section=reclutamiento")

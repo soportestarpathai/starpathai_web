@@ -246,7 +246,7 @@
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
     <a href="{% url 'orbita_dashboard' %}?section=candidatos" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Volver a candidatos</a>
     {% if candidate %}
-    <form method="post" action="{% url 'orbita_candidate_delete' candidate.pk %}" class="d-inline" onsubmit="return atsConfirmSubmit(event, { title: '¿Eliminar este candidato?', text: 'Se eliminarán todos sus datos, CV y evaluaciones. Esta acción no se puede deshacer.', icon: 'warning', confirmButtonText: 'Sí, eliminar' });">
+    <form method="post" action="{% url 'orbita_candidate_delete' candidate.public_id %}" class="d-inline" onsubmit="return atsConfirmSubmit(event, { title: '¿Eliminar este candidato?', text: 'Se eliminarán todos sus datos, CV y evaluaciones. Esta acción no se puede deshacer.', icon: 'warning', confirmButtonText: 'Sí, eliminar' });">
       {% csrf_token %}
       <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill"><i class="bi bi-trash me-1"></i>Eliminar candidato</button>
     </form>
@@ -336,7 +336,7 @@
             <i class="bi bi-download"></i>Descargar CV
           </a>
           {% if subscription_can_process_cv and orbita_modules.cv_analysis %}
-            <form method="post" action="{% url 'orbita_candidate_analyze_cv' candidate.pk %}" class="d-inline" onsubmit="return atsConfirmSubmit(event, { title: 'Analizar CV con IA', text: 'Se usará 1 de tus análisis disponibles ({{ kpi_cvs_used }}/{{ kpi_cvs_limit }}). ¿Continuar?', icon: 'question', confirmButtonText: 'Sí, analizar' });">
+            <form method="post" action="{% url 'orbita_candidate_analyze_cv' candidate.public_id %}" class="d-inline" onsubmit="return atsConfirmSubmit(event, { title: 'Analizar CV con IA', text: 'Se usará 1 de tus análisis disponibles ({{ kpi_cvs_used }}/{{ kpi_cvs_limit }}). ¿Continuar?', icon: 'question', confirmButtonText: 'Sí, analizar' });">
               {% csrf_token %}
               <button type="submit" class="btn-cv-analyze"><i class="bi bi-cpu"></i>Analizar con IA</button>
             </form>
@@ -348,7 +348,7 @@
         </div>
         <details>
           <summary>Reemplazar CV</summary>
-          <form method="post" action="{% url 'orbita_candidate_upload_cv' candidate.pk %}" enctype="multipart/form-data" class="mt-2 p-3 rounded-3" style="background:#fafbfc;">
+          <form method="post" action="{% url 'orbita_candidate_upload_cv' candidate.public_id %}" enctype="multipart/form-data" class="mt-2 p-3 rounded-3" style="background:#fafbfc;">
             {% csrf_token %}
             <input type="file" name="cv_file" accept=".pdf,.doc,.docx" class="form-control form-control-sm mb-2" required>
             <p class="small text-muted mb-2">PDF o DOCX, máx. {{ cv_max_size_mb }} MB.</p>
@@ -357,7 +357,7 @@
         </details>
       {% else %}
         <p class="small text-muted mb-3">Este candidato aún no tiene CV. Súbelo para poder analizarlo con IA.</p>
-        <form method="post" action="{% url 'orbita_candidate_upload_cv' candidate.pk %}" enctype="multipart/form-data" class="p-3 rounded-3" style="background:#fafbfc; max-width:380px;">
+        <form method="post" action="{% url 'orbita_candidate_upload_cv' candidate.public_id %}" enctype="multipart/form-data" class="p-3 rounded-3" style="background:#fafbfc; max-width:380px;">
           {% csrf_token %}
           <label class="form-label fw-bold small">Seleccionar archivo (PDF o DOCX)</label>
           <input type="file" name="cv_file" accept=".pdf,.doc,.docx" class="form-control mb-2" required>
@@ -378,7 +378,7 @@
       <div class="comm-row">
         <div class="comm-block">
           <h4 class="text-success"><i class="bi bi-check-circle me-1"></i>Apto para reclutar</h4>
-          <form method="post" action="{% url 'orbita_candidate_send_email' candidate.pk %}">
+          <form method="post" action="{% url 'orbita_candidate_send_email' candidate.public_id %}">
             {% csrf_token %}
             <input type="hidden" name="email_type" value="apto">
             {% if subscription_can_custom_email %}
@@ -389,7 +389,7 @@
         </div>
         <div class="comm-block">
           <h4 class="text-danger"><i class="bi bi-x-circle me-1"></i>No seleccionado</h4>
-          <form method="post" action="{% url 'orbita_candidate_send_email' candidate.pk %}" onsubmit="return atsConfirmSubmit(event, { title: 'Enviar correo de no seleccionado', text: 'Se enviará un correo al candidato informando que no fue seleccionado.', icon: 'question', confirmButtonText: 'Sí, enviar' });">
+          <form method="post" action="{% url 'orbita_candidate_send_email' candidate.public_id %}" onsubmit="return atsConfirmSubmit(event, { title: 'Enviar correo de no seleccionado', text: 'Se enviará un correo al candidato informando que no fue seleccionado.', icon: 'question', confirmButtonText: 'Sí, enviar' });">
             {% csrf_token %}
             <input type="hidden" name="email_type" value="rechazo">
             {% if subscription_can_custom_email %}

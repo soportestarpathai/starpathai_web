@@ -269,7 +269,25 @@
     .fg .input-wrap input.form-control::placeholder { color: #c1c9d4; }
     .fg .input-wrap:not(.has-icon) input.form-control { padding-left: 1rem; }
     .fg .form-text { font-size: .73rem; margin-top: .3rem; color: #94a3b8; }
-    .fg .errorlist { list-style: none; padding: 0; margin: .3rem 0 0; font-size: .78rem; color: #ef4444; }
+    .errorlist {
+      list-style: none;
+      padding: .55rem .75rem;
+      margin: .55rem 0 0;
+      border-radius: 10px;
+      background: rgba(239,68,68,.08);
+      border: 1px solid rgba(239,68,68,.18);
+      color: #dc2626;
+      font-size: .8rem;
+      font-weight: 600;
+    }
+    .fg .errorlist {
+      padding: 0;
+      margin: .3rem 0 0;
+      border: none;
+      background: transparent;
+      color: #dc2626;
+      font-size: .78rem;
+    }
 
     .btn-auth {
       width: 100%;

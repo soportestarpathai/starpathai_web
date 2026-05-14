@@ -492,7 +492,7 @@
           <select name="vacancy" class="form-select form-select-sm">
             <option value="">Todas</option>
             {% for v in vacancies %}
-              <option value="{{ v.id }}" {% if filter_vacancy == v.id|stringformat:'d' %}selected{% endif %}>{{ v.title }} ({{ v.candidates_count }})</option>
+              <option value="{{ v.public_id }}" {% if filter_vacancy == v.public_id|stringformat:'s' %}selected{% endif %}>{{ v.title }} ({{ v.candidates_count }})</option>
             {% endfor %}
           </select>
         </div>
@@ -508,7 +508,7 @@
       <div class="col-12 col-lg-8 order-2 order-lg-1">
         <div class="cand-grid">
           {% for c in candidates %}
-            <a href="{% url 'orbita_candidate_detail' c.pk %}" class="cand-card">
+            <a href="{% url 'orbita_candidate_detail' c.public_id %}" class="cand-card">
               <div class="cand-avatar {% if c.status == 'APTO' %}av-green{% elif c.status == 'REVISION' %}av-yellow{% elif c.status == 'NO_APTO' %}av-red{% else %}av-gray{% endif %}">
                 {{ c.name|make_list|first|default:"?" }}
               </div>
@@ -622,9 +622,9 @@
             {% else %}<span class="vc-badge vc-badge-ai-off"><i class="bi bi-cpu"></i> IA inactiva</span>{% endif %}
           </div>
           <div class="vc-actions">
-            <a href="{% url 'orbita_vacancy_edit' v.pk %}" class="btn btn-vc-edit"><i class="bi bi-pencil me-1"></i>Editar</a>
-            <a href="{% url 'orbita_dashboard' %}?section=candidatos&amp;vacancy={{ v.id }}" class="btn btn-vc-cand"><i class="bi bi-people me-1"></i>Candidatos</a>
-            <form method="post" action="{% url 'orbita_vacancy_delete' v.pk %}" class="d-inline ms-auto" onsubmit="return atsConfirmSubmit(event, { title: '¿Eliminar esta vacante?', text: 'Los candidatos no se borran.', icon: 'warning', confirmButtonText: 'Sí, eliminar' });">
+            <a href="{% url 'orbita_vacancy_edit' v.public_id %}" class="btn btn-vc-edit"><i class="bi bi-pencil me-1"></i>Editar</a>
+            <a href="{% url 'orbita_dashboard' %}?section=candidatos&amp;vacancy={{ v.public_id }}" class="btn btn-vc-cand"><i class="bi bi-people me-1"></i>Candidatos</a>
+            <form method="post" action="{% url 'orbita_vacancy_delete' v.public_id %}" class="d-inline ms-auto" onsubmit="return atsConfirmSubmit(event, { title: '¿Eliminar esta vacante?', text: 'Los candidatos no se borran.', icon: 'warning', confirmButtonText: 'Sí, eliminar' });">
               {% csrf_token %}
               <button type="submit" class="btn btn-vc-del"><i class="bi bi-trash"></i></button>
             </form>
@@ -645,20 +645,12 @@
     <div class="acct-hero" style="max-width:1400px;">
       <div class="hero-badge"><i class="bi bi-gear-fill"></i> Mi cuenta</div>
       <div>
-        <h1>Suscripción y plan</h1>
-        <p class="hero-sub">Resumen de tu suscripción, uso de recursos y opciones para cambiar de plan.</p>
+        <h1>Mi cuenta</h1>
+        <p class="hero-sub">Resumen de tu cuenta y uso disponible dentro de Órbita.</p>
       </div>
     </div>
 
     <div class="acct-stats" style="max-width:1400px;">
-      <div class="acct-stat">
-        <div class="stat-top">
-          <div class="stat-icon" style="background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(139,92,246,0.04));color:#8b5cf6;"><i class="bi bi-rocket-takeoff-fill"></i></div>
-          <div class="stat-label">Plan actual</div>
-        </div>
-        <div class="stat-value">{{ subscription.get_plan_display }}</div>
-        <div class="stat-sub"><a href="#cambiar-plan" style="color:var(--ats-accent);text-decoration:none;font-weight:600;">Cambiar plan <i class="bi bi-arrow-right"></i></a></div>
-      </div>
       <div class="acct-stat">
         <div class="stat-top">
           <div class="stat-icon" style="background:linear-gradient(135deg,rgba(0,196,201,0.1),rgba(0,196,201,0.04));color:var(--ats-accent);"><i class="bi bi-cpu-fill"></i></div>
@@ -674,17 +666,6 @@
       </div>
       <div class="acct-stat">
         <div class="stat-top">
-          <div class="stat-icon" style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(99,102,241,0.04));color:#6366f1;"><i class="bi bi-calendar-check-fill"></i></div>
-          <div class="stat-label">Próximo pago</div>
-        </div>
-        {% if subscription.next_payment_date %}
-          <div class="stat-value">{{ subscription.next_payment_date|date:"d/m/Y" }}</div>
-        {% else %}
-          <div class="stat-value" style="color:#8896a6;">Sin cobro</div>
-        {% endif %}
-      </div>
-      <div class="acct-stat">
-        <div class="stat-top">
           <div class="stat-icon" style="background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(16,185,129,0.04));color:#10b981;"><i class="bi bi-patch-check-fill"></i></div>
           <div class="stat-label">Estado</div>
         </div>
@@ -696,40 +677,6 @@
       </div>
     </div>
 
-    <div class="acct-caps-card" style="max-width:1400px;">
-      <h3><i class="bi bi-patch-check-fill me-1" style="color:var(--ats-accent);"></i>Tu plan incluye</h3>
-      <p class="cap-sub">Capacidades disponibles según tu plan actual.</p>
-      <ul class="cap-tags">{% for cap in subscription_plan_capabilities %}<li>{{ cap }}</li>{% empty %}<li>—</li>{% endfor %}</ul>
-    </div>
-
-    <div class="plans-header" id="cambiar-plan" style="max-width:1400px;">
-      <h2>Cambiar de plan</h2>
-      <p>Elige el plan que mejor se adapte a tu volumen. Los planes de pago se activan tras validación y pago.</p>
-    </div>
-    <div class="plans-grid" style="max-width:1400px;">
-      {% for plan in available_plans %}
-        <div class="plan-card {% if subscription.plan == plan.id %}plan-current{% endif %}">
-          <div class="plan-name-row">
-            <span class="plan-name">{{ plan.name }}</span>
-            {% if subscription.plan == plan.id %}<span class="plan-badge-current">Actual</span>{% endif %}
-          </div>
-          <p class="plan-desc">{{ plan.description }}</p>
-          <ul class="plan-features">
-            {% for f in plan.features %}<li>{{ f }}</li>{% endfor %}
-          </ul>
-          <div class="plan-cta">
-            <form method="post" action="{% url 'orbita_change_plan' %}" class="ats-plan-change-form" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}">
-              {% csrf_token %}
-              <input type="hidden" name="plan" value="{{ plan.id }}">
-              <button type="submit" class="btn-plan {% if subscription.plan == plan.id %}btn-plan-current{% else %}btn-plan-select{% endif %}" {% if subscription.plan == plan.id %}disabled{% endif %}>
-                {% if subscription.plan == plan.id %}Plan actual{% else %}Elegir este plan{% endif %}
-              </button>
-            </form>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-
     <div class="acct-danger-zone" style="max-width:1400px;">
       <p class="small text-muted mb-2">¿Quieres dar de baja tu cuenta?</p>
       <a href="{% url 'orbita_request_account_deletion' %}" class="btn btn-sm btn-outline-danger rounded-pill"><i class="bi bi-exclamation-triangle me-1"></i>Solicitar baja de cuenta</a>
@@ -739,34 +686,6 @@
 
 {% block orbita_extra_js %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  {% if dashboard_section == 'cuenta' %}
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-    (function() {
-      var forms = document.querySelectorAll('.ats-plan-change-form');
-      forms.forEach(function(form) {
-        var btn = form.querySelector('button[type="submit"]');
-        if (!btn || btn.disabled) return;
-        form.addEventListener('submit', function(e) {
-          e.preventDefault();
-          var planName = form.getAttribute('data-plan-name') || 'este plan';
-          Swal.fire({
-            title: '¿Estás seguro?',
-            html: 'Se enviará una solicitud para cambiar a <strong>' + planName + '</strong>. Soporte validará y te contactará para gestionar el pago; una vez realizado, se activará tu nuevo plan.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#00C4C9',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Sí, solicitar cambio',
-            cancelButtonText: 'Cancelar'
-          }).then(function(result) {
-            if (result.isConfirmed) form.submit();
-          });
-        });
-      });
-    })();
-  </script>
-  {% endif %}
   <script>
     (function() {
       var ctx = document.getElementById('chartStatus');

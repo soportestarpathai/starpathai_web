@@ -43,10 +43,10 @@
       overflow: hidden;
     }
     .ats-form-public .form-card.layout-two_columns {
-      max-width: 560px;
+      max-width: 760px;
     }
     .ats-form-public .form-card.layout-three_columns {
-      max-width: 680px;
+      max-width: 980px;
     }
     .ats-form-public .form-card-header {
       padding: 2rem 2rem 1.25rem;
@@ -152,14 +152,16 @@
     .ats-form-public .form-fields-grid.layout-two_columns {
       grid-template-columns: 1fr 1fr;
     }
-    @media (max-width: 576px) {
+    @media (max-width: 700px) {
       .ats-form-public .form-fields-grid.layout-two_columns { grid-template-columns: 1fr; }
-      .ats-form-public .form-fields-grid.layout-three_columns { grid-template-columns: 1fr; }
     }
     .ats-form-public .form-fields-grid.layout-three_columns {
       grid-template-columns: 1fr 1fr 1fr;
     }
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
+      .ats-form-public .form-fields-grid.layout-three_columns { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
       .ats-form-public .form-fields-grid.layout-three_columns { grid-template-columns: 1fr; }
     }
     .ats-form-public .form-fields-grid .field-group.span-full {

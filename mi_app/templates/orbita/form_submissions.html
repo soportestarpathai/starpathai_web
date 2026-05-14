@@ -100,10 +100,10 @@
         </div>
       </div>
       <div class="data-grid">
-        {% for key, value in sub.payload.items %}
+        {% for item in sub.display_payload_items %}
         <div class="data-item">
-          <label>{{ key }}</label>
-          <span>{% if value %}{{ value }}{% else %}—{% endif %}</span>
+          <label>{{ item.label }}</label>
+          <span>{% if item.value %}{{ item.value }}{% else %}—{% endif %}</span>
         </div>
         {% empty %}
         <p class="text-muted small mb-0">Sin datos en el envío.</p>

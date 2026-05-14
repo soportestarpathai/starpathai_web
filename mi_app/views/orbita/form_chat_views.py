@@ -257,7 +257,7 @@ class FormChatAnswerAPI(View):
                     ATSNotification.TYPE_CANDIDATE,
                     "Nuevo candidato (chat)",
                     message=f"{submission.candidate.name} — Chat «{orbita_form.name}».",
-                    link=reverse("orbita_candidate_detail", args=[submission.candidate.pk]),
+                    link=reverse("orbita_candidate_detail", args=[submission.candidate.public_id]),
                     request=request,
                 )
         else:

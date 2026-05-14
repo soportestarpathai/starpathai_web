@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
+import uuid as uuid_lib
 
 
 def _dated_upload_path(*parts, filename):
@@ -246,6 +247,7 @@ class Vacancy(models.Model):
         on_delete=models.CASCADE,
         related_name="vacancies",
     )
+    public_id = models.UUIDField("ID público", default=uuid_lib.uuid4, unique=True, editable=False)
     title = models.CharField("Título", max_length=255)
     description = models.TextField("Descripción", blank=True)
     # Perfil e instrucciones para el análisis de CV con IA (qué buscar en el candidato)
@@ -358,6 +360,7 @@ class Candidate(models.Model):
         help_text="Por qué es apto / no apto en lenguaje humano.",
     )
     cv_file = models.FileField("Archivo CV", upload_to=candidate_cv_upload_to, blank=True, null=True)
+    public_id = models.UUIDField("ID público", default=uuid_lib.uuid4, unique=True, editable=False)
     raw_text = models.TextField("Texto extraído del CV (OCR)", blank=True)
 
     class Meta:

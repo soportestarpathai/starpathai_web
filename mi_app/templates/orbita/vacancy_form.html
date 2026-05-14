@@ -220,8 +220,11 @@
   <div class="alert alert-danger rounded-3">
     <strong>Corrige los siguientes errores:</strong>
     <ul class="mb-0 mt-1">
-    {% for field, errs in form.errors.items %}
-      {% for e in errs %}<li>{{ field }}: {{ e }}</li>{% endfor %}
+    {% for field in form %}
+      {% for e in field.errors %}<li>{{ field.label }}: {{ e }}</li>{% endfor %}
+    {% endfor %}
+    {% for e in form.non_field_errors %}
+      <li>{{ e }}</li>
     {% endfor %}
     </ul>
   </div>
@@ -247,7 +250,7 @@
         <div class="field-group">
           <label for="mdDesc">Descripción completa</label>
           <textarea class="form-control" id="mdDesc" rows="8" placeholder="Responsabilidades, requisitos, beneficios, ubicación, horario, salario...&#10;&#10;Tip: Escribe con saltos de línea para mejor legibilidad.">{{ form.description.value|default_if_none:'' }}</textarea>
-          <div class="form-text">Esta descripción se mostrará a los candidatos cuando se postulun.</div>
+          <div class="form-text">Esta descripción se mostrará a los candidatos cuando se postulen.</div>
         </div>
         <div class="field-group mb-0">
           <label for="mdSkills">Habilidades y competencias</label>
@@ -421,6 +424,24 @@
   /* ─── Init ─── */
   renderSkillTags();
   syncPreview();
+
+  var shouldResetFromHistory = {{ is_edit|yesno:"false,true" }} && {{ form.errors|yesno:"false,true" }};
+  window.addEventListener("pageshow", function(event){
+    if (!event.persisted || !shouldResetFromHistory) return;
+    document.getElementById("vacancyForm").reset();
+    skills = [];
+    hidTitle.value = "";
+    hidDesc.value = "";
+    hidProfile.value = "";
+    hidSkills.value = "";
+    hidAi.value = "";
+    mdTitle.value = "";
+    mdDesc.value = "";
+    mdProfile.value = "";
+    mdAiEnabled.checked = false;
+    renderSkillTags();
+    syncPreview();
+  });
 
 })();
 </script>

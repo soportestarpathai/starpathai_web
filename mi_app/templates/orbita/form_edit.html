@@ -97,7 +97,7 @@
         <div class="col-12 col-md-6">
           <label class="form-label fw-bold">Nombre</label>
           {{ form.name }}
-          {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+          {% for error in form.name.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
         </div>
         <div class="col-12 col-md-6">
           <label class="form-label fw-bold">Vacante</label>
@@ -247,6 +247,17 @@
 
     function getTotal(name) { return parseInt(document.getElementById(name).value, 10) || 0; }
     function setTotal(name, val) { document.getElementById(name).value = val; }
+    function getNextFieldOrder() {
+      var maxOrder = -1;
+      document.querySelectorAll('#fields-tbody .formset-row').forEach(function(row) {
+        var deleteCb = row.querySelector('input[name$="-DELETE"]');
+        if (deleteCb && deleteCb.checked) return;
+        var orderInput = row.querySelector('input[name$="-order"]');
+        var order = parseInt(orderInput && orderInput.value, 10);
+        if (!isNaN(order) && order > maxOrder) maxOrder = order;
+      });
+      return maxOrder + 1;
+    }
     function clampScore(value) {
       var n = parseInt(value, 10);
       if (isNaN(n)) return 100;
@@ -622,6 +633,10 @@
       if (deleteBtn && deleteCb) {
         deleteBtn.setAttribute('data-delete-id', deleteCb.id);
         deleteBtn.onclick = function() { toggleDeleteRow(deleteBtn, deleteCb.id); };
+      }
+      var orderInput = tr.querySelector('input[name$="-order"]');
+      if (orderInput && (orderInput.value === '' || orderInput.value === '0')) {
+        orderInput.value = getNextFieldOrder();
       }
       tbody.appendChild(tr);
       setTotal(totalInputName, total + 1);
