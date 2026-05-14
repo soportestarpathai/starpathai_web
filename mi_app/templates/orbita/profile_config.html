@@ -113,7 +113,21 @@
     transition: all .2s;
   }
   .pc-upload-area label:hover { background: rgba(0,196,201,.15); border-color: rgba(0,196,201,.35); }
-  .pc-upload-area input[type="file"] { max-width: 220px; margin: .5rem auto 0; font-size: .82rem; display: block; }
+  .pc-upload-area input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .pc-upload-filename {
+    display: block;
+    margin-top: .55rem;
+    color: #64748b;
+    font-size: .82rem;
+    font-weight: 500;
+    word-break: break-word;
+  }
 
   .pc-card {
     background: #fff;
@@ -233,8 +247,9 @@
           </div>
         </div>
         <div class="pc-upload-area">
-          <label for="id_avatar"><i class="bi bi-camera-fill"></i> Cambiar foto</label>
+          <label for="id_avatar"><i class="bi bi-camera-fill"></i> Seleccionar imagen</label>
           <input type="file" name="avatar" id="id_avatar" accept="image/*" class="form-control form-control-sm">
+          <span class="pc-upload-filename" id="avatar-file-name">Ninguna imagen seleccionada</span>
         </div>
       </div>
 
@@ -275,6 +290,20 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block orbita_extra_js %}
+  <script>
+    (function() {
+      var input = document.getElementById('id_avatar');
+      var label = document.getElementById('avatar-file-name');
+      if (!input || !label) return;
+      input.addEventListener('change', function() {
+        var file = input.files && input.files.length ? input.files[0] : null;
+        label.textContent = file ? file.name : 'Ninguna imagen seleccionada';
+      });
+    })();
+  </script>
 {% endblock %}
 
 
