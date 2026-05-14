@@ -193,7 +193,18 @@ class ATSLoginForm(AuthenticationForm):
 
 # --- Formularios ATS (crear formularios para candidatos) y configuración de correo ---
 
-from mi_app.models import ATSForm, ATSFormField, ATSFormCriterion, ATSClientEmailConfig, ATSClient, Vacancy, CVAnalysisConfig
+from mi_app.models import (
+    ATSForm,
+    ATSFormField,
+    ATSFormCriterion,
+    ATSClientEmailConfig,
+    ATSClient,
+    Vacancy,
+    CVAnalysisConfig,
+    WorkforceArea,
+    WorkforcePosition,
+    WorkforcePlan,
+)
 
 
 class ATSFormCreateEditForm(forms.ModelForm):
@@ -638,6 +649,116 @@ class ATSVacancyForm(forms.ModelForm):
         if commit:
             obj.save()
         return obj
+
+
+class WorkforceAreaForm(forms.ModelForm):
+    class Meta:
+        model = WorkforceArea
+        fields = ("name",)
+        labels = {"name": "Nombre del área"}
+        error_messages = {
+            "name": {"required": "El nombre del área es obligatorio."},
+        }
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej. Sistemas"}),
+        }
+
+
+class WorkforcePositionForm(forms.ModelForm):
+    class Meta:
+        model = WorkforcePosition
+        fields = ("area", "name", "salary_min", "salary_max")
+        labels = {
+            "area": "Área",
+            "name": "Nombre del puesto",
+            "salary_min": "Salario mínimo",
+            "salary_max": "Salario máximo",
+        }
+        error_messages = {
+            "area": {"required": "Selecciona un área."},
+            "name": {"required": "El nombre del puesto es obligatorio."},
+            "salary_min": {"required": "Indica el salario mínimo."},
+            "salary_max": {"required": "Indica el salario máximo."},
+        }
+        widgets = {
+            "area": forms.Select(attrs={"class": "form-select"}),
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej. Desarrollador Backend"}),
+            "salary_min": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
+            "salary_max": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        client = kwargs.pop("client", None)
+        super().__init__(*args, **kwargs)
+        self.fields["area"].queryset = WorkforceArea.objects.filter(client=client) if client else WorkforceArea.objects.none()
+
+    def clean(self):
+        cleaned = super().clean()
+        salary_min = cleaned.get("salary_min")
+        salary_max = cleaned.get("salary_max")
+        if salary_min is not None and salary_max is not None and salary_min > salary_max:
+            self.add_error("salary_max", "El salario máximo debe ser mayor o igual al salario mínimo.")
+        return cleaned
+
+
+class WorkforcePlanForm(forms.ModelForm):
+    class Meta:
+        model = WorkforcePlan
+        fields = (
+            "area",
+            "position",
+            "current_staff",
+            "required_staff",
+            "open_vacancies",
+            "turnover_rate",
+            "priority",
+            "status",
+            "executive_justification",
+        )
+        labels = {
+            "area": "Área",
+            "position": "Puesto requerido",
+            "current_staff": "Personal actual",
+            "required_staff": "Personal requerido",
+            "open_vacancies": "Vacantes abiertas",
+            "turnover_rate": "Rotación (%)",
+            "priority": "Prioridad",
+            "status": "Estado",
+            "executive_justification": "Justificación ejecutiva",
+        }
+        widgets = {
+            "area": forms.Select(attrs={"class": "form-select"}),
+            "position": forms.Select(attrs={"class": "form-select"}),
+            "current_staff": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
+            "required_staff": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
+            "open_vacancies": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
+            "turnover_rate": forms.NumberInput(attrs={"class": "form-control", "min": 0, "max": 100, "step": "0.01"}),
+            "priority": forms.Select(attrs={"class": "form-select"}),
+            "status": forms.Select(attrs={"class": "form-select"}),
+            "executive_justification": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Motivo de negocio, urgencia, impacto operativo o contexto para aprobación.",
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        client = kwargs.pop("client", None)
+        super().__init__(*args, **kwargs)
+        if client:
+            self.fields["area"].queryset = WorkforceArea.objects.filter(client=client)
+            self.fields["position"].queryset = WorkforcePosition.objects.filter(client=client).select_related("area")
+        else:
+            self.fields["area"].queryset = WorkforceArea.objects.none()
+            self.fields["position"].queryset = WorkforcePosition.objects.none()
+
+    def clean(self):
+        cleaned = super().clean()
+        area = cleaned.get("area")
+        position = cleaned.get("position")
+        if area and position and position.area_id != area.id:
+            self.add_error("position", "El puesto seleccionado no pertenece al área indicada.")
+        return cleaned
 
 
 class CVAnalysisConfigForm(forms.ModelForm):

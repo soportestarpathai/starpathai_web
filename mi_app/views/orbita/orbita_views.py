@@ -43,6 +43,9 @@ from mi_app.views.orbita.forms import (
     ATSProfileForm,
     ATSAvatarUploadForm,
     ATSVacancyForm,
+    WorkforceAreaForm,
+    WorkforcePositionForm,
+    WorkforcePlanForm,
     CVAnalysisConfigForm,
 )
 from django.db.models import Count, Q, Sum  # Count for annotate, Q for filter
@@ -64,6 +67,9 @@ from mi_app.models import (
     ATSNotification,
     PlanChangeRequest,
     LLMUsageLog,
+    WorkforceArea,
+    WorkforcePosition,
+    WorkforcePlan,
 )
 from mi_app.orbita_plans import (
     get_all_plans,
@@ -261,12 +267,17 @@ def _request_module_enabled(request, module):
 
 def _first_enabled_dashboard_url(request):
     modules_by_section = (
+        ("workforce", "workforce"),
         ("candidates", "candidatos"),
         ("vacancies", "reclutamiento"),
         ("account", "cuenta"),
     )
     for module, section in modules_by_section:
         if _request_module_enabled(request, module):
+            if module == "workforce":
+                return reverse("orbita_workforce_dashboard")
+            if module == "account":
+                return reverse("orbita_profile_config")
             return reverse("orbita_dashboard") + f"?section={section}"
     return None
 
@@ -287,7 +298,11 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
     allowed_sections = {"candidatos", "reclutamiento", "cuenta"}
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
         section = request.GET.get("section", "candidatos")
+        if section == "cuenta":
+            return redirect("orbita_profile_config")
         if section not in self.allowed_sections:
             return redirect(reverse("orbita_dashboard") + "?section=candidatos")
         vacancy_filter = request.GET.get("vacancy", "")
@@ -445,7 +460,7 @@ class ATSChangePlanView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
 
 
 class ATSRequestAccountDeletionView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
-    """Solicitar baja de cuenta: envía correo a soporte y redirige a Mi cuenta."""
+    """Solicitar baja de cuenta: envía correo a soporte y redirige a Configurar cuenta."""
     login_url = reverse_lazy("orbita_plataforma")
     module_required = "account"
 
@@ -455,7 +470,7 @@ class ATSRequestAccountDeletionView(OrbitaModuleRequiredMixin, LoginRequiredMixi
             return redirect("orbita_dashboard")
         return render(request, "orbita/request_account_deletion.html", {
             "orbita_client": client,
-            "orbita_page": "cuenta",
+            "orbita_page": "perfil",
         })
 
     def post(self, request):
@@ -467,7 +482,7 @@ class ATSRequestAccountDeletionView(OrbitaModuleRequiredMixin, LoginRequiredMixi
             request,
             "Tu solicitud de baja ha sido enviada a soporte. Te contactaremos para confirmar.",
         )
-        return redirect(reverse("orbita_dashboard") + "?section=cuenta")
+        return redirect("orbita_profile_config")
 
 
 class ATSCandidateDetailView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
@@ -1602,7 +1617,11 @@ class ATSProfileConfigView(OrbitaModuleRequiredMixin, LoginRequiredMixin, FormVi
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["orbita_client"] = _get_client_or_403(self.request)
-        context["subscription"] = _get_or_create_subscription(self.request.user)
+        subscription = _get_or_create_subscription(self.request.user)
+        context["subscription"] = subscription
+        context["kpi_cvs_used"] = subscription.cvs_used
+        context["kpi_cvs_limit"] = subscription.cvs_limit
+        context["subscription_active"] = subscription.active
         context["orbita_page"] = "perfil"
         return context
 
@@ -1739,6 +1758,174 @@ class ATSVacancyDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
         vacancy = get_object_or_404(Vacancy, public_id=public_id, client=client)
         vacancy.delete()
         messages.success(request, "Vacante eliminada.")
+        return redirect(reverse("orbita_dashboard") + "?section=reclutamiento")
+
+
+class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    """Dashboard Workforce: áreas, puestos, necesidades, aprobaciones y brechas."""
+    template_name = "orbita/workforce_dashboard.html"
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "workforce"
+
+    def get(self, request):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        areas = WorkforceArea.objects.filter(client=client).prefetch_related("positions")
+        positions = WorkforcePosition.objects.filter(client=client).select_related("area")
+        plans = WorkforcePlan.objects.filter(client=client).select_related("area", "position")[:100]
+        total_current = sum(plan.current_staff for plan in plans)
+        total_required = sum(plan.required_staff for plan in plans)
+        total_gap = sum(plan.gap for plan in plans)
+        total_budget = sum(plan.estimated_budget for plan in plans)
+        pending_count = sum(1 for plan in plans if plan.status == WorkforcePlan.STATUS_PENDING)
+        approved_count = sum(1 for plan in plans if plan.status == WorkforcePlan.STATUS_APPROVED)
+        high_risk_count = sum(1 for plan in plans if plan.operational_risk == "Alto")
+        return render(request, self.template_name, {
+            "orbita_client": client,
+            "subscription": _get_or_create_subscription(request.user),
+            "orbita_page": "workforce",
+            "areas": areas,
+            "positions": positions,
+            "plans": plans,
+            "area_form": WorkforceAreaForm(),
+            "position_form": WorkforcePositionForm(client=client),
+            "plan_form": WorkforcePlanForm(client=client),
+            "total_current": total_current,
+            "total_required": total_required,
+            "total_gap": total_gap,
+            "total_budget": total_budget,
+            "pending_count": pending_count,
+            "approved_count": approved_count,
+            "high_risk_count": high_risk_count,
+        })
+
+
+class ATSWorkforceAreaCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "workforce"
+    http_method_names = ["post"]
+
+    def post(self, request):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        form = WorkforceAreaForm(request.POST)
+        if form.is_valid():
+            area = form.save(commit=False)
+            area.client = client
+            area.save()
+            messages.success(request, "Área agregada a Workforce.")
+        else:
+            messages.error(request, "No se pudo crear el área. Revisa el nombre.")
+        return redirect("orbita_workforce_dashboard")
+
+
+class ATSWorkforcePositionCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "workforce"
+    http_method_names = ["post"]
+
+    def post(self, request):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        form = WorkforcePositionForm(request.POST, client=client)
+        if form.is_valid():
+            position = form.save(commit=False)
+            position.client = client
+            position.save()
+            messages.success(request, "Puesto agregado a Workforce.")
+        else:
+            messages.error(request, "No se pudo crear el puesto. Revisa área y salarios.")
+        return redirect("orbita_workforce_dashboard")
+
+
+class ATSWorkforcePlanCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "workforce"
+    http_method_names = ["post"]
+
+    def post(self, request):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        form = WorkforcePlanForm(request.POST, client=client)
+        if form.is_valid():
+            plan = form.save(commit=False)
+            plan.client = client
+            plan.save()
+            messages.success(request, "Necesidad de personal registrada.")
+        else:
+            messages.error(request, "No se pudo registrar la necesidad. Revisa área, puesto y cantidades.")
+        return redirect("orbita_workforce_dashboard")
+
+
+class ATSWorkforcePlanActionView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "workforce"
+    http_method_names = ["post"]
+    action = None
+
+    def post(self, request, public_id):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        plan = get_object_or_404(WorkforcePlan, public_id=public_id, client=client)
+        if self.action == "approve":
+            plan.status = WorkforcePlan.STATUS_APPROVED
+            plan.save(update_fields=["status", "estimated_budget", "updated_at"])
+            messages.success(request, "Necesidad aprobada.")
+        elif self.action == "reject":
+            plan.status = WorkforcePlan.STATUS_REJECTED
+            plan.save(update_fields=["status", "estimated_budget", "updated_at"])
+            messages.success(request, "Necesidad rechazada.")
+        elif self.action == "convert":
+            return self._convert_to_vacancy(request, plan)
+        return redirect("orbita_workforce_dashboard")
+
+    def _convert_to_vacancy(self, request, plan):
+        if plan.status == WorkforcePlan.STATUS_CONVERTED:
+            messages.info(request, "Esta necesidad ya fue convertida en vacante.")
+            return redirect("orbita_workforce_dashboard")
+        if plan.status != WorkforcePlan.STATUS_APPROVED:
+            messages.error(request, "Solo puedes convertir necesidades aprobadas.")
+            return redirect("orbita_workforce_dashboard")
+        if plan.gap <= 0:
+            messages.error(request, "La necesidad no tiene brecha de personal para convertir.")
+            return redirect("orbita_workforce_dashboard")
+
+        subscription = _get_or_create_subscription(request.user)
+        vacancy_count = Vacancy.objects.filter(client=plan.client).count()
+        if not subscription_can_add_vacancy(subscription, vacancy_count):
+            messages.error(request, "Has alcanzado el límite de vacantes de tu plan.")
+            return redirect("orbita_workforce_dashboard")
+
+        Vacancy.objects.create(
+            client=plan.client,
+            title=plan.position.name,
+            description=(
+                f"Vacante generada desde Workforce.\n\n"
+                f"Área: {plan.area.name}\n"
+                f"Plazas requeridas: {plan.gap}\n"
+                f"Prioridad: {plan.get_priority_display()}\n"
+                f"Riesgo operativo: {plan.operational_risk}\n\n"
+                f"{plan.executive_justification}".strip()
+            ),
+            profile_for_analysis=(
+                f"Evaluar compatibilidad para el puesto {plan.position.name} en el área {plan.area.name}. "
+                f"Prioridad {plan.get_priority_display()} y brecha de {plan.gap} persona(s)."
+            ),
+            openings=plan.gap,
+            salary_min=plan.position.salary_min,
+            salary_max=plan.position.salary_max,
+            ai_enabled=True,
+            source=Vacancy.SOURCE_WORKFORCE,
+            workforce_plan=plan,
+        )
+        plan.status = WorkforcePlan.STATUS_CONVERTED
+        plan.save(update_fields=["status", "estimated_budget", "updated_at"])
+        messages.success(request, "Vacante creada desde Workforce. Ya aparece en Vacantes.")
         return redirect(reverse("orbita_dashboard") + "?section=reclutamiento")
 
 
@@ -2039,7 +2226,7 @@ class ATSAdminChangePlanView(StaffRequiredMixin, View):
                 ATSNotification.TYPE_PLAN,
                 "Plan actualizado",
                 message=f"Tu plan ha sido actualizado a {subscription.get_plan_display()}.",
-                link=reverse("orbita_dashboard") + "?section=cuenta",
+                link=reverse("orbita_profile_config"),
                 request=request,
             )
         return redirect("orbita_admin_dashboard")
@@ -2057,6 +2244,7 @@ class ATSAdminUpdateModulesView(StaffRequiredMixin, View):
         "module_notifications",
         "module_email_config",
         "module_cv_analysis",
+        "module_workforce",
     )
 
     def post(self, request):

@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
+from decimal import Decimal
 import uuid as uuid_lib
 
 
@@ -189,6 +190,7 @@ class Subscription(models.Model):
     module_notifications = models.BooleanField("Módulo notificaciones", default=True)
     module_email_config = models.BooleanField("Módulo config. correo", default=True)
     module_cv_analysis = models.BooleanField("Módulo config. análisis CV", default=True)
+    module_workforce = models.BooleanField("Módulo Workforce", default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -248,8 +250,25 @@ class Vacancy(models.Model):
         related_name="vacancies",
     )
     public_id = models.UUIDField("ID público", default=uuid_lib.uuid4, unique=True, editable=False)
+    SOURCE_MANUAL = "manual"
+    SOURCE_WORKFORCE = "workforce"
+    SOURCE_CHOICES = [
+        (SOURCE_MANUAL, "Manual"),
+        (SOURCE_WORKFORCE, "Workforce"),
+    ]
     title = models.CharField("Título", max_length=255)
     description = models.TextField("Descripción", blank=True)
+    openings = models.PositiveIntegerField("Plazas", default=1)
+    salary_min = models.DecimalField("Salario mínimo", max_digits=10, decimal_places=2, null=True, blank=True)
+    salary_max = models.DecimalField("Salario máximo", max_digits=10, decimal_places=2, null=True, blank=True)
+    source = models.CharField("Origen", max_length=30, choices=SOURCE_CHOICES, default=SOURCE_MANUAL)
+    workforce_plan = models.ForeignKey(
+        "WorkforcePlan",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_vacancies",
+    )
     # Perfil e instrucciones para el análisis de CV con IA (qué buscar en el candidato)
     profile_for_analysis = models.TextField(
         "Perfil para análisis con IA",
@@ -275,6 +294,115 @@ class Vacancy(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.client.company_name})"
+
+
+class WorkforceArea(models.Model):
+    """Área/departamento para planeación de personal."""
+    client = models.ForeignKey(ATSClient, on_delete=models.CASCADE, related_name="workforce_areas")
+    name = models.CharField("Nombre", max_length=150)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Área Workforce"
+        verbose_name_plural = "Áreas Workforce"
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["client", "name"], name="unique_workforce_area_client_name"),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.client.company_name})"
+
+
+class WorkforcePosition(models.Model):
+    """Puesto requerido dentro de un área."""
+    client = models.ForeignKey(ATSClient, on_delete=models.CASCADE, related_name="workforce_positions")
+    area = models.ForeignKey(WorkforceArea, on_delete=models.CASCADE, related_name="positions")
+    name = models.CharField("Nombre", max_length=150)
+    salary_min = models.DecimalField("Salario mínimo", max_digits=10, decimal_places=2)
+    salary_max = models.DecimalField("Salario máximo", max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Puesto Workforce"
+        verbose_name_plural = "Puestos Workforce"
+        ordering = ["area__name", "name"]
+        constraints = [
+            models.UniqueConstraint(fields=["client", "area", "name"], name="unique_workforce_position_client_area_name"),
+        ]
+
+    def __str__(self):
+        return f"{self.name} — {self.area.name}"
+
+
+class WorkforcePlan(models.Model):
+    """Necesidad de personal que puede aprobarse y convertirse en vacante."""
+    PRIORITY_LOW = "baja"
+    PRIORITY_MEDIUM = "media"
+    PRIORITY_HIGH = "alta"
+    PRIORITY_CRITICAL = "critica"
+    PRIORITY_CHOICES = [
+        (PRIORITY_LOW, "Baja"),
+        (PRIORITY_MEDIUM, "Media"),
+        (PRIORITY_HIGH, "Alta"),
+        (PRIORITY_CRITICAL, "Crítica"),
+    ]
+
+    STATUS_DRAFT = "borrador"
+    STATUS_PENDING = "pendiente"
+    STATUS_APPROVED = "aprobado"
+    STATUS_REJECTED = "rechazado"
+    STATUS_CONVERTED = "convertido_vacante"
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, "Borrador"),
+        (STATUS_PENDING, "Pendiente de aprobación"),
+        (STATUS_APPROVED, "Aprobado"),
+        (STATUS_REJECTED, "Rechazado"),
+        (STATUS_CONVERTED, "Convertido en vacante"),
+    ]
+
+    client = models.ForeignKey(ATSClient, on_delete=models.CASCADE, related_name="workforce_plans")
+    public_id = models.UUIDField("ID público", default=uuid_lib.uuid4, unique=True, editable=False)
+    area = models.ForeignKey(WorkforceArea, on_delete=models.CASCADE, related_name="plans")
+    position = models.ForeignKey(WorkforcePosition, on_delete=models.CASCADE, related_name="plans")
+    current_staff = models.PositiveIntegerField("Personal actual", default=0)
+    required_staff = models.PositiveIntegerField("Personal requerido", default=0)
+    turnover_rate = models.DecimalField("Rotación (%)", max_digits=5, decimal_places=2, default=0)
+    open_vacancies = models.PositiveIntegerField("Vacantes abiertas", default=0)
+    priority = models.CharField("Prioridad", max_length=50, choices=PRIORITY_CHOICES, default=PRIORITY_MEDIUM)
+    estimated_budget = models.DecimalField("Presupuesto estimado", max_digits=12, decimal_places=2, default=0)
+    status = models.CharField("Estado", max_length=50, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    executive_justification = models.TextField("Justificación ejecutiva", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Plan Workforce"
+        verbose_name_plural = "Planes Workforce"
+        ordering = ["-created_at"]
+
+    @property
+    def gap(self):
+        return max(self.required_staff - self.current_staff, 0)
+
+    @property
+    def operational_risk(self):
+        if self.priority == self.PRIORITY_CRITICAL or self.gap >= 4 or self.turnover_rate >= 20:
+            return "Alto"
+        if self.priority == self.PRIORITY_HIGH or self.gap >= 2 or self.turnover_rate >= 10:
+            return "Medio"
+        return "Bajo"
+
+    def refresh_estimated_budget(self):
+        salary_max = Decimal(str(self.position.salary_max or "0"))
+        self.estimated_budget = Decimal(self.gap) * salary_max
+
+    def save(self, *args, **kwargs):
+        self.refresh_estimated_budget()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.position.name} — {self.area.name} ({self.get_status_display()})"
 
 
 class CVAnalysisConfig(models.Model):

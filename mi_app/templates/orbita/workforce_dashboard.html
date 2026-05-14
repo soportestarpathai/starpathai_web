@@ -1,0 +1,263 @@
+{% extends "orbita/base_orbita.html" %}
+{% load static %}
+
+{% block orbita_title %}Workforce{% endblock %}
+{% block orbita_header_title %}Workforce{% endblock %}
+
+{% block orbita_extra_css %}
+  .wf-hero {
+    max-width: 1400px;
+    background: #0b1c2d;
+    border-radius: 14px;
+    padding: 1.4rem 1.6rem;
+    color: #fff;
+    margin-bottom: 1rem;
+  }
+  .wf-hero .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: rgba(0,196,201,.12);
+    color: #00c4c9;
+    border-radius: 999px;
+    padding: .28rem .65rem;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: .65rem;
+  }
+  .wf-hero h1 { font-family: var(--ats-heading); font-size: 1.35rem; font-weight: 800; margin: 0 0 .25rem; color: #fff; }
+  .wf-hero p { color: rgba(255,255,255,.62); margin: 0; font-size: .88rem; }
+  .wf-kpis {
+    max-width: 1400px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: .75rem;
+    margin-bottom: 1rem;
+  }
+  .wf-kpi {
+    background: #fff;
+    border: 1px solid rgba(11,28,45,.06);
+    border-radius: 10px;
+    padding: .9rem 1rem;
+  }
+  .wf-kpi .label { color: #64748b; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+  .wf-kpi .value { color: #0b1c2d; font-family: var(--ats-heading); font-weight: 800; font-size: 1.25rem; margin-top: .25rem; }
+  .wf-grid {
+    max-width: 1400px;
+    display: grid;
+    grid-template-columns: minmax(280px, 380px) 1fr;
+    gap: 1rem;
+  }
+  .wf-panel {
+    background: #fff;
+    border: 1px solid rgba(11,28,45,.06);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .wf-panel h2 {
+    font-family: var(--ats-heading);
+    color: #0b1c2d;
+    font-size: .95rem;
+    font-weight: 800;
+    margin: 0 0 .75rem;
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+  }
+  .wf-panel h2 i { color: #00c4c9; }
+  .wf-form-stack { display: grid; gap: .65rem; }
+  .wf-form-stack label { font-size: .78rem; font-weight: 700; color: #334155; margin-bottom: .2rem; }
+  .wf-form-stack .btn { border-radius: 9px; font-weight: 700; }
+  .wf-list {
+    display: grid;
+    gap: .45rem;
+    margin-top: .75rem;
+  }
+  .wf-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    padding: .55rem .65rem;
+    font-size: .82rem;
+  }
+  .wf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .84rem;
+  }
+  .wf-table th {
+    color: #64748b;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: .65rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .wf-table td {
+    padding: .75rem .65rem;
+    border-bottom: 1px solid #eef2f7;
+    vertical-align: top;
+    color: #334155;
+  }
+  .wf-status {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: .18rem .5rem;
+    font-size: .72rem;
+    font-weight: 800;
+    background: #f1f5f9;
+    color: #475569;
+  }
+  .wf-risk-high { color: #dc2626; font-weight: 800; }
+  .wf-risk-mid { color: #d97706; font-weight: 800; }
+  .wf-risk-low { color: #059669; font-weight: 800; }
+  .wf-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+  }
+  .wf-actions .btn { border-radius: 8px; font-size: .74rem; font-weight: 700; }
+  @media (max-width: 992px) {
+    .wf-grid { grid-template-columns: 1fr; }
+  }
+{% endblock %}
+
+{% block orbita_content %}
+  <div class="wf-hero">
+    <div class="badge"><i class="bi bi-diagram-3"></i> Workforce · Planeación</div>
+    <h1>Planeación de personal</h1>
+    <p>Convierte necesidades reales de plantilla en vacantes listas para candidatos y scoring CV.</p>
+  </div>
+
+  <div class="wf-kpis">
+    <div class="wf-kpi"><div class="label">Personal actual</div><div class="value">{{ total_current }}</div></div>
+    <div class="wf-kpi"><div class="label">Personal requerido</div><div class="value">{{ total_required }}</div></div>
+    <div class="wf-kpi"><div class="label">Brecha</div><div class="value">{{ total_gap }}</div></div>
+    <div class="wf-kpi"><div class="label">Presupuesto estimado</div><div class="value">${{ total_budget|floatformat:0 }}</div></div>
+    <div class="wf-kpi"><div class="label">Pendientes</div><div class="value">{{ pending_count }}</div></div>
+    <div class="wf-kpi"><div class="label">Riesgo alto</div><div class="value">{{ high_risk_count }}</div></div>
+  </div>
+
+  <div class="wf-grid">
+    <div>
+      <div class="wf-panel">
+        <h2><i class="bi bi-building"></i> Áreas / Departamentos</h2>
+        <form method="post" action="{% url 'orbita_workforce_area_create' %}" class="wf-form-stack">
+          {% csrf_token %}
+          <div>{{ area_form.name }}</div>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Agregar área</button>
+        </form>
+        <div class="wf-list">
+          {% for area in areas %}
+            <div class="wf-pill"><span>{{ area.name }}</span><small>{{ area.positions.count }} puesto(s)</small></div>
+          {% empty %}
+            <p class="text-muted small mb-0">Aún no hay áreas.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="wf-panel">
+        <h2><i class="bi bi-person-badge"></i> Puestos requeridos</h2>
+        <form method="post" action="{% url 'orbita_workforce_position_create' %}" class="wf-form-stack">
+          {% csrf_token %}
+          <div><label>Área</label>{{ position_form.area }}</div>
+          <div><label>Puesto</label>{{ position_form.name }}</div>
+          <div class="row g-2">
+            <div class="col-6"><label>Salario mín.</label>{{ position_form.salary_min }}</div>
+            <div class="col-6"><label>Salario máx.</label>{{ position_form.salary_max }}</div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Agregar puesto</button>
+        </form>
+        <div class="wf-list">
+          {% for position in positions|slice:":8" %}
+            <div class="wf-pill"><span>{{ position.name }}</span><small>{{ position.area.name }}</small></div>
+          {% empty %}
+            <p class="text-muted small mb-0">Agrega áreas para crear puestos.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="wf-panel">
+        <h2><i class="bi bi-clipboard2-plus"></i> Necesidad de personal</h2>
+        <form method="post" action="{% url 'orbita_workforce_plan_create' %}" class="wf-form-stack">
+          {% csrf_token %}
+          <div class="row g-2">
+            <div class="col-12 col-md-6"><label>Área</label>{{ plan_form.area }}</div>
+            <div class="col-12 col-md-6"><label>Puesto</label>{{ plan_form.position }}</div>
+            <div class="col-6 col-md-3"><label>Actual</label>{{ plan_form.current_staff }}</div>
+            <div class="col-6 col-md-3"><label>Requerido</label>{{ plan_form.required_staff }}</div>
+            <div class="col-6 col-md-3"><label>Vacantes abiertas</label>{{ plan_form.open_vacancies }}</div>
+            <div class="col-6 col-md-3"><label>Rotación %</label>{{ plan_form.turnover_rate }}</div>
+            <div class="col-6"><label>Prioridad</label>{{ plan_form.priority }}</div>
+            <div class="col-6"><label>Estado</label>{{ plan_form.status }}</div>
+            <div class="col-12"><label>Justificación</label>{{ plan_form.executive_justification }}</div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm align-self-start"><i class="bi bi-check2-circle me-1"></i>Registrar necesidad</button>
+        </form>
+      </div>
+
+      <div class="wf-panel">
+        <h2><i class="bi bi-kanban"></i> Planes y autorizaciones</h2>
+        <div class="table-responsive">
+          <table class="wf-table">
+            <thead>
+              <tr>
+                <th>Necesidad</th>
+                <th>Brecha</th>
+                <th>Prioridad</th>
+                <th>Riesgo</th>
+                <th>Presupuesto</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for plan in plans %}
+              <tr>
+                <td>
+                  <strong>{{ plan.position.name }}</strong><br>
+                  <span class="text-muted small">{{ plan.area.name }}</span>
+                </td>
+                <td>{{ plan.gap }}</td>
+                <td>{{ plan.get_priority_display }}</td>
+                <td>
+                  {% if plan.operational_risk == "Alto" %}
+                    <span class="wf-risk-high">Alto</span>
+                  {% elif plan.operational_risk == "Medio" %}
+                    <span class="wf-risk-mid">Medio</span>
+                  {% else %}
+                    <span class="wf-risk-low">Bajo</span>
+                  {% endif %}
+                </td>
+                <td>${{ plan.estimated_budget|floatformat:0 }}</td>
+                <td><span class="wf-status">{{ plan.get_status_display }}</span></td>
+                <td>
+                  <div class="wf-actions">
+                    {% if plan.status == "pendiente" or plan.status == "borrador" %}
+                    <form method="post" action="{% url 'orbita_workforce_plan_approve' plan.public_id %}">{% csrf_token %}<button type="submit" class="btn btn-outline-success btn-sm">Aprobar</button></form>
+                    <form method="post" action="{% url 'orbita_workforce_plan_reject' plan.public_id %}">{% csrf_token %}<button type="submit" class="btn btn-outline-danger btn-sm">Rechazar</button></form>
+                    {% endif %}
+                    {% if plan.status == "aprobado" %}
+                    <form method="post" action="{% url 'orbita_workforce_plan_convert' plan.public_id %}">{% csrf_token %}<button type="submit" class="btn btn-primary btn-sm">Crear vacante</button></form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-center text-muted py-4">Aún no hay planes Workforce.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

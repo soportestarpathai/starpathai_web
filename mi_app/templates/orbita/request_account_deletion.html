@@ -18,7 +18,7 @@
     <form method="post">
       {% csrf_token %}
       <button type="submit" class="btn btn-outline-danger me-2">Enviar solicitud de baja</button>
-      <a href="{% url 'orbita_dashboard' %}?section=cuenta" class="btn btn-outline-secondary">Cancelar</a>
+      <a href="{% url 'orbita_profile_config' %}" class="btn btn-outline-secondary">Cancelar</a>
     </form>
   </div>
 {% endblock %}

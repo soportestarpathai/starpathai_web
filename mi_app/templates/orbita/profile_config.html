@@ -170,6 +170,7 @@
   }
   .pc-card-head .ic.contact { background: linear-gradient(135deg, rgba(99,102,241,.12), rgba(99,102,241,.05)); color: #6366f1; }
   .pc-card-head .ic.company { background: linear-gradient(135deg, rgba(0,196,201,.12), rgba(0,229,160,.05)); color: #00a0a4; }
+  .pc-card-head .ic.account { background: linear-gradient(135deg, rgba(16,185,129,.12), rgba(16,185,129,.05)); color: #059669; }
   .pc-card-head h2 {
     font-family: var(--ats-heading);
     font-size: .95rem;
@@ -181,6 +182,53 @@
   .pc-card .form-label { font-weight: 600; font-size: .88rem; color: var(--heading-color); }
   .pc-card .form-control { border-radius: 10px; border: 1px solid rgba(11,28,45,.12); padding: .6rem .9rem; font-size: .9rem; transition: border-color .2s, box-shadow .2s; }
   .pc-card .form-control:focus { border-color: #00c4c9; box-shadow: 0 0 0 3px rgba(0,196,201,.12); }
+  .pc-account-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: .75rem;
+  }
+  .pc-account-stat {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: .8rem .9rem;
+  }
+  .pc-account-stat .label {
+    color: #64748b;
+    font-size: .72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .pc-account-stat .value {
+    margin-top: .25rem;
+    color: #0b1c2d;
+    font-family: var(--ats-heading);
+    font-size: 1rem;
+    font-weight: 800;
+  }
+  .pc-mini-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+    margin-top: .55rem;
+  }
+  .pc-mini-progress .fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #00c4c9, #00e5a0);
+  }
+  .pc-danger-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+  }
 
   .pc-actions {
     margin-top: 1.75rem;
@@ -284,6 +332,34 @@
           <label class="form-label">Nombre de la empresa</label>
           {{ form.company_name }}
           {% if form.company_name.errors %}<div class="text-danger small mt-1">{{ form.company_name.errors }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="pc-card">
+        <div class="pc-card-head">
+          <div class="ic account"><i class="bi bi-shield-check"></i></div>
+          <h2>Estado de la cuenta</h2>
+        </div>
+        <div class="pc-account-grid">
+          <div class="pc-account-stat">
+            <div class="label">Escaneos IA</div>
+            <div class="value">{{ kpi_cvs_used }} / {{ kpi_cvs_limit }}</div>
+            <div class="pc-mini-progress">
+              {% with pct=kpi_cvs_limit|default:1 %}
+              <div class="fill" style="width:{% widthratio kpi_cvs_used pct 100 %}%;max-width:100%;"></div>
+              {% endwith %}
+            </div>
+          </div>
+          <div class="pc-account-stat">
+            <div class="label">Estado</div>
+            <div class="value" style="{% if subscription_active %}color:#059669;{% else %}color:#dc2626;{% endif %}">
+              {% if subscription_active %}Activa{% else %}Inactiva{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="pc-danger-inline">
+          <span class="small text-muted">¿Quieres dar de baja tu cuenta?</span>
+          <a href="{% url 'orbita_request_account_deletion' %}" class="btn btn-sm btn-outline-danger rounded-pill"><i class="bi bi-exclamation-triangle me-1"></i>Solicitar baja</a>
         </div>
       </div>
 

@@ -103,6 +103,7 @@ MODULE_FLAGS = {
     "notifications": "module_notifications",
     "email_config": "module_email_config",
     "cv_analysis": "module_cv_analysis",
+    "workforce": "module_workforce",
 }
 
 MODULE_CAPABILITIES = {

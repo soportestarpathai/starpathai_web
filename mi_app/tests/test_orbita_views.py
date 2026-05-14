@@ -5,7 +5,18 @@ from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
-from mi_app.models import ATSClient, ATSForm, ATSFormField, ATSFormSubmission, Candidate, Subscription, Vacancy
+from mi_app.models import (
+    ATSClient,
+    ATSForm,
+    ATSFormField,
+    ATSFormSubmission,
+    Candidate,
+    Subscription,
+    Vacancy,
+    WorkforceArea,
+    WorkforcePlan,
+    WorkforcePosition,
+)
 from mi_app.views.orbita.forms import ATSVacancyForm
 
 User = get_user_model()
@@ -140,6 +151,80 @@ class ATSAdminCVLimitTests(TestCase):
         self.subscription.refresh_from_db()
         self.assertEqual(self.subscription.cvs_limit, 2000)
 
+    def test_staff_can_enable_workforce_module(self):
+        response = self.client.post(
+            reverse("orbita_admin_update_modules"),
+            {
+                "subscription_id": self.subscription.id,
+                "module_candidates": "on",
+                "module_vacancies": "on",
+                "module_forms": "on",
+                "module_account": "on",
+                "module_notifications": "on",
+                "module_email_config": "on",
+                "module_cv_analysis": "on",
+                "module_workforce": "on",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.subscription.refresh_from_db()
+        self.assertTrue(self.subscription.module_workforce)
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class ATSWorkforceTests(TestCase):
+    """Flujo base Workforce: módulo, planeación y conversión a vacante."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="workforce@test.com", email="workforce@test.com", password="testpass123")
+        self.ats_client = ATSClient.objects.create(user=self.user, company_name="Cliente Workforce")
+        self.subscription = Subscription.objects.create(user=self.user, module_workforce=True)
+        self.client.force_login(self.user)
+
+    def test_workforce_dashboard_requires_enabled_module(self):
+        response = self.client.get(reverse("orbita_workforce_dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Planeación de personal")
+
+    def test_approved_plan_can_convert_to_vacancy(self):
+        area = WorkforceArea.objects.create(client=self.ats_client, name="Sistemas")
+        position = WorkforcePosition.objects.create(
+            client=self.ats_client,
+            area=area,
+            name="Desarrollador",
+            salary_min="20000.00",
+            salary_max="35000.00",
+        )
+        plan = WorkforcePlan.objects.create(
+            client=self.ats_client,
+            area=area,
+            position=position,
+            current_staff=1,
+            required_staff=3,
+            priority=WorkforcePlan.PRIORITY_HIGH,
+            status=WorkforcePlan.STATUS_APPROVED,
+        )
+
+        response = self.client.post(reverse("orbita_workforce_plan_convert", args=[plan.public_id]))
+
+        self.assertEqual(response.status_code, 302)
+        plan.refresh_from_db()
+        self.assertEqual(plan.status, WorkforcePlan.STATUS_CONVERTED)
+        vacancy = Vacancy.objects.get(workforce_plan=plan)
+        self.assertEqual(vacancy.client, self.ats_client)
+        self.assertEqual(vacancy.title, "Desarrollador")
+        self.assertEqual(vacancy.openings, 2)
+        self.assertEqual(vacancy.source, Vacancy.SOURCE_WORKFORCE)
+        self.assertTrue(vacancy.ai_enabled)
+
 
 @override_settings(
     STORAGES={
@@ -214,9 +299,11 @@ class ATSFormBuilderTests(TestCase):
         self.assertNotContains(response, "<label>Sube tu CV</label>", html=True)
 
     def test_account_front_hides_plan_change_ui(self):
-        response = self.client.get(reverse("orbita_dashboard") + "?section=cuenta")
+        response = self.client.get(reverse("orbita_profile_config"))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Estado de la cuenta")
+        self.assertContains(response, "Escaneos IA")
         self.assertNotContains(response, "Cambiar de plan")
         self.assertNotContains(response, "Plan actual")
         self.assertNotContains(response, "Elegir este plan")

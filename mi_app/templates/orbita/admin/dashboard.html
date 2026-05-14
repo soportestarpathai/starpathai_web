@@ -703,6 +703,10 @@
                 <input class="form-check-input" type="checkbox" name="module_cv_analysis" id="mod_cv_{{ row.subscription.id }}" {% if row.subscription.module_cv_analysis %}checked{% endif %}>
                 <label class="form-check-label" for="mod_cv_{{ row.subscription.id }}">Análisis CV</label>
               </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="module_workforce" id="mod_workforce_{{ row.subscription.id }}" {% if row.subscription.module_workforce %}checked{% endif %}>
+                <label class="form-check-label" for="mod_workforce_{{ row.subscription.id }}">Workforce</label>
+              </div>
               <button type="submit" class="btn btn-sm btn-outline-primary btn-save-modules">Guardar módulos</button>
             </form>
             {% else %}—{% endif %}
