@@ -299,6 +299,7 @@ class Vacancy(models.Model):
 class WorkforceArea(models.Model):
     """Área/departamento para planeación de personal."""
     client = models.ForeignKey(ATSClient, on_delete=models.CASCADE, related_name="workforce_areas")
+    public_id = models.UUIDField("ID público", default=uuid_lib.uuid4, unique=True, editable=False)
     name = models.CharField("Nombre", max_length=150)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -317,6 +318,7 @@ class WorkforceArea(models.Model):
 class WorkforcePosition(models.Model):
     """Puesto requerido dentro de un área."""
     client = models.ForeignKey(ATSClient, on_delete=models.CASCADE, related_name="workforce_positions")
+    public_id = models.UUIDField("ID público", default=uuid_lib.uuid4, unique=True, editable=False)
     area = models.ForeignKey(WorkforceArea, on_delete=models.CASCADE, related_name="positions")
     name = models.CharField("Nombre", max_length=150)
     salary_min = models.DecimalField("Salario mínimo", max_digits=10, decimal_places=2)

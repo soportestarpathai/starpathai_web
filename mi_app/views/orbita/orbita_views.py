@@ -1821,6 +1821,43 @@ class ATSWorkforceAreaCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
         return redirect("orbita_workforce_dashboard")
 
 
+class ATSWorkforceAreaUpdateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "workforce"
+    http_method_names = ["post"]
+
+    def post(self, request, public_id):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        area = get_object_or_404(WorkforceArea, public_id=public_id, client=client)
+        form = WorkforceAreaForm(request.POST, instance=area)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Área actualizada.")
+        else:
+            messages.error(request, "No se pudo actualizar el área.")
+        return redirect("orbita_workforce_dashboard")
+
+
+class ATSWorkforceAreaDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "workforce"
+    http_method_names = ["post"]
+
+    def post(self, request, public_id):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        area = get_object_or_404(WorkforceArea, public_id=public_id, client=client)
+        if area.plans.exists():
+            messages.error(request, "No puedes eliminar un área con planes Workforce asociados.")
+            return redirect("orbita_workforce_dashboard")
+        area.delete()
+        messages.success(request, "Área eliminada.")
+        return redirect("orbita_workforce_dashboard")
+
+
 class ATSWorkforcePositionCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     login_url = reverse_lazy("orbita_plataforma")
     module_required = "workforce"
@@ -1841,6 +1878,45 @@ class ATSWorkforcePositionCreateView(OrbitaModuleRequiredMixin, LoginRequiredMix
         return redirect("orbita_workforce_dashboard")
 
 
+class ATSWorkforcePositionUpdateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "workforce"
+    http_method_names = ["post"]
+
+    def post(self, request, public_id):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        position = get_object_or_404(WorkforcePosition, public_id=public_id, client=client)
+        form = WorkforcePositionForm(request.POST, client=client, instance=position)
+        if form.is_valid():
+            position = form.save()
+            for plan in position.plans.all():
+                plan.save(update_fields=["estimated_budget", "updated_at"])
+            messages.success(request, "Puesto actualizado.")
+        else:
+            messages.error(request, "No se pudo actualizar el puesto.")
+        return redirect("orbita_workforce_dashboard")
+
+
+class ATSWorkforcePositionDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "workforce"
+    http_method_names = ["post"]
+
+    def post(self, request, public_id):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        position = get_object_or_404(WorkforcePosition, public_id=public_id, client=client)
+        if position.plans.exists():
+            messages.error(request, "No puedes eliminar un puesto con planes Workforce asociados.")
+            return redirect("orbita_workforce_dashboard")
+        position.delete()
+        messages.success(request, "Puesto eliminado.")
+        return redirect("orbita_workforce_dashboard")
+
+
 class ATSWorkforcePlanCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     login_url = reverse_lazy("orbita_plataforma")
     module_required = "workforce"
@@ -1858,6 +1934,46 @@ class ATSWorkforcePlanCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
             messages.success(request, "Necesidad de personal registrada.")
         else:
             messages.error(request, "No se pudo registrar la necesidad. Revisa área, puesto y cantidades.")
+        return redirect("orbita_workforce_dashboard")
+
+
+class ATSWorkforcePlanUpdateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "workforce"
+    http_method_names = ["post"]
+
+    def post(self, request, public_id):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        plan = get_object_or_404(WorkforcePlan, public_id=public_id, client=client)
+        if plan.status == WorkforcePlan.STATUS_CONVERTED:
+            messages.error(request, "No puedes editar una necesidad ya convertida en vacante.")
+            return redirect("orbita_workforce_dashboard")
+        form = WorkforcePlanForm(request.POST, client=client, instance=plan)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Necesidad actualizada.")
+        else:
+            messages.error(request, "No se pudo actualizar la necesidad.")
+        return redirect("orbita_workforce_dashboard")
+
+
+class ATSWorkforcePlanDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "workforce"
+    http_method_names = ["post"]
+
+    def post(self, request, public_id):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        plan = get_object_or_404(WorkforcePlan, public_id=public_id, client=client)
+        if plan.created_vacancies.exists():
+            messages.error(request, "No puedes eliminar una necesidad que ya creó una vacante.")
+            return redirect("orbita_workforce_dashboard")
+        plan.delete()
+        messages.success(request, "Necesidad eliminada.")
         return redirect("orbita_workforce_dashboard")
 
 

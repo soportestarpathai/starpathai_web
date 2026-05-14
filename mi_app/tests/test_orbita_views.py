@@ -1,6 +1,8 @@
 """
 Tests para vistas ATS: acceso, permisos, flujos cliente y admin.
 """
+from decimal import Decimal
+
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -224,6 +226,66 @@ class ATSWorkforceTests(TestCase):
         self.assertEqual(vacancy.openings, 2)
         self.assertEqual(vacancy.source, Vacancy.SOURCE_WORKFORCE)
         self.assertTrue(vacancy.ai_enabled)
+
+    def test_workforce_records_can_be_updated_and_deleted(self):
+        area = WorkforceArea.objects.create(client=self.ats_client, name="Sistemas")
+        position = WorkforcePosition.objects.create(
+            client=self.ats_client,
+            area=area,
+            name="Desarrollador",
+            salary_min="20000.00",
+            salary_max="35000.00",
+        )
+        plan = WorkforcePlan.objects.create(
+            client=self.ats_client,
+            area=area,
+            position=position,
+            current_staff=1,
+            required_staff=3,
+            status=WorkforcePlan.STATUS_PENDING,
+        )
+
+        response = self.client.post(reverse("orbita_workforce_plan_update", args=[plan.public_id]), {
+            "area": area.id,
+            "position": position.id,
+            "current_staff": 2,
+            "required_staff": 5,
+            "open_vacancies": 1,
+            "turnover_rate": "8.50",
+            "priority": WorkforcePlan.PRIORITY_HIGH,
+            "status": WorkforcePlan.STATUS_APPROVED,
+            "executive_justification": "Crecimiento del equipo.",
+        })
+
+        self.assertEqual(response.status_code, 302)
+        plan.refresh_from_db()
+        self.assertEqual(plan.gap, 3)
+        self.assertEqual(plan.estimated_budget, Decimal("105000.00"))
+        self.assertEqual(plan.status, WorkforcePlan.STATUS_APPROVED)
+
+        response = self.client.post(reverse("orbita_workforce_plan_delete", args=[plan.public_id]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(WorkforcePlan.objects.filter(pk=plan.pk).exists())
+
+        self.client.post(reverse("orbita_workforce_position_update", args=[position.public_id]), {
+            "area": area.id,
+            "name": "Desarrollador Senior",
+            "salary_min": "25000.00",
+            "salary_max": "45000.00",
+        })
+        position.refresh_from_db()
+        self.assertEqual(position.name, "Desarrollador Senior")
+
+        self.client.post(reverse("orbita_workforce_position_delete", args=[position.public_id]))
+        self.assertFalse(WorkforcePosition.objects.filter(pk=position.pk).exists())
+
+        self.client.post(reverse("orbita_workforce_area_update", args=[area.public_id]), {"name": "Tecnología"})
+        area.refresh_from_db()
+        self.assertEqual(area.name, "Tecnología")
+
+        self.client.post(reverse("orbita_workforce_area_delete", args=[area.public_id]))
+        self.assertFalse(WorkforceArea.objects.filter(pk=area.pk).exists())
 
 
 @override_settings(

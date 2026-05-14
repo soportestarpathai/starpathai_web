@@ -123,8 +123,53 @@
     gap: .35rem;
   }
   .wf-actions .btn { border-radius: 8px; font-size: .74rem; font-weight: 700; }
+  .wf-edit-row {
+    display: grid;
+    gap: .45rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    padding: .6rem;
+  }
+  .wf-edit-row .btn { border-radius: 8px; font-size: .74rem; font-weight: 700; }
+  .wf-inline-actions {
+    display: flex;
+    gap: .35rem;
+    justify-content: flex-end;
+  }
+  .wf-budget-preview {
+    background: #ecfeff;
+    border: 1px solid rgba(0,196,201,.25);
+    border-radius: 10px;
+    color: #0f766e;
+    font-weight: 800;
+    padding: .65rem .75rem;
+  }
+  .wf-budget-preview small {
+    color: #64748b;
+    display: block;
+    font-weight: 600;
+    margin-top: .15rem;
+  }
+  .wf-edit-details summary {
+    cursor: pointer;
+    color: #00aeb5;
+    font-weight: 800;
+    font-size: .76rem;
+    list-style: none;
+  }
+  .wf-edit-details summary::-webkit-details-marker { display: none; }
+  .wf-plan-edit {
+    margin-top: .65rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: .75rem;
+    min-width: 520px;
+  }
   @media (max-width: 992px) {
     .wf-grid { grid-template-columns: 1fr; }
+    .wf-plan-edit { min-width: 0; }
   }
 {% endblock %}
 
@@ -155,7 +200,20 @@
         </form>
         <div class="wf-list">
           {% for area in areas %}
-            <div class="wf-pill"><span>{{ area.name }}</span><small>{{ area.positions.count }} puesto(s)</small></div>
+            <div class="wf-edit-row">
+              <form method="post" action="{% url 'orbita_workforce_area_update' area.public_id %}" class="d-flex gap-2 align-items-center">
+                {% csrf_token %}
+                <input type="text" name="name" value="{{ area.name }}" class="form-control form-control-sm" aria-label="Nombre del área">
+                <button type="submit" class="btn btn-outline-primary btn-sm" title="Guardar área"><i class="bi bi-check2"></i></button>
+              </form>
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ area.positions.count }} puesto(s)</small>
+                <form method="post" action="{% url 'orbita_workforce_area_delete' area.public_id %}" onsubmit="return confirm('¿Eliminar esta área? Si no tiene planes, también se eliminarán sus puestos.');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                </form>
+              </div>
+            </div>
           {% empty %}
             <p class="text-muted small mb-0">Aún no hay áreas.</p>
           {% endfor %}
@@ -175,8 +233,34 @@
           <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Agregar puesto</button>
         </form>
         <div class="wf-list">
-          {% for position in positions|slice:":8" %}
-            <div class="wf-pill"><span>{{ position.name }}</span><small>{{ position.area.name }}</small></div>
+          {% for position in positions %}
+            <div class="wf-edit-row">
+              <form method="post" action="{% url 'orbita_workforce_position_update' position.public_id %}" class="wf-form-stack">
+                {% csrf_token %}
+                <div>
+                  <select name="area" class="form-select form-select-sm" aria-label="Área del puesto">
+                    {% for area in areas %}
+                      <option value="{{ area.id }}" {% if area.id == position.area_id %}selected{% endif %}>{{ area.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <input type="text" name="name" value="{{ position.name }}" class="form-control form-control-sm" aria-label="Nombre del puesto">
+                <div class="row g-2">
+                  <div class="col-6"><input type="number" name="salary_min" value="{{ position.salary_min }}" class="form-control form-control-sm" min="0" step="0.01" aria-label="Salario mínimo"></div>
+                  <div class="col-6"><input type="number" name="salary_max" value="{{ position.salary_max }}" class="form-control form-control-sm" min="0" step="0.01" aria-label="Salario máximo"></div>
+                </div>
+                <div class="wf-inline-actions">
+                  <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-check2 me-1"></i>Guardar</button>
+                </div>
+              </form>
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ position.area.name }}</small>
+                <form method="post" action="{% url 'orbita_workforce_position_delete' position.public_id %}" onsubmit="return confirm('¿Eliminar este puesto?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                </form>
+              </div>
+            </div>
           {% empty %}
             <p class="text-muted small mb-0">Agrega áreas para crear puestos.</p>
           {% endfor %}
@@ -199,6 +283,10 @@
             <div class="col-6"><label>Prioridad</label>{{ plan_form.priority }}</div>
             <div class="col-6"><label>Estado</label>{{ plan_form.status }}</div>
             <div class="col-12"><label>Justificación</label>{{ plan_form.executive_justification }}</div>
+          </div>
+          <div id="wf-budget-preview" class="wf-budget-preview">
+            Brecha estimada: 0 · Presupuesto estimado: $0
+            <small>Se calcula con la brecha de personal por el salario máximo del puesto seleccionado.</small>
           </div>
           <button type="submit" class="btn btn-primary btn-sm align-self-start"><i class="bi bi-check2-circle me-1"></i>Registrar necesidad</button>
         </form>
@@ -248,6 +336,62 @@
                     {% if plan.status == "aprobado" %}
                     <form method="post" action="{% url 'orbita_workforce_plan_convert' plan.public_id %}">{% csrf_token %}<button type="submit" class="btn btn-primary btn-sm">Crear vacante</button></form>
                     {% endif %}
+                    {% if plan.status != "convertido_vacante" %}
+                    <details class="wf-edit-details">
+                      <summary>Editar</summary>
+                      <form method="post" action="{% url 'orbita_workforce_plan_update' plan.public_id %}" class="wf-plan-edit">
+                        {% csrf_token %}
+                        <div class="row g-2">
+                          <div class="col-12 col-md-6">
+                            <label>Área</label>
+                            <select name="area" class="form-select form-select-sm">
+                              {% for area in areas %}
+                                <option value="{{ area.id }}" {% if area.id == plan.area_id %}selected{% endif %}>{{ area.name }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                          <div class="col-12 col-md-6">
+                            <label>Puesto</label>
+                            <select name="position" class="form-select form-select-sm">
+                              {% for position in positions %}
+                                <option value="{{ position.id }}" {% if position.id == plan.position_id %}selected{% endif %}>{{ position.name }} · {{ position.area.name }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                          <div class="col-6 col-md-3"><label>Actual</label><input type="number" name="current_staff" value="{{ plan.current_staff }}" min="0" class="form-control form-control-sm"></div>
+                          <div class="col-6 col-md-3"><label>Requerido</label><input type="number" name="required_staff" value="{{ plan.required_staff }}" min="0" class="form-control form-control-sm"></div>
+                          <div class="col-6 col-md-3"><label>Vacantes</label><input type="number" name="open_vacancies" value="{{ plan.open_vacancies }}" min="0" class="form-control form-control-sm"></div>
+                          <div class="col-6 col-md-3"><label>Rotación %</label><input type="number" name="turnover_rate" value="{{ plan.turnover_rate }}" min="0" max="100" step="0.01" class="form-control form-control-sm"></div>
+                          <div class="col-6">
+                            <label>Prioridad</label>
+                            <select name="priority" class="form-select form-select-sm">
+                              <option value="baja" {% if plan.priority == "baja" %}selected{% endif %}>Baja</option>
+                              <option value="media" {% if plan.priority == "media" %}selected{% endif %}>Media</option>
+                              <option value="alta" {% if plan.priority == "alta" %}selected{% endif %}>Alta</option>
+                              <option value="critica" {% if plan.priority == "critica" %}selected{% endif %}>Crítica</option>
+                            </select>
+                          </div>
+                          <div class="col-6">
+                            <label>Estado</label>
+                            <select name="status" class="form-select form-select-sm">
+                              <option value="borrador" {% if plan.status == "borrador" %}selected{% endif %}>Borrador</option>
+                              <option value="pendiente" {% if plan.status == "pendiente" %}selected{% endif %}>Pendiente de aprobación</option>
+                              <option value="aprobado" {% if plan.status == "aprobado" %}selected{% endif %}>Aprobado</option>
+                              <option value="rechazado" {% if plan.status == "rechazado" %}selected{% endif %}>Rechazado</option>
+                            </select>
+                          </div>
+                          <div class="col-12"><label>Justificación</label><textarea name="executive_justification" rows="2" class="form-control form-control-sm">{{ plan.executive_justification }}</textarea></div>
+                        </div>
+                        <div class="wf-inline-actions mt-2">
+                          <button type="submit" class="btn btn-outline-primary btn-sm">Guardar cambios</button>
+                        </div>
+                      </form>
+                    </details>
+                    <form method="post" action="{% url 'orbita_workforce_plan_delete' plan.public_id %}" onsubmit="return confirm('¿Eliminar esta necesidad de personal?');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                    </form>
+                    {% endif %}
                   </div>
                 </td>
               </tr>
@@ -260,4 +404,50 @@
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block orbita_extra_js %}
+<script>
+  (function () {
+    const salaryByPosition = {
+      {% for position in positions %}
+        "{{ position.id }}": "{{ position.salary_max|stringformat:".2f" }}"{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    };
+    const positionInput = document.getElementById("id_position");
+    const currentInput = document.getElementById("id_current_staff");
+    const requiredInput = document.getElementById("id_required_staff");
+    const preview = document.getElementById("wf-budget-preview");
+    if (!positionInput || !currentInput || !requiredInput || !preview) {
+      return;
+    }
+
+    const currency = new Intl.NumberFormat("es-MX", {
+      style: "currency",
+      currency: "MXN",
+      maximumFractionDigits: 0
+    });
+
+    function asNumber(value) {
+      const parsed = Number.parseFloat(String(value || "0").replace(",", "."));
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function updateBudgetPreview() {
+      const current = Math.max(0, Number.parseInt(currentInput.value || "0", 10) || 0);
+      const required = Math.max(0, Number.parseInt(requiredInput.value || "0", 10) || 0);
+      const gap = Math.max(required - current, 0);
+      const salaryMax = asNumber(salaryByPosition[positionInput.value]);
+      const budget = gap * salaryMax;
+      preview.innerHTML = "Brecha estimada: " + gap + " · Presupuesto estimado: " + currency.format(budget) +
+        "<small>Se calcula con la brecha de personal por el salario máximo del puesto seleccionado.</small>";
+    }
+
+    [positionInput, currentInput, requiredInput].forEach(function (input) {
+      input.addEventListener("change", updateBudgetPreview);
+      input.addEventListener("input", updateBudgetPreview);
+    });
+    updateBudgetPreview();
+  })();
+</script>
 {% endblock %}
