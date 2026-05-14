@@ -122,9 +122,27 @@ class ATSPlataformaView(View):
     def get(self, request):
         if request.user.is_authenticated:
             return redirect("orbita_dashboard")
+        active_tab = request.GET.get("tab", "")
+        register_data = request.session.pop("orbita_register_invalid_data", None)
+        login_data = request.session.pop("orbita_login_invalid_data", None)
+        login_error = request.session.pop("orbita_login_error", "")
+        register_form = ATSRegisterForm(register_data) if register_data else ATSRegisterForm()
+        login_form = ATSLoginForm(request, data=login_data) if login_data else ATSLoginForm(request, initial={
+            "username": request.session.pop("orbita_login_username", "")
+        })
+        if register_data:
+            register_form.is_valid()
+            active_tab = "register"
+        if login_data:
+            login_form.is_valid()
+            active_tab = "login"
+        if login_error:
+            active_tab = "login"
         return render(request, self.template_name, {
-            "login_form": ATSLoginForm(request),
-            "register_form": ATSRegisterForm(),
+            "login_form": login_form,
+            "register_form": register_form,
+            "active_tab": active_tab,
+            "login_error": login_error,
         })
 
     def post(self, request):
@@ -150,11 +168,12 @@ class ATSRegisterView(View):
             user = form.save()
             login(request, user, backend="django.contrib.auth.backends.ModelBackend")
             return redirect(self.success_url)
-        return render(request, self.template_name, {
-            "login_form": ATSLoginForm(request),
-            "register_form": form,
-            "active_tab": "register",
-        })
+        request.session["orbita_register_invalid_data"] = {
+            key: value
+            for key, value in request.POST.items()
+            if key not in ("csrfmiddlewaretoken", "password1", "password2")
+        }
+        return redirect(reverse("orbita_plataforma") + "?tab=register")
 
 
 class ATSLoginView(View):
@@ -183,11 +202,16 @@ class ATSLoginView(View):
             if user.is_staff:
                 return redirect("orbita_admin_dashboard")
             return redirect(self.success_url)
-        return render(request, self.template_name, {
-            "login_form": form,
-            "register_form": ATSRegisterForm(),
-            "active_tab": "login",
-        })
+        if request.POST.get("username") and request.POST.get("password"):
+            request.session["orbita_login_username"] = request.POST.get("username", "")
+            request.session["orbita_login_error"] = "Correo o contraseña incorrectos."
+        else:
+            request.session["orbita_login_invalid_data"] = {
+                key: value
+                for key, value in request.POST.items()
+                if key not in ("csrfmiddlewaretoken", "password")
+            }
+        return redirect(reverse("orbita_plataforma") + "?tab=login")
 
 
 class ATSLogoutView(View):

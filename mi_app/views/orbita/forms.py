@@ -105,6 +105,8 @@ class ATSRegisterForm(UserCreationForm):
         self.fields["password1"].help_text = "Mínimo 8 caracteres, al menos una letra y un número."
         if "username" in self.fields:
             del self.fields["username"]
+        for field in self.fields.values():
+            field.error_messages["required"] = "Este campo es obligatorio."
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -167,6 +169,11 @@ class ATSLoginForm(AuthenticationForm):
             "autocomplete": "current-password",
         }),
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.error_messages["required"] = "Este campo es obligatorio."
 
     def clean(self):
         username = self.cleaned_data.get("username", "").strip().lower()

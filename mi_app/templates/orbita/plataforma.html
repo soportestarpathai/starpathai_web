@@ -310,6 +310,7 @@
 
     /* Footer links */
     .auth-footer-links {
+      display: none;
       margin-top: 1.75rem;
       padding-top: 1.15rem;
       border-top: 1px solid #f1f5f9;
@@ -334,14 +335,16 @@
 
     /* ─── Responsive ─── */
     @media (max-width: 991.98px) {
-      .auth-row { flex-direction: column; }
-      .auth-hero { width: 100%; padding: 2rem 1.5rem; }
+      .auth-page { min-height: 100dvh; }
+      .auth-row { flex-direction: column; min-height: 100dvh; }
+      .auth-hero { display: none; }
       .auth-hero h1 { font-size: 1.35rem; }
       .auth-hero .hero-desc { margin-bottom: 1.75rem; }
       .auth-features { margin-bottom: 1.5rem; }
       .auth-features li { padding: .6rem .7rem; }
       .auth-hero .trust-bar { gap: 1rem; }
-      .auth-form-panel { padding: 2rem 1.5rem; align-items: flex-start; }
+      .auth-form-panel { min-height: 100dvh; padding: 2rem 1.5rem; align-items: center; }
+      .auth-footer-links, .auth-page-footer { display: none; }
     }
     @media (max-width: 575.98px) {
       .auth-hero { padding: 1.5rem 1.15rem; padding-top: 2rem; }
@@ -350,7 +353,7 @@
       .auth-features li { padding: .5rem .6rem; margin-bottom: .85rem; }
       .auth-features li .feat-icon { width: 32px; height: 32px; min-width: 32px; font-size: .85rem; }
       .auth-features li .feat-text { font-size: .82rem; }
-      .auth-form-panel { padding: 1.5rem 1.15rem; }
+      .auth-form-panel { padding: 1.25rem 1.15rem; align-items: flex-start; }
       .trust-bar { flex-wrap: wrap; gap: .65rem; }
       .fw-welcome h2 { font-size: 1.15rem; }
     }
@@ -434,6 +437,9 @@
             {% endfor %}
             {% if login_form.non_field_errors %}
               <ul class="errorlist mb-3">{{ login_form.non_field_errors }}</ul>
+            {% endif %}
+            {% if login_error %}
+              <ul class="errorlist mb-3"><li>{{ login_error }}</li></ul>
             {% endif %}
             <button type="submit" class="btn-auth btn-login"><i class="bi bi-arrow-right-circle me-1"></i> Entrar</button>
             <p class="forgot-link">
