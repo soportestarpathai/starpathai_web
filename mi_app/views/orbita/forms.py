@@ -568,6 +568,16 @@ class ATSProfileForm(forms.ModelForm):
             raise forms.ValidationError("No se pudo procesar la imagen. Sube un JPG, PNG o WebP válido.")
 
 
+class ATSAvatarUploadForm(ATSProfileForm):
+    """Actualiza únicamente la foto de perfil, reutilizando la compresión del avatar."""
+    class Meta:
+        model = ATSClient
+        fields = ("avatar",)
+        widgets = {
+            "avatar": forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
+        }
+
+
 def _parse_skills_text(value):
     """Convierte texto (una por línea o separado por comas) en lista de strings sin vacíos."""
     if not value or not value.strip():

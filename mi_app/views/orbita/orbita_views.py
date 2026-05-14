@@ -41,6 +41,7 @@ from mi_app.views.orbita.forms import (
     get_orbita_form_criterion_formset,
     ATSEmailConfigForm,
     ATSProfileForm,
+    ATSAvatarUploadForm,
     ATSVacancyForm,
     CVAnalysisConfigForm,
 )
@@ -1614,6 +1615,29 @@ class ATSProfileConfigView(OrbitaModuleRequiredMixin, LoginRequiredMixin, FormVi
         return redirect(self.get_success_url())
 
 
+class ATSProfileAvatarUploadView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    """Actualiza solo la foto de perfil desde Configurar cuenta."""
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "account"
+    http_method_names = ["post"]
+
+    def post(self, request):
+        client = _get_client_or_403(request)
+        if not client:
+            return JsonResponse({"ok": False, "error": "Cuenta no encontrada."}, status=404)
+        form = ATSAvatarUploadForm(request.POST, request.FILES, instance=client)
+        if not form.is_valid():
+            avatar_errors = form.errors.get("avatar")
+            error = avatar_errors[0] if avatar_errors else "No se pudo actualizar la imagen."
+            return JsonResponse({"ok": False, "error": str(error)}, status=400)
+        form.save()
+        return JsonResponse({
+            "ok": True,
+            "avatar_url": client.avatar.url if client.avatar else "",
+            "message": "Foto actualizada.",
+        })
+
+
 class ATSVacancyCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Crear vacante (puesto) desde Reclutamiento."""
     login_url = reverse_lazy("orbita_plataforma")
@@ -2045,6 +2069,35 @@ class ATSAdminUpdateModulesView(StaffRequiredMixin, View):
             setattr(subscription, field, request.POST.get(field) == "on")
         subscription.save(update_fields=[*self.MODULE_FIELDS, "updated_at"])
         messages.success(request, f"Módulos actualizados para {subscription.user.email}.")
+        return redirect("orbita_admin_dashboard")
+
+
+class ATSAdminUpdateCVLimitView(StaffRequiredMixin, View):
+    """POST: ajustar manualmente el límite mensual de análisis CV de una suscripción."""
+    http_method_names = ["post"]
+
+    def post(self, request):
+        subscription_id = request.POST.get("subscription_id")
+        cvs_limit_raw = (request.POST.get("cvs_limit") or "").strip()
+        if not subscription_id:
+            messages.error(request, "Falta la suscripción.")
+            return redirect("orbita_admin_dashboard")
+        try:
+            cvs_limit = int(cvs_limit_raw)
+        except (TypeError, ValueError):
+            messages.error(request, "El límite de CVs debe ser un número entero.")
+            return redirect("orbita_admin_dashboard")
+        if cvs_limit < 0:
+            messages.error(request, "El límite de CVs no puede ser negativo.")
+            return redirect("orbita_admin_dashboard")
+        if cvs_limit > 100000:
+            messages.error(request, "El límite de CVs es demasiado alto.")
+            return redirect("orbita_admin_dashboard")
+
+        subscription = get_object_or_404(Subscription, pk=subscription_id)
+        subscription.cvs_limit = cvs_limit
+        subscription.save(update_fields=["cvs_limit", "updated_at"])
+        messages.success(request, f"Límite de CVs actualizado a {cvs_limit} para {subscription.user.email}.")
         return redirect("orbita_admin_dashboard")
 
 

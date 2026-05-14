@@ -179,6 +179,38 @@
   border-radius: 8px;
   font-weight: 600;
 }
+.adm-cv-limit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 128px;
+}
+.adm-cv-limit-form .cv-usage {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+.adm-cv-limit-form .cv-usage strong {
+  color: #475569;
+  font-size: 0.92rem;
+}
+.adm-cv-limit-form .limit-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.adm-cv-limit-form input {
+  width: 86px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  padding: 0.28rem 0.45rem;
+  border: 1px solid #e2e8f0;
+}
+.adm-cv-limit-form button {
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.55rem;
+}
 .btn-apply-plan {
   background: linear-gradient(135deg, #00C4C9, #00E5A0);
   border: none;
@@ -686,7 +718,15 @@
           </td>
           <td>
             {% if row.subscription %}
-              <strong>{{ row.subscription.cvs_used }}</strong><span style="color:#94a3b8;font-size:0.78rem;"> / {{ row.subscription.cvs_limit }}</span>
+              <form method="post" action="{% url 'orbita_admin_update_cv_limit' %}" class="adm-cv-limit-form">
+                {% csrf_token %}
+                <input type="hidden" name="subscription_id" value="{{ row.subscription.id }}">
+                <div class="cv-usage"><strong>{{ row.subscription.cvs_used }}</strong> usados</div>
+                <div class="limit-row">
+                  <input type="number" name="cvs_limit" min="0" max="100000" value="{{ row.subscription.cvs_limit }}" aria-label="Límite mensual de análisis CV">
+                  <button type="submit" class="btn btn-sm btn-outline-primary">Aplicar</button>
+                </div>
+              </form>
             {% else %}—{% endif %}
           </td>
           <td>

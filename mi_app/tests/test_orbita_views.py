@@ -104,6 +104,43 @@ class ATSVacancyFormTests(TestCase):
         self.assertIn("El título del puesto es obligatorio.", form.errors["title"])
 
 
+class ATSAdminCVLimitTests(TestCase):
+    """El admin puede ajustar el límite mensual de análisis CV por cliente."""
+
+    def setUp(self):
+        self.client = Client()
+        self.staff = User.objects.create_user(
+            username="admin-cvs@test.com",
+            email="admin-cvs@test.com",
+            password="testpass123",
+            is_staff=True,
+        )
+        self.user = User.objects.create_user(username="cliente-cvs@test.com", email="cliente-cvs@test.com", password="testpass123")
+        ATSClient.objects.create(user=self.user, company_name="Cliente CVs")
+        self.subscription = Subscription.objects.create(user=self.user, cvs_limit=2000)
+        self.client.force_login(self.staff)
+
+    def test_staff_can_update_cv_limit_to_4000(self):
+        response = self.client.post(
+            reverse("orbita_admin_update_cv_limit"),
+            {"subscription_id": self.subscription.id, "cvs_limit": "4000"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.subscription.refresh_from_db()
+        self.assertEqual(self.subscription.cvs_limit, 4000)
+
+    def test_invalid_cv_limit_does_not_change_subscription(self):
+        response = self.client.post(
+            reverse("orbita_admin_update_cv_limit"),
+            {"subscription_id": self.subscription.id, "cvs_limit": "-1"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.subscription.refresh_from_db()
+        self.assertEqual(self.subscription.cvs_limit, 2000)
+
+
 @override_settings(
     STORAGES={
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},

@@ -128,6 +128,9 @@
     font-weight: 500;
     word-break: break-word;
   }
+  .pc-upload-filename.uploading { color: #00a0a4; }
+  .pc-upload-filename.success { color: #059669; }
+  .pc-upload-filename.error { color: #dc2626; }
 
   .pc-card {
     background: #fff;
@@ -240,15 +243,16 @@
         <div class="pc-avatar-ring">
           <div class="pc-avatar-inner">
             {% if orbita_client and orbita_client.avatar %}
-              <img src="{{ orbita_client.avatar.url }}" alt="Foto de perfil">
+              <img src="{{ orbita_client.avatar.url }}" alt="Foto de perfil" id="profile-avatar-img">
             {% else %}
-              <i class="bi bi-person-fill ph"></i>
+              <img src="" alt="Foto de perfil" id="profile-avatar-img" style="display:none;">
+              <i class="bi bi-person-fill ph" id="profile-avatar-placeholder"></i>
             {% endif %}
           </div>
         </div>
         <div class="pc-upload-area">
           <label for="id_avatar"><i class="bi bi-camera-fill"></i> Seleccionar imagen</label>
-          <input type="file" name="avatar" id="id_avatar" accept="image/*" class="form-control form-control-sm">
+          <input type="file" name="avatar" id="id_avatar" accept="image/*" class="form-control form-control-sm" data-upload-url="{% url 'orbita_profile_avatar_upload' %}">
           <span class="pc-upload-filename" id="avatar-file-name">Ninguna imagen seleccionada</span>
         </div>
       </div>
@@ -297,10 +301,69 @@
     (function() {
       var input = document.getElementById('id_avatar');
       var label = document.getElementById('avatar-file-name');
+      var avatarImg = document.getElementById('profile-avatar-img');
+      var placeholder = document.getElementById('profile-avatar-placeholder');
       if (!input || !label) return;
+
+      function getCsrfToken() {
+        var csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        return csrfInput ? csrfInput.value : '';
+      }
+
+      function setStatus(text, tone) {
+        label.textContent = text;
+        label.classList.remove('uploading', 'success', 'error');
+        if (tone) label.classList.add(tone);
+      }
+
       input.addEventListener('change', function() {
         var file = input.files && input.files.length ? input.files[0] : null;
-        label.textContent = file ? file.name : 'Ninguna imagen seleccionada';
+        if (!file) {
+          setStatus('Ninguna imagen seleccionada', '');
+          return;
+        }
+
+        setStatus('Subiendo imagen...', 'uploading');
+        if (avatarImg) {
+          avatarImg.src = URL.createObjectURL(file);
+          avatarImg.style.display = '';
+        }
+        if (placeholder) placeholder.style.display = 'none';
+
+        var formData = new FormData();
+        formData.append('avatar', file);
+
+        fetch(input.getAttribute('data-upload-url'), {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin',
+          headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(function(response) {
+          return response.text().then(function(text) {
+            var data = {};
+            try { data = JSON.parse(text); } catch (e) {}
+            return { ok: response.ok, data: data };
+          });
+        })
+        .then(function(result) {
+          if (!result.ok || !result.data.ok) {
+            throw new Error(result.data.error || 'No se pudo actualizar la imagen.');
+          }
+          if (avatarImg && result.data.avatar_url) {
+            avatarImg.src = result.data.avatar_url + '?v=' + Date.now();
+          }
+          document.querySelectorAll('.user-avatar').forEach(function(img) {
+            if (result.data.avatar_url) img.src = result.data.avatar_url + '?v=' + Date.now();
+          });
+          setStatus('Foto actualizada automáticamente.', 'success');
+        })
+        .catch(function(error) {
+          setStatus(error.message || 'No se pudo actualizar la imagen.', 'error');
+        });
       });
     })();
   </script>
