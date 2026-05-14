@@ -145,6 +145,52 @@
     }
     .ats-sidebar .nav-link:hover i { opacity: 1; color: #00c4c9; }
     .ats-sidebar .nav-link.active i { opacity: 1; color: #00c4c9; }
+    .ats-sidebar .nav-group {
+      margin-bottom: 0.15rem;
+    }
+    .ats-sidebar .nav-parent {
+      justify-content: flex-start;
+    }
+    .ats-sidebar .nav-parent .nav-caret {
+      margin-left: auto;
+      color: rgba(255,255,255,0.35);
+      font-size: 0.82rem;
+    }
+    .ats-sidebar .nav-submenu {
+      display: grid;
+      gap: 0.12rem;
+      margin: 0.15rem 0 0.35rem 2.15rem;
+      padding-left: 0.7rem;
+      border-left: 1px solid rgba(255,255,255,0.08);
+    }
+    .ats-sidebar .nav-submenu-link {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-height: 32px;
+      border-radius: 8px;
+      padding: 0.38rem 0.55rem;
+      color: rgba(255,255,255,0.48);
+      text-decoration: none;
+      font-size: 0.76rem;
+      font-weight: 700;
+      transition: all 0.2s var(--ats-transition);
+    }
+    .ats-sidebar .nav-submenu-link i {
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.28);
+    }
+    .ats-sidebar .nav-submenu-link:hover {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.88);
+    }
+    .ats-sidebar .nav-submenu-link.active {
+      background: rgba(0,196,201,0.12);
+      color: #00c4c9;
+    }
+    .ats-sidebar .nav-submenu-link.active i {
+      color: #00c4c9;
+    }
     .ats-sidebar .nav-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 0.6rem 0.85rem; }
     .ats-sidebar .nav-link.text-danger { color: rgba(239,68,68,0.75) !important; }
     .ats-sidebar .nav-link.text-danger:hover { background: rgba(239,68,68,0.1); color: #ef4444 !important; }
@@ -312,7 +358,20 @@
         <div class="nav-item"><a href="{% url 'orbita_dashboard' %}?section=reclutamiento" class="nav-link {% if orbita_page == 'reclutamiento' %}active{% endif %}"><i class="bi bi-briefcase"></i> Vacantes</a></div>
         {% endif %}
         {% if orbita_modules.workforce %}
-        <div class="nav-item"><a href="{% url 'orbita_workforce_dashboard' %}" class="nav-link {% if orbita_page == 'workforce' %}active{% endif %}"><i class="bi bi-diagram-3"></i> Workforce <span style="display:block;font-size:0.68rem;color:rgba(255,255,255,.42);margin-left:1.9rem;line-height:1;">Planeación</span></a></div>
+        <div class="nav-group">
+          <div class="nav-item">
+            <a href="{% url 'orbita_workforce_dashboard' %}?tab=resumen" class="nav-link nav-parent {% if orbita_page == 'workforce' %}active{% endif %}">
+              <i class="bi bi-diagram-3"></i> Workforce
+              <i class="bi bi-chevron-down nav-caret"></i>
+            </a>
+          </div>
+          <div class="nav-submenu">
+            <a href="{% url 'orbita_workforce_dashboard' %}?tab=resumen" class="nav-submenu-link {% if orbita_page == 'workforce' and active_tab == 'resumen' %}active{% endif %}"><i class="bi bi-circle-fill"></i> Resumen</a>
+            <a href="{% url 'orbita_workforce_dashboard' %}?tab=areas" class="nav-submenu-link {% if orbita_page == 'workforce' and active_tab == 'areas' %}active{% endif %}"><i class="bi bi-circle-fill"></i> Áreas</a>
+            <a href="{% url 'orbita_workforce_dashboard' %}?tab=puestos" class="nav-submenu-link {% if orbita_page == 'workforce' and active_tab == 'puestos' %}active{% endif %}"><i class="bi bi-circle-fill"></i> Puestos</a>
+            <a href="{% url 'orbita_workforce_dashboard' %}?tab=planes" class="nav-submenu-link {% if orbita_page == 'workforce' and active_tab == 'planes' %}active{% endif %}"><i class="bi bi-circle-fill"></i> Planeación</a>
+          </div>
+        </div>
         {% endif %}
         {% if orbita_modules.forms %}
         <div class="nav-item"><a href="{% url 'orbita_form_list' %}" class="nav-link {% if orbita_page == 'formularios' %}active{% endif %}"><i class="bi bi-ui-checks"></i> Formularios</a></div>

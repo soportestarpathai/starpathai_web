@@ -28,37 +28,25 @@
   }
   .wf-hero h1 { font-family: var(--ats-heading); font-size: 1.35rem; font-weight: 800; margin: 0 0 .25rem; color: #fff; }
   .wf-hero p { color: rgba(255,255,255,.62); margin: 0; font-size: .88rem; }
-  .wf-menu {
+  .wf-section-head {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: .75rem;
-    margin-bottom: 1rem;
+    gap: 1rem;
+    margin-bottom: .85rem;
   }
-  .wf-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .45rem;
+  .wf-section-head h2 {
+    color: #0b1c2d;
+    font-family: var(--ats-heading);
+    font-size: 1rem;
+    font-weight: 850;
+    margin: 0;
   }
-  .wf-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: .4rem;
-    border: 1px solid #dbe4ef;
-    background: #fff;
-    color: #475569;
-    border-radius: 10px;
-    padding: .55rem .75rem;
-    font-weight: 800;
-    font-size: .8rem;
-    text-decoration: none;
+  .wf-section-head p {
+    color: #64748b;
+    font-size: .82rem;
+    margin: .15rem 0 0;
   }
-  .wf-tab.active {
-    background: #073b4c;
-    color: #00e0df;
-    border-color: rgba(0,196,201,.35);
-  }
-  .wf-mobile-menu { display: none; }
   .wf-kpis {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -165,8 +153,7 @@
   }
   @media (max-width: 992px) {
     .wf-two-col { grid-template-columns: 1fr; }
-    .wf-tabs { display: none; }
-    .wf-mobile-menu { display: block; }
+    .wf-section-head { align-items: flex-start; flex-direction: column; }
   }
 {% endblock %}
 
@@ -178,23 +165,21 @@
       <p>Convierte necesidades reales de plantilla en vacantes listas para candidatos y scoring CV.</p>
     </div>
 
-    <div class="wf-menu">
-      <nav class="wf-tabs" aria-label="Submenú Workforce">
-        <a class="wf-tab {% if active_tab == 'resumen' %}active{% endif %}" href="{% url 'orbita_workforce_dashboard' %}?tab=resumen"><i class="bi bi-grid"></i> Resumen</a>
-        <a class="wf-tab {% if active_tab == 'areas' %}active{% endif %}" href="{% url 'orbita_workforce_dashboard' %}?tab=areas"><i class="bi bi-building"></i> Áreas</a>
-        <a class="wf-tab {% if active_tab == 'puestos' %}active{% endif %}" href="{% url 'orbita_workforce_dashboard' %}?tab=puestos"><i class="bi bi-person-badge"></i> Puestos</a>
-        <a class="wf-tab {% if active_tab == 'planes' %}active{% endif %}" href="{% url 'orbita_workforce_dashboard' %}?tab=planes"><i class="bi bi-kanban"></i> Planeación</a>
-      </nav>
-      <div class="dropdown wf-mobile-menu">
-        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-          <i class="bi bi-list me-1"></i> Menú Workforce
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item" href="{% url 'orbita_workforce_dashboard' %}?tab=resumen">Resumen</a></li>
-          <li><a class="dropdown-item" href="{% url 'orbita_workforce_dashboard' %}?tab=areas">Áreas</a></li>
-          <li><a class="dropdown-item" href="{% url 'orbita_workforce_dashboard' %}?tab=puestos">Puestos</a></li>
-          <li><a class="dropdown-item" href="{% url 'orbita_workforce_dashboard' %}?tab=planes">Planeación</a></li>
-        </ul>
+    <div class="wf-section-head">
+      <div>
+        {% if active_tab == "areas" %}
+          <h2>Áreas / Departamentos</h2>
+          <p>Organiza las necesidades por áreas de la empresa.</p>
+        {% elif active_tab == "puestos" %}
+          <h2>Puestos requeridos</h2>
+          <p>Define puestos, salarios y área responsable.</p>
+        {% elif active_tab == "planes" %}
+          <h2>Planeación y autorizaciones</h2>
+          <p>Registra necesidades, apruébalas y conviértelas en vacantes.</p>
+        {% else %}
+          <h2>Resumen Workforce</h2>
+          <p>Vista ejecutiva de plantilla, brechas, riesgo y presupuesto.</p>
+        {% endif %}
       </div>
     </div>
 
