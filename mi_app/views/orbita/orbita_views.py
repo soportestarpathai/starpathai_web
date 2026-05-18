@@ -1766,7 +1766,7 @@ class ATSVacancyDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
         return redirect(reverse("orbita_dashboard") + "?section=reclutamiento")
 
 
-def _redirect_workforce(tab="planes"):
+def _redirect_workforce(tab="necesidad"):
     return redirect(f"{reverse('orbita_workforce_dashboard')}?tab={tab}")
 
 
@@ -1780,12 +1780,12 @@ class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
         client = _get_client_or_403(request)
         if not client:
             return redirect("orbita_dashboard")
-        valid_tabs = {"areas", "puestos", "planes"}
+        valid_tabs = {"necesidad", "areas", "puestos", "planeacion"}
         active_tab = request.GET.get("tab")
-        if active_tab == "resumen":
-            active_tab = "planes"
+        if active_tab in {"resumen", "planes"}:
+            active_tab = "necesidad"
         if active_tab not in valid_tabs:
-            active_tab = "planes"
+            active_tab = "necesidad"
         areas = WorkforceArea.objects.filter(client=client).prefetch_related("positions")
         positions = WorkforcePosition.objects.filter(client=client).select_related("area")
         plans = WorkforcePlan.objects.filter(client=client).select_related("area", "position")[:100]
@@ -1796,7 +1796,7 @@ class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
                 edit_uuid = uuid_lib.UUID(str(edit_public_id))
                 edit_plan = WorkforcePlan.objects.filter(client=client, public_id=edit_uuid).select_related("area", "position").first()
                 if edit_plan:
-                    active_tab = "planes"
+                    active_tab = "planeacion"
             except (TypeError, ValueError):
                 edit_plan = None
         total_current = sum(plan.current_staff for plan in plans)
@@ -1961,7 +1961,7 @@ class ATSWorkforcePlanCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
             messages.success(request, "Necesidad de personal registrada.")
         else:
             messages.error(request, "No se pudo registrar la necesidad. Revisa área, puesto y cantidades.")
-        return _redirect_workforce("planes")
+        return _redirect_workforce("necesidad")
 
 
 class ATSWorkforcePlanUpdateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
@@ -1976,14 +1976,14 @@ class ATSWorkforcePlanUpdateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
         plan = get_object_or_404(WorkforcePlan, public_id=public_id, client=client)
         if plan.status == WorkforcePlan.STATUS_CONVERTED:
             messages.error(request, "No puedes editar una necesidad ya convertida en vacante.")
-            return _redirect_workforce("planes")
+            return _redirect_workforce("necesidad")
         form = WorkforcePlanForm(request.POST, client=client, instance=plan)
         if form.is_valid():
             form.save()
             messages.success(request, "Necesidad actualizada.")
         else:
             messages.error(request, "No se pudo actualizar la necesidad.")
-        return _redirect_workforce("planes")
+        return _redirect_workforce("necesidad")
 
 
 class ATSWorkforcePlanDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
@@ -1998,10 +1998,10 @@ class ATSWorkforcePlanDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
         plan = get_object_or_404(WorkforcePlan, public_id=public_id, client=client)
         if plan.created_vacancies.exists():
             messages.error(request, "No puedes eliminar una necesidad que ya creó una vacante.")
-            return _redirect_workforce("planes")
+            return _redirect_workforce("necesidad")
         plan.delete()
         messages.success(request, "Necesidad eliminada.")
-        return _redirect_workforce("planes")
+        return _redirect_workforce("necesidad")
 
 
 class ATSWorkforcePlanActionView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
@@ -2025,24 +2025,24 @@ class ATSWorkforcePlanActionView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
             messages.success(request, "Necesidad rechazada.")
         elif self.action == "convert":
             return self._convert_to_vacancy(request, plan)
-        return _redirect_workforce("planes")
+        return _redirect_workforce("necesidad")
 
     def _convert_to_vacancy(self, request, plan):
         if plan.status == WorkforcePlan.STATUS_CONVERTED:
             messages.info(request, "Esta necesidad ya fue convertida en vacante.")
-            return _redirect_workforce("planes")
+            return _redirect_workforce("necesidad")
         if plan.status != WorkforcePlan.STATUS_APPROVED:
             messages.error(request, "Solo puedes convertir necesidades aprobadas.")
-            return _redirect_workforce("planes")
+            return _redirect_workforce("necesidad")
         if plan.gap <= 0:
             messages.error(request, "La necesidad no tiene brecha de personal para convertir.")
-            return _redirect_workforce("planes")
+            return _redirect_workforce("necesidad")
 
         subscription = _get_or_create_subscription(request.user)
         vacancy_count = Vacancy.objects.filter(client=plan.client).count()
         if not subscription_can_add_vacancy(subscription, vacancy_count):
             messages.error(request, "Has alcanzado el límite de vacantes de tu plan.")
-            return _redirect_workforce("planes")
+            return _redirect_workforce("necesidad")
 
         Vacancy.objects.create(
             client=plan.client,

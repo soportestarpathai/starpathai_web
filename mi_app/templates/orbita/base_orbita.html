@@ -360,13 +360,14 @@
         {% if orbita_modules.workforce %}
         <div class="nav-group">
           <div class="nav-item">
-            <a href="{% url 'orbita_workforce_dashboard' %}?tab=planes" class="nav-link nav-parent {% if orbita_page == 'workforce' %}active{% endif %}">
+            <a href="{% url 'orbita_workforce_dashboard' %}?tab=necesidad" class="nav-link nav-parent {% if orbita_page == 'workforce' %}active{% endif %}">
               <i class="bi bi-diagram-3"></i> Workforce
               <i class="bi bi-chevron-down nav-caret"></i>
             </a>
           </div>
           <div class="nav-submenu">
-            <a href="{% url 'orbita_workforce_dashboard' %}?tab=planes" class="nav-submenu-link {% if orbita_page == 'workforce' and active_tab == 'planes' %}active{% endif %}"><i class="bi bi-circle-fill"></i> Planeación</a>
+            <a href="{% url 'orbita_workforce_dashboard' %}?tab=necesidad" class="nav-submenu-link {% if orbita_page == 'workforce' and active_tab == 'necesidad' %}active{% endif %}"><i class="bi bi-circle-fill"></i> Necesidad de personal</a>
+            <a href="{% url 'orbita_workforce_dashboard' %}?tab=planeacion" class="nav-submenu-link {% if orbita_page == 'workforce' and active_tab == 'planeacion' %}active{% endif %}"><i class="bi bi-circle-fill"></i> Planeación</a>
             <a href="{% url 'orbita_workforce_dashboard' %}?tab=areas" class="nav-submenu-link {% if orbita_page == 'workforce' and active_tab == 'areas' %}active{% endif %}"><i class="bi bi-circle-fill"></i> Áreas</a>
             <a href="{% url 'orbita_workforce_dashboard' %}?tab=puestos" class="nav-submenu-link {% if orbita_page == 'workforce' and active_tab == 'puestos' %}active{% endif %}"><i class="bi bi-circle-fill"></i> Puestos</a>
           </div>
