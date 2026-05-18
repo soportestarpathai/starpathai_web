@@ -719,7 +719,7 @@ class WorkforcePlanForm(forms.ModelForm):
             "area": "Área",
             "position": "Puesto requerido",
             "current_staff": "Personal actual",
-            "required_staff": "Personal requerido",
+            "required_staff": "Requeridos nuevos",
             "open_vacancies": "Vacantes abiertas",
             "turnover_rate": "Rotación (%)",
             "priority": "Prioridad",

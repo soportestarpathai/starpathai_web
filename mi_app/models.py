@@ -385,7 +385,11 @@ class WorkforcePlan(models.Model):
 
     @property
     def gap(self):
-        return max(self.required_staff - self.current_staff, 0)
+        return max(self.required_staff, 0)
+
+    @property
+    def projected_staff(self):
+        return self.current_staff + self.required_staff
 
     @property
     def operational_risk(self):

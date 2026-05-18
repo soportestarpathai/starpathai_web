@@ -1800,7 +1800,7 @@ class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
             except (TypeError, ValueError):
                 edit_plan = None
         total_current = sum(plan.current_staff for plan in plans)
-        total_required = sum(plan.required_staff for plan in plans)
+        total_required = sum(plan.projected_staff for plan in plans)
         total_gap = sum(plan.gap for plan in plans)
         total_budget = sum(plan.estimated_budget for plan in plans)
         pending_count = sum(1 for plan in plans if plan.status == WorkforcePlan.STATUS_PENDING)

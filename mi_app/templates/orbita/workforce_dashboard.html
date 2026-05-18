@@ -274,7 +274,7 @@
     {% if active_tab == "necesidad" %}
       <div class="wf-kpis">
         <div class="wf-kpi"><div class="label">Personal actual</div><div class="value">{{ total_current }}</div></div>
-        <div class="wf-kpi"><div class="label">Personal requerido</div><div class="value">{{ total_required }}</div></div>
+        <div class="wf-kpi"><div class="label">Plantilla proyectada</div><div class="value">{{ total_required }}</div></div>
         <div class="wf-kpi"><div class="label">Brecha</div><div class="value">{{ total_gap }}</div></div>
         <div class="wf-kpi"><div class="label">Presupuesto estimado</div><div class="value">${{ total_budget|floatformat:0 }}</div></div>
         <div class="wf-kpi"><div class="label">Pendientes</div><div class="value">{{ pending_count }}</div></div>
@@ -291,7 +291,7 @@
             <div class="col-12 col-md-6"><label>Área</label>{{ plan_form.area }}</div>
             <div class="col-12 col-md-6"><label>Puesto</label>{{ plan_form.position }}</div>
             <div class="col-6 col-md-3"><label>Actual</label>{{ plan_form.current_staff }}</div>
-            <div class="col-6 col-md-3"><label>Requerido</label>{{ plan_form.required_staff }}</div>
+            <div class="col-6 col-md-3"><label>Requeridos nuevos</label>{{ plan_form.required_staff }}</div>
             <div class="col-6 col-md-3"><label>Vacantes abiertas</label>{{ plan_form.open_vacancies }}</div>
             <div class="col-6 col-md-3"><label>Rotación %</label>{{ plan_form.turnover_rate }}</div>
             <div class="col-12 col-md-6"><label>Prioridad</label>{{ plan_form.priority }}</div>
@@ -299,8 +299,8 @@
             <div class="col-12"><label>Justificación</label>{{ plan_form.executive_justification }}</div>
           </div>
           <div id="wf-budget-preview" class="wf-budget-preview">
-            Brecha estimada: 0 · Presupuesto estimado: $0
-            <small>Brecha por salario máximo del puesto seleccionado.</small>
+            Plantilla proyectada: 0 · Brecha estimada: 0 · Presupuesto estimado: $0
+            <small>Actual + requeridos nuevos. Presupuesto calculado por salario máximo del puesto.</small>
           </div>
           <button type="submit" class="btn btn-primary btn-sm align-self-start"><i class="bi bi-check2-circle me-1"></i>Registrar necesidad</button>
         </form>
@@ -315,7 +315,7 @@
               <div class="col-12 col-md-6"><label>Área</label><select name="area" class="form-select">{% for area in areas %}<option value="{{ area.id }}" {% if area.id == edit_plan.area_id %}selected{% endif %}>{{ area.name }}</option>{% endfor %}</select></div>
               <div class="col-12 col-md-6"><label>Puesto</label><select name="position" class="form-select">{% for position in positions %}<option value="{{ position.id }}" {% if position.id == edit_plan.position_id %}selected{% endif %}>{{ position.name }} · {{ position.area.name }}</option>{% endfor %}</select></div>
               <div class="col-6 col-md-3"><label>Actual</label><input type="number" name="current_staff" value="{{ edit_plan.current_staff }}" min="0" class="form-control"></div>
-              <div class="col-6 col-md-3"><label>Requerido</label><input type="number" name="required_staff" value="{{ edit_plan.required_staff }}" min="0" class="form-control"></div>
+              <div class="col-6 col-md-3"><label>Requeridos nuevos</label><input type="number" name="required_staff" value="{{ edit_plan.required_staff }}" min="0" class="form-control"></div>
               <div class="col-6 col-md-3"><label>Vacantes abiertas</label><input type="number" name="open_vacancies" value="{{ edit_plan.open_vacancies }}" min="0" class="form-control"></div>
               <div class="col-6 col-md-3"><label>Rotación %</label><input type="number" name="turnover_rate" value="{{ edit_plan.turnover_rate }}" min="0" max="100" step="0.01" class="form-control"></div>
               <div class="col-12 col-md-6"><label>Prioridad</label><select name="priority" class="form-select"><option value="baja" {% if edit_plan.priority == "baja" %}selected{% endif %}>Baja</option><option value="media" {% if edit_plan.priority == "media" %}selected{% endif %}>Media</option><option value="alta" {% if edit_plan.priority == "alta" %}selected{% endif %}>Alta</option><option value="critica" {% if edit_plan.priority == "critica" %}selected{% endif %}>Crítica</option></select></div>
@@ -412,10 +412,11 @@
     function updateBudgetPreview() {
       const current = Math.max(0, Number.parseInt(currentInput.value || "0", 10) || 0);
       const required = Math.max(0, Number.parseInt(requiredInput.value || "0", 10) || 0);
-      const gap = Math.max(required - current, 0);
+      const projected = current + required;
+      const gap = Math.max(required, 0);
       const budget = gap * asNumber(salaryByPosition[positionInput.value]);
-      preview.innerHTML = "Brecha estimada: " + gap + " · Presupuesto estimado: " + currency.format(budget) +
-        "<small>Brecha por salario máximo del puesto seleccionado.</small>";
+      preview.innerHTML = "Plantilla proyectada: " + projected + " · Brecha estimada: " + gap + " · Presupuesto estimado: " + currency.format(budget) +
+        "<small>Actual + requeridos nuevos. Presupuesto calculado por salario máximo del puesto.</small>";
     }
     [positionInput, currentInput, requiredInput].forEach(function (input) {
       input.addEventListener("change", updateBudgetPreview);

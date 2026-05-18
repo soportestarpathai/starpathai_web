@@ -272,7 +272,7 @@ class ATSWorkforceTests(TestCase):
         vacancy = Vacancy.objects.get(workforce_plan=plan)
         self.assertEqual(vacancy.client, self.ats_client)
         self.assertEqual(vacancy.title, "Desarrollador")
-        self.assertEqual(vacancy.openings, 2)
+        self.assertEqual(vacancy.openings, 3)
         self.assertEqual(vacancy.source, Vacancy.SOURCE_WORKFORCE)
         self.assertTrue(vacancy.ai_enabled)
 
@@ -308,8 +308,8 @@ class ATSWorkforceTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         plan.refresh_from_db()
-        self.assertEqual(plan.gap, 3)
-        self.assertEqual(plan.estimated_budget, Decimal("105000.00"))
+        self.assertEqual(plan.gap, 5)
+        self.assertEqual(plan.estimated_budget, Decimal("175000.00"))
         self.assertEqual(plan.status, WorkforcePlan.STATUS_APPROVED)
 
         response = self.client.post(reverse("orbita_workforce_plan_delete", args=[plan.public_id]))
