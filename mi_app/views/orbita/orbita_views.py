@@ -68,6 +68,7 @@ from mi_app.models import (
     PlanChangeRequest,
     LLMUsageLog,
     WorkforceArea,
+    WorkforceAuditLog,
     WorkforcePosition,
     WorkforcePlan,
 )
@@ -1770,6 +1771,80 @@ def _redirect_workforce(tab="necesidad"):
     return redirect(f"{reverse('orbita_workforce_dashboard')}?tab={tab}")
 
 
+def _workforce_link():
+    return f"{reverse('orbita_workforce_dashboard')}?tab=necesidad"
+
+
+def _workforce_role(user, client):
+    if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
+        return ATSClient.WORKFORCE_ROLE_ADMIN
+    return getattr(client, "workforce_role", ATSClient.WORKFORCE_ROLE_ADMIN)
+
+
+def _workforce_can(user, client, action, plan=None):
+    role = _workforce_role(user, client)
+    if role == ATSClient.WORKFORCE_ROLE_ADMIN:
+        return True
+    if action in {"create", "update", "delete", "send", "cancel"}:
+        return role == ATSClient.WORKFORCE_ROLE_HR
+    if action in {"approve", "reject"} and plan:
+        stage_roles = {
+            WorkforcePlan.STAGE_HR: ATSClient.WORKFORCE_ROLE_HR,
+            WorkforcePlan.STAGE_DIRECTION: ATSClient.WORKFORCE_ROLE_DIRECTION,
+            WorkforcePlan.STAGE_FINANCE: ATSClient.WORKFORCE_ROLE_FINANCE,
+        }
+        return role == stage_roles.get(plan.approval_stage)
+    if action == "convert":
+        return role == ATSClient.WORKFORCE_ROLE_RECRUITER
+    return False
+
+
+def _workforce_audit(plan, user, action, previous_status="", new_status="", comment=""):
+    WorkforceAuditLog.objects.create(
+        client=plan.client,
+        plan=plan,
+        user=user if getattr(user, "is_authenticated", False) else None,
+        action=action,
+        previous_status=previous_status or "",
+        new_status=new_status or "",
+        comment=(comment or "").strip(),
+    )
+
+
+def _notify_workforce(request, plan, title, message):
+    notify_orbita_client(
+        plan.client,
+        ATSNotification.TYPE_PLAN,
+        title,
+        message,
+        link=_workforce_link(),
+        request=request,
+    )
+
+
+def _prepare_workforce_plan_permissions(plans, user, client):
+    for plan in plans:
+        plan.can_send_approval = (
+            plan.status in {WorkforcePlan.STATUS_DRAFT, WorkforcePlan.STATUS_REJECTED}
+            and _workforce_can(user, client, "send", plan)
+        )
+        plan.can_approve = plan.status == WorkforcePlan.STATUS_PENDING and _workforce_can(user, client, "approve", plan)
+        plan.can_reject = plan.status == WorkforcePlan.STATUS_PENDING and _workforce_can(user, client, "reject", plan)
+        plan.can_convert = plan.status == WorkforcePlan.STATUS_APPROVED and _workforce_can(user, client, "convert", plan)
+        plan.can_cancel = (
+            plan.status not in {WorkforcePlan.STATUS_CONVERTED, WorkforcePlan.STATUS_CANCELED}
+            and _workforce_can(user, client, "cancel", plan)
+        )
+        plan.can_edit = (
+            plan.status not in {WorkforcePlan.STATUS_CONVERTED, WorkforcePlan.STATUS_CANCELED}
+            and _workforce_can(user, client, "update", plan)
+        )
+        plan.can_delete = (
+            plan.status not in {WorkforcePlan.STATUS_CONVERTED}
+            and _workforce_can(user, client, "delete", plan)
+        )
+
+
 class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
     """Dashboard Workforce: áreas, puestos, necesidades, aprobaciones y brechas."""
     template_name = "orbita/workforce_dashboard.html"
@@ -1788,7 +1863,8 @@ class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
             active_tab = "necesidad"
         areas = WorkforceArea.objects.filter(client=client).prefetch_related("positions")
         positions = WorkforcePosition.objects.filter(client=client).select_related("area")
-        plans = WorkforcePlan.objects.filter(client=client).select_related("area", "position")[:100]
+        plans = list(WorkforcePlan.objects.filter(client=client).select_related("area", "position")[:100])
+        _prepare_workforce_plan_permissions(plans, request.user, client)
         edit_plan = None
         edit_public_id = request.GET.get("edit")
         if edit_public_id:
@@ -1806,6 +1882,7 @@ class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
         pending_count = sum(1 for plan in plans if plan.status == WorkforcePlan.STATUS_PENDING)
         approved_count = sum(1 for plan in plans if plan.status == WorkforcePlan.STATUS_APPROVED)
         high_risk_count = sum(1 for plan in plans if plan.operational_risk == "Alto")
+        created_vacancy_count = Vacancy.objects.filter(client=client, source=Vacancy.SOURCE_WORKFORCE).count()
         return render(request, self.template_name, {
             "orbita_client": client,
             "subscription": _get_or_create_subscription(request.user),
@@ -1825,6 +1902,9 @@ class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
             "pending_count": pending_count,
             "approved_count": approved_count,
             "high_risk_count": high_risk_count,
+            "created_vacancy_count": created_vacancy_count,
+            "workforce_role": _workforce_role(request.user, client),
+            "can_create_workforce_plan": _workforce_can(request.user, client, "create"),
         })
 
 
@@ -1953,11 +2033,30 @@ class ATSWorkforcePlanCreateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
         client = _get_client_or_403(request)
         if not client:
             return redirect("orbita_dashboard")
+        if not _workforce_can(request.user, client, "create"):
+            messages.error(request, "No tienes permiso para crear necesidades Workforce.")
+            return _redirect_workforce("necesidad")
         form = WorkforcePlanForm(request.POST, client=client)
         if form.is_valid():
             plan = form.save(commit=False)
             plan.client = client
+            plan.status = WorkforcePlan.STATUS_DRAFT
+            plan.approval_stage = WorkforcePlan.STAGE_REQUEST
             plan.save()
+            _workforce_audit(plan, request.user, "Creó la necesidad", "", plan.status)
+            _notify_workforce(
+                request,
+                plan,
+                "Necesidad Workforce creada",
+                f"{plan.position.name} en {plan.area.name}: {plan.gap} requerido(s), riesgo {plan.operational_risk}.",
+            )
+            if plan.operational_risk == "Alto":
+                _notify_workforce(
+                    request,
+                    plan,
+                    "Riesgo alto en Workforce",
+                    f"La necesidad {plan.position.name} tiene brecha {plan.gap} y requiere atención.",
+                )
             messages.success(request, "Necesidad de personal registrada.")
         else:
             messages.error(request, "No se pudo registrar la necesidad. Revisa área, puesto y cantidades.")
@@ -1974,12 +2073,17 @@ class ATSWorkforcePlanUpdateView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
         if not client:
             return redirect("orbita_dashboard")
         plan = get_object_or_404(WorkforcePlan, public_id=public_id, client=client)
-        if plan.status == WorkforcePlan.STATUS_CONVERTED:
-            messages.error(request, "No puedes editar una necesidad ya convertida en vacante.")
+        if not _workforce_can(request.user, client, "update", plan):
+            messages.error(request, "No tienes permiso para editar esta necesidad.")
             return _redirect_workforce("necesidad")
+        if plan.status in {WorkforcePlan.STATUS_CONVERTED, WorkforcePlan.STATUS_CANCELED}:
+            messages.error(request, "No puedes editar una necesidad cerrada.")
+            return _redirect_workforce("necesidad")
+        previous_status = plan.status
         form = WorkforcePlanForm(request.POST, client=client, instance=plan)
         if form.is_valid():
             form.save()
+            _workforce_audit(plan, request.user, "Editó la necesidad", previous_status, plan.status)
             messages.success(request, "Necesidad actualizada.")
         else:
             messages.error(request, "No se pudo actualizar la necesidad.")
@@ -1996,9 +2100,13 @@ class ATSWorkforcePlanDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
         if not client:
             return redirect("orbita_dashboard")
         plan = get_object_or_404(WorkforcePlan, public_id=public_id, client=client)
+        if not _workforce_can(request.user, client, "delete", plan):
+            messages.error(request, "No tienes permiso para eliminar esta necesidad.")
+            return _redirect_workforce("necesidad")
         if plan.created_vacancies.exists():
             messages.error(request, "No puedes eliminar una necesidad que ya creó una vacante.")
             return _redirect_workforce("necesidad")
+        _workforce_audit(plan, request.user, "Eliminó la necesidad", plan.status, "")
         plan.delete()
         messages.success(request, "Necesidad eliminada.")
         return _redirect_workforce("necesidad")
@@ -2015,19 +2123,91 @@ class ATSWorkforcePlanActionView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
         if not client:
             return redirect("orbita_dashboard")
         plan = get_object_or_404(WorkforcePlan, public_id=public_id, client=client)
+        comment = (request.POST.get("comment") or "").strip()
+        if self.action == "send":
+            return self._send_to_approval(request, client, plan, comment)
         if self.action == "approve":
-            plan.status = WorkforcePlan.STATUS_APPROVED
-            plan.save(update_fields=["status", "estimated_budget", "updated_at"])
-            messages.success(request, "Necesidad aprobada.")
+            return self._approve_step(request, client, plan, comment)
         elif self.action == "reject":
+            if not _workforce_can(request.user, client, "reject", plan):
+                messages.error(request, "No tienes permiso para rechazar esta necesidad.")
+                return _redirect_workforce("necesidad")
+            previous_status = plan.status
             plan.status = WorkforcePlan.STATUS_REJECTED
             plan.save(update_fields=["status", "estimated_budget", "updated_at"])
+            _workforce_audit(plan, request.user, f"Rechazó en {plan.get_approval_stage_display()}", previous_status, plan.status, comment)
+            _notify_workforce(request, plan, "Necesidad Workforce rechazada", f"{plan.position.name} fue rechazada en {plan.get_approval_stage_display()}.")
             messages.success(request, "Necesidad rechazada.")
+        elif self.action == "cancel":
+            if not _workforce_can(request.user, client, "cancel", plan):
+                messages.error(request, "No tienes permiso para cancelar esta necesidad.")
+                return _redirect_workforce("necesidad")
+            previous_status = plan.status
+            plan.status = WorkforcePlan.STATUS_CANCELED
+            plan.save(update_fields=["status", "estimated_budget", "updated_at"])
+            _workforce_audit(plan, request.user, "Canceló la necesidad", previous_status, plan.status, comment)
+            _notify_workforce(request, plan, "Necesidad Workforce cancelada", f"{plan.position.name} fue cancelada.")
+            messages.success(request, "Necesidad cancelada.")
         elif self.action == "convert":
-            return self._convert_to_vacancy(request, plan)
+            return self._convert_to_vacancy(request, client, plan, comment)
         return _redirect_workforce("necesidad")
 
-    def _convert_to_vacancy(self, request, plan):
+    def _send_to_approval(self, request, client, plan, comment):
+        if not _workforce_can(request.user, client, "send", plan):
+            messages.error(request, "No tienes permiso para enviar esta necesidad a aprobación.")
+            return _redirect_workforce("necesidad")
+        if plan.status not in {WorkforcePlan.STATUS_DRAFT, WorkforcePlan.STATUS_REJECTED}:
+            messages.error(request, "Solo puedes enviar necesidades en borrador o rechazadas.")
+            return _redirect_workforce("necesidad")
+        previous_status = plan.status
+        plan.status = WorkforcePlan.STATUS_PENDING
+        plan.approval_stage = WorkforcePlan.STAGE_HR
+        plan.save(update_fields=["status", "approval_stage", "estimated_budget", "updated_at"])
+        _workforce_audit(plan, request.user, "Envió a aprobación", previous_status, plan.status, comment)
+        _notify_workforce(
+            request,
+            plan,
+            "Necesidad enviada a aprobación",
+            f"{plan.position.name} pasó a RH con brecha {plan.gap} y presupuesto ${plan.estimated_budget}.",
+        )
+        messages.success(request, "Necesidad enviada a aprobación.")
+        return _redirect_workforce("necesidad")
+
+    def _approve_step(self, request, client, plan, comment):
+        if not _workforce_can(request.user, client, "approve", plan):
+            messages.error(request, "No tienes permiso para aprobar esta etapa.")
+            return _redirect_workforce("necesidad")
+        if plan.status != WorkforcePlan.STATUS_PENDING:
+            messages.error(request, "Solo puedes aprobar necesidades pendientes.")
+            return _redirect_workforce("necesidad")
+        previous_status = plan.status
+        previous_stage = plan.get_approval_stage_display()
+        if plan.approval_stage == WorkforcePlan.STAGE_HR:
+            plan.approval_stage = WorkforcePlan.STAGE_DIRECTION
+            action = "Aprobó RH"
+            message = "La necesidad pasó a Dirección."
+        elif plan.approval_stage == WorkforcePlan.STAGE_DIRECTION:
+            plan.approval_stage = WorkforcePlan.STAGE_FINANCE
+            action = "Aprobó Dirección"
+            message = "La necesidad pasó a Finanzas."
+        elif plan.approval_stage == WorkforcePlan.STAGE_FINANCE:
+            plan.status = WorkforcePlan.STATUS_APPROVED
+            plan.approval_stage = WorkforcePlan.STAGE_VACANCY
+            action = "Aprobó Finanzas"
+            message = "La necesidad quedó aprobada y lista para crear vacante."
+        else:
+            messages.error(request, "La necesidad no está en una etapa aprobable.")
+            return _redirect_workforce("necesidad")
+        plan.save(update_fields=["status", "approval_stage", "estimated_budget", "updated_at"])
+        _workforce_audit(plan, request.user, action, previous_status, plan.status, comment)
+        _notify_workforce(request, plan, f"{action} Workforce", f"{plan.position.name}: {previous_stage}. {message}")
+        messages.success(request, message)
+        return _redirect_workforce("necesidad")
+
+    def _convert_to_vacancy(self, request, client, plan, comment):
+        if not _workforce_can(request.user, client, "convert", plan):
+            messages.error(request, "No tienes permiso para crear vacantes desde Workforce.")
+            return _redirect_workforce("necesidad")
         if plan.status == WorkforcePlan.STATUS_CONVERTED:
             messages.info(request, "Esta necesidad ya fue convertida en vacante.")
             return _redirect_workforce("necesidad")
@@ -2044,6 +2224,7 @@ class ATSWorkforcePlanActionView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
             messages.error(request, "Has alcanzado el límite de vacantes de tu plan.")
             return _redirect_workforce("necesidad")
 
+        previous_status = plan.status
         Vacancy.objects.create(
             client=plan.client,
             title=plan.position.name,
@@ -2062,12 +2243,18 @@ class ATSWorkforcePlanActionView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
             openings=plan.gap,
             salary_min=plan.position.salary_min,
             salary_max=plan.position.salary_max,
+            area_name=plan.area.name,
+            estimated_budget=plan.estimated_budget,
+            status=Vacancy.STATUS_OPEN,
             ai_enabled=True,
             source=Vacancy.SOURCE_WORKFORCE,
             workforce_plan=plan,
         )
         plan.status = WorkforcePlan.STATUS_CONVERTED
-        plan.save(update_fields=["status", "estimated_budget", "updated_at"])
+        plan.approval_stage = WorkforcePlan.STAGE_VACANCY
+        plan.save(update_fields=["status", "approval_stage", "estimated_budget", "updated_at"])
+        _workforce_audit(plan, request.user, "Creó vacante", previous_status, plan.status, comment)
+        _notify_workforce(request, plan, "Vacante creada desde Workforce", f"{plan.position.name} quedó abierta con {plan.gap} plaza(s).")
         messages.success(request, "Vacante creada desde Workforce. Ya aparece en Vacantes.")
         return redirect(reverse("orbita_dashboard") + "?section=reclutamiento")
 

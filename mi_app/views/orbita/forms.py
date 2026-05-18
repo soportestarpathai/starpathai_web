@@ -712,7 +712,6 @@ class WorkforcePlanForm(forms.ModelForm):
             "open_vacancies",
             "turnover_rate",
             "priority",
-            "status",
             "executive_justification",
         )
         labels = {
@@ -723,7 +722,6 @@ class WorkforcePlanForm(forms.ModelForm):
             "open_vacancies": "Vacantes abiertas",
             "turnover_rate": "Rotación (%)",
             "priority": "Prioridad",
-            "status": "Estado",
             "executive_justification": "Justificación ejecutiva",
         }
         widgets = {
@@ -734,7 +732,6 @@ class WorkforcePlanForm(forms.ModelForm):
             "open_vacancies": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
             "turnover_rate": forms.NumberInput(attrs={"class": "form-control", "min": 0, "max": 100, "step": "0.01"}),
             "priority": forms.Select(attrs={"class": "form-select"}),
-            "status": forms.Select(attrs={"class": "form-select"}),
             "executive_justification": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 3,

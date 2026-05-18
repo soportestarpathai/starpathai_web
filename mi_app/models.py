@@ -43,6 +43,24 @@ class ATSClient(models.Model):
     contact_name = models.CharField("Nombre del contacto", max_length=150, blank=True)
     contact_phone = models.CharField("Teléfono", max_length=30, blank=True)
     avatar = models.ImageField("Foto de perfil", upload_to=ats_client_avatar_upload_to, blank=True, null=True)
+    WORKFORCE_ROLE_ADMIN = "admin"
+    WORKFORCE_ROLE_HR = "rh"
+    WORKFORCE_ROLE_DIRECTION = "direccion"
+    WORKFORCE_ROLE_FINANCE = "finanzas"
+    WORKFORCE_ROLE_RECRUITER = "reclutador"
+    WORKFORCE_ROLE_CHOICES = [
+        (WORKFORCE_ROLE_ADMIN, "Administrador"),
+        (WORKFORCE_ROLE_HR, "RH"),
+        (WORKFORCE_ROLE_DIRECTION, "Dirección"),
+        (WORKFORCE_ROLE_FINANCE, "Finanzas"),
+        (WORKFORCE_ROLE_RECRUITER, "Reclutador"),
+    ]
+    workforce_role = models.CharField(
+        "Rol Workforce",
+        max_length=30,
+        choices=WORKFORCE_ROLE_CHOICES,
+        default=WORKFORCE_ROLE_ADMIN,
+    )
     # LangSmith: proyecto opcional por cliente. Si está vacío se usa LANGSMITH_PROJECT global.
     langsmith_project = models.CharField(
         "Proyecto LangSmith",
@@ -256,11 +274,22 @@ class Vacancy(models.Model):
         (SOURCE_MANUAL, "Manual"),
         (SOURCE_WORKFORCE, "Workforce"),
     ]
+    STATUS_OPEN = "abierta"
+    STATUS_PAUSED = "pausada"
+    STATUS_CLOSED = "cerrada"
+    STATUS_CHOICES = [
+        (STATUS_OPEN, "Abierta"),
+        (STATUS_PAUSED, "Pausada"),
+        (STATUS_CLOSED, "Cerrada"),
+    ]
     title = models.CharField("Título", max_length=255)
     description = models.TextField("Descripción", blank=True)
     openings = models.PositiveIntegerField("Plazas", default=1)
     salary_min = models.DecimalField("Salario mínimo", max_digits=10, decimal_places=2, null=True, blank=True)
     salary_max = models.DecimalField("Salario máximo", max_digits=10, decimal_places=2, null=True, blank=True)
+    area_name = models.CharField("Área", max_length=150, blank=True)
+    estimated_budget = models.DecimalField("Presupuesto estimado", max_digits=12, decimal_places=2, default=0)
+    status = models.CharField("Estado", max_length=30, choices=STATUS_CHOICES, default=STATUS_OPEN)
     source = models.CharField("Origen", max_length=30, choices=SOURCE_CHOICES, default=SOURCE_MANUAL)
     workforce_plan = models.ForeignKey(
         "WorkforcePlan",
@@ -355,12 +384,27 @@ class WorkforcePlan(models.Model):
     STATUS_APPROVED = "aprobado"
     STATUS_REJECTED = "rechazado"
     STATUS_CONVERTED = "convertido_vacante"
+    STATUS_CANCELED = "cancelado"
     STATUS_CHOICES = [
         (STATUS_DRAFT, "Borrador"),
         (STATUS_PENDING, "Pendiente de aprobación"),
         (STATUS_APPROVED, "Aprobado"),
         (STATUS_REJECTED, "Rechazado"),
         (STATUS_CONVERTED, "Convertido en vacante"),
+        (STATUS_CANCELED, "Cancelado"),
+    ]
+
+    STAGE_REQUEST = "solicitud"
+    STAGE_HR = "rh"
+    STAGE_DIRECTION = "direccion"
+    STAGE_FINANCE = "finanzas"
+    STAGE_VACANCY = "vacante"
+    STAGE_CHOICES = [
+        (STAGE_REQUEST, "Solicitud"),
+        (STAGE_HR, "RH"),
+        (STAGE_DIRECTION, "Dirección"),
+        (STAGE_FINANCE, "Finanzas"),
+        (STAGE_VACANCY, "Vacante"),
     ]
 
     client = models.ForeignKey(ATSClient, on_delete=models.CASCADE, related_name="workforce_plans")
@@ -373,7 +417,8 @@ class WorkforcePlan(models.Model):
     open_vacancies = models.PositiveIntegerField("Vacantes abiertas", default=0)
     priority = models.CharField("Prioridad", max_length=50, choices=PRIORITY_CHOICES, default=PRIORITY_MEDIUM)
     estimated_budget = models.DecimalField("Presupuesto estimado", max_digits=12, decimal_places=2, default=0)
-    status = models.CharField("Estado", max_length=50, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    status = models.CharField("Estado", max_length=50, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    approval_stage = models.CharField("Etapa de aprobación", max_length=30, choices=STAGE_CHOICES, default=STAGE_REQUEST)
     executive_justification = models.TextField("Justificación ejecutiva", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -393,9 +438,9 @@ class WorkforcePlan(models.Model):
 
     @property
     def operational_risk(self):
-        if self.priority == self.PRIORITY_CRITICAL or self.gap >= 4 or self.turnover_rate >= 20:
+        if self.gap >= 10:
             return "Alto"
-        if self.priority == self.PRIORITY_HIGH or self.gap >= 2 or self.turnover_rate >= 10:
+        if self.gap >= 4:
             return "Medio"
         return "Bajo"
 
@@ -409,6 +454,28 @@ class WorkforcePlan(models.Model):
 
     def __str__(self):
         return f"{self.position.name} — {self.area.name} ({self.get_status_display()})"
+
+
+class WorkforceAuditLog(models.Model):
+    """Historial de acciones realizadas sobre una necesidad Workforce."""
+    client = models.ForeignKey(ATSClient, on_delete=models.CASCADE, related_name="workforce_audit_logs")
+    plan = models.ForeignKey(WorkforcePlan, on_delete=models.SET_NULL, null=True, blank=True, related_name="audit_logs")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.CharField("Acción", max_length=80)
+    previous_status = models.CharField("Estado anterior", max_length=50, blank=True)
+    new_status = models.CharField("Estado nuevo", max_length=50, blank=True)
+    comment = models.TextField("Comentario", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Auditoría Workforce"
+        verbose_name_plural = "Auditoría Workforce"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        actor = self.user.get_username() if self.user_id else "Sistema"
+        plan_label = str(self.plan) if self.plan_id else "Necesidad eliminada"
+        return f"{actor} — {self.action} — {plan_label}"
 
 
 class CVAnalysisConfig(models.Model):

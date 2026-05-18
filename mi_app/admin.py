@@ -14,14 +14,18 @@ from .models import (
     ATSFormField,
     ATSFormSubmission,
     ATSFormSubmissionFile,
+    WorkforceArea,
+    WorkforceAuditLog,
+    WorkforcePlan,
+    WorkforcePosition,
 )
 
 
 @admin.register(ATSClient)
 class ATSClientAdmin(admin.ModelAdmin):
-    list_display = ("company_name", "user", "subscription_plan", "subscription_usage", "contact_name", "contact_phone", "created_at")
+    list_display = ("company_name", "user", "workforce_role", "subscription_plan", "subscription_usage", "contact_name", "contact_phone", "created_at")
     search_fields = ("company_name", "contact_name", "user__email")
-    list_filter = ("created_at",)
+    list_filter = ("workforce_role", "created_at")
 
     @admin.display(description="Plan")
     def subscription_plan(self, obj):
@@ -67,8 +71,43 @@ class CandidateAdmin(admin.ModelAdmin):
 
 @admin.register(Vacancy)
 class VacancyAdmin(admin.ModelAdmin):
-    list_display = ("title", "client", "created_at")
+    list_display = ("title", "client", "status", "source", "openings", "area_name", "estimated_budget", "created_at")
+    list_filter = ("status", "source", "client")
     search_fields = ("title", "client__company_name")
+
+
+@admin.register(WorkforceArea)
+class WorkforceAreaAdmin(admin.ModelAdmin):
+    list_display = ("name", "client", "created_at")
+    list_filter = ("client",)
+    search_fields = ("name", "client__company_name")
+
+
+@admin.register(WorkforcePosition)
+class WorkforcePositionAdmin(admin.ModelAdmin):
+    list_display = ("name", "area", "client", "salary_min", "salary_max", "created_at")
+    list_filter = ("client", "area")
+    search_fields = ("name", "area__name", "client__company_name")
+
+
+@admin.register(WorkforcePlan)
+class WorkforcePlanAdmin(admin.ModelAdmin):
+    list_display = ("position", "area", "client", "status", "approval_stage", "gap_display", "estimated_budget", "created_at")
+    list_filter = ("status", "approval_stage", "client")
+    search_fields = ("position__name", "area__name", "client__company_name")
+    readonly_fields = ("estimated_budget", "created_at", "updated_at")
+
+    @admin.display(description="Brecha")
+    def gap_display(self, obj):
+        return obj.gap
+
+
+@admin.register(WorkforceAuditLog)
+class WorkforceAuditLogAdmin(admin.ModelAdmin):
+    list_display = ("plan", "user", "action", "previous_status", "new_status", "created_at")
+    list_filter = ("action", "client", "created_at")
+    search_fields = ("plan__position__name", "user__email", "comment")
+    readonly_fields = ("client", "plan", "user", "action", "previous_status", "new_status", "comment", "created_at")
 
 
 @admin.register(CVAnalysisConfig)

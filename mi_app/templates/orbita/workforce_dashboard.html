@@ -279,31 +279,35 @@
         <div class="wf-kpi"><div class="label">Presupuesto estimado</div><div class="value">${{ total_budget|floatformat:0 }}</div></div>
         <div class="wf-kpi"><div class="label">Pendientes</div><div class="value">{{ pending_count }}</div></div>
         <div class="wf-kpi"><div class="label">Riesgo alto</div><div class="value">{{ high_risk_count }}</div></div>
+        <div class="wf-kpi"><div class="label">Vacantes creadas</div><div class="value">{{ created_vacancy_count }}</div></div>
       </div>
     {% endif %}
 
     {% if active_tab == "planeacion" %}
       <div class="wf-panel">
         <h2><i class="bi bi-clipboard2-plus"></i> Necesidad de personal</h2>
-        <form method="post" action="{% url 'orbita_workforce_plan_create' %}" class="wf-form-stack">
-          {% csrf_token %}
-          <div class="row g-2">
-            <div class="col-12 col-md-6"><label>Área</label>{{ plan_form.area }}</div>
-            <div class="col-12 col-md-6"><label>Puesto</label>{{ plan_form.position }}</div>
-            <div class="col-6 col-md-3"><label>Actual</label>{{ plan_form.current_staff }}</div>
-            <div class="col-6 col-md-3"><label>Requeridos nuevos</label>{{ plan_form.required_staff }}</div>
-            <div class="col-6 col-md-3"><label>Vacantes abiertas</label>{{ plan_form.open_vacancies }}</div>
-            <div class="col-6 col-md-3"><label>Rotación %</label>{{ plan_form.turnover_rate }}</div>
-            <div class="col-12 col-md-6"><label>Prioridad</label>{{ plan_form.priority }}</div>
-            <div class="col-12 col-md-6"><label>Estado</label>{{ plan_form.status }}</div>
-            <div class="col-12"><label>Justificación</label>{{ plan_form.executive_justification }}</div>
-          </div>
-          <div id="wf-budget-preview" class="wf-budget-preview">
-            Plantilla proyectada: 0 · Brecha estimada: 0 · Presupuesto estimado: $0
-            <small>Actual + requeridos nuevos. Presupuesto calculado por salario máximo del puesto.</small>
-          </div>
-          <button type="submit" class="btn btn-primary btn-sm align-self-start"><i class="bi bi-check2-circle me-1"></i>Registrar necesidad</button>
-        </form>
+        {% if can_create_workforce_plan %}
+          <form method="post" action="{% url 'orbita_workforce_plan_create' %}" class="wf-form-stack">
+            {% csrf_token %}
+            <div class="row g-2">
+              <div class="col-12 col-md-6"><label>Área</label>{{ plan_form.area }}</div>
+              <div class="col-12 col-md-6"><label>Puesto</label>{{ plan_form.position }}</div>
+              <div class="col-6 col-md-3"><label>Actual</label>{{ plan_form.current_staff }}</div>
+              <div class="col-6 col-md-3"><label>Requeridos nuevos</label>{{ plan_form.required_staff }}</div>
+              <div class="col-6 col-md-3"><label>Vacantes abiertas</label>{{ plan_form.open_vacancies }}</div>
+              <div class="col-6 col-md-3"><label>Rotación %</label>{{ plan_form.turnover_rate }}</div>
+              <div class="col-12 col-md-6"><label>Prioridad</label>{{ plan_form.priority }}</div>
+              <div class="col-12"><label>Justificación</label>{{ plan_form.executive_justification }}</div>
+            </div>
+            <div id="wf-budget-preview" class="wf-budget-preview">
+              Plantilla proyectada: 0 · Brecha estimada: 0 · Presupuesto estimado: $0
+              <small>Actual + requeridos nuevos. Presupuesto calculado por salario máximo del puesto.</small>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm align-self-start"><i class="bi bi-check2-circle me-1"></i>Registrar necesidad</button>
+          </form>
+        {% else %}
+          <p class="text-muted mb-0">Tu rol actual puede consultar el flujo, pero no crear nuevas necesidades.</p>
+        {% endif %}
       </div>
 
       {% if edit_plan %}
@@ -319,7 +323,6 @@
               <div class="col-6 col-md-3"><label>Vacantes abiertas</label><input type="number" name="open_vacancies" value="{{ edit_plan.open_vacancies }}" min="0" class="form-control"></div>
               <div class="col-6 col-md-3"><label>Rotación %</label><input type="number" name="turnover_rate" value="{{ edit_plan.turnover_rate }}" min="0" max="100" step="0.01" class="form-control"></div>
               <div class="col-12 col-md-6"><label>Prioridad</label><select name="priority" class="form-select"><option value="baja" {% if edit_plan.priority == "baja" %}selected{% endif %}>Baja</option><option value="media" {% if edit_plan.priority == "media" %}selected{% endif %}>Media</option><option value="alta" {% if edit_plan.priority == "alta" %}selected{% endif %}>Alta</option><option value="critica" {% if edit_plan.priority == "critica" %}selected{% endif %}>Crítica</option></select></div>
-              <div class="col-12 col-md-6"><label>Estado</label><select name="status" class="form-select"><option value="borrador" {% if edit_plan.status == "borrador" %}selected{% endif %}>Borrador</option><option value="pendiente" {% if edit_plan.status == "pendiente" %}selected{% endif %}>Pendiente de aprobación</option><option value="aprobado" {% if edit_plan.status == "aprobado" %}selected{% endif %}>Aprobado</option><option value="rechazado" {% if edit_plan.status == "rechazado" %}selected{% endif %}>Rechazado</option></select></div>
               <div class="col-12"><label>Justificación</label><textarea name="executive_justification" rows="3" class="form-control">{{ edit_plan.executive_justification }}</textarea></div>
             </div>
             <div class="d-flex gap-2">
@@ -344,6 +347,7 @@
                   <th>Riesgo</th>
                   <th>Presupuesto</th>
                   <th>Estado</th>
+                  <th>Etapa</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -356,21 +360,51 @@
                   <td>{% if plan.operational_risk == "Alto" %}<span class="wf-risk-high">Alto</span>{% elif plan.operational_risk == "Medio" %}<span class="wf-risk-mid">Medio</span>{% else %}<span class="wf-risk-low">Bajo</span>{% endif %}</td>
                   <td>${{ plan.estimated_budget|floatformat:0 }}</td>
                   <td><span class="wf-status">{{ plan.get_status_display }}</span></td>
+                  <td>{{ plan.get_approval_stage_display }}</td>
                   <td>
                     <div class="wf-actions">
-                      {% if plan.status == "pendiente" or plan.status == "borrador" %}
-                        <form method="post" action="{% url 'orbita_workforce_plan_approve' plan.public_id %}">{% csrf_token %}<button type="submit" class="btn btn-outline-success btn-sm">Aprobar</button></form>
-                        <form method="post" action="{% url 'orbita_workforce_plan_reject' plan.public_id %}">{% csrf_token %}<button type="submit" class="btn btn-outline-danger btn-sm">Rechazar</button></form>
+                      {% if plan.can_send_approval %}
+                        <form method="post" action="{% url 'orbita_workforce_plan_send' plan.public_id %}">
+                          {% csrf_token %}
+                          <input type="text" name="comment" class="form-control form-control-sm mb-1" placeholder="Comentario opcional">
+                          <button type="submit" class="btn btn-primary btn-sm">Enviar a aprobación</button>
+                        </form>
                       {% endif %}
-                      {% if plan.status == "aprobado" %}
+                      {% if plan.can_approve %}
+                        <form method="post" action="{% url 'orbita_workforce_plan_approve' plan.public_id %}">
+                          {% csrf_token %}
+                          <input type="text" name="comment" class="form-control form-control-sm mb-1" placeholder="Comentario opcional">
+                          <button type="submit" class="btn btn-outline-success btn-sm">Aprobar</button>
+                        </form>
+                      {% endif %}
+                      {% if plan.can_reject %}
+                        <form method="post" action="{% url 'orbita_workforce_plan_reject' plan.public_id %}">
+                          {% csrf_token %}
+                          <input type="text" name="comment" class="form-control form-control-sm mb-1" placeholder="Comentario opcional">
+                          <button type="submit" class="btn btn-outline-danger btn-sm">Rechazar</button>
+                        </form>
+                      {% endif %}
+                      {% if plan.can_convert %}
                         {% if plan.gap > 0 %}
-                          <form method="post" action="{% url 'orbita_workforce_plan_convert' plan.public_id %}">{% csrf_token %}<button type="submit" class="btn btn-primary btn-sm">Crear vacante</button></form>
+                          <form method="post" action="{% url 'orbita_workforce_plan_convert' plan.public_id %}">
+                            {% csrf_token %}
+                            <input type="text" name="comment" class="form-control form-control-sm mb-1" placeholder="Comentario opcional">
+                            <button type="submit" class="btn btn-primary btn-sm">Crear vacante</button>
+                          </form>
                         {% else %}
                           <span class="text-muted small">Sin brecha</span>
                         {% endif %}
                       {% endif %}
-                      {% if plan.status != "convertido_vacante" %}
+                      {% if plan.can_edit %}
                         <a class="wf-edit-link" href="{% url 'orbita_workforce_dashboard' %}?tab=planeacion&edit={{ plan.public_id }}">Editar</a>
+                      {% endif %}
+                      {% if plan.can_cancel %}
+                        <form method="post" action="{% url 'orbita_workforce_plan_cancel' plan.public_id %}" onsubmit="return confirm('¿Cancelar esta necesidad de personal?');">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-outline-secondary btn-sm">Cancelar</button>
+                        </form>
+                      {% endif %}
+                      {% if plan.can_delete %}
                         <form method="post" action="{% url 'orbita_workforce_plan_delete' plan.public_id %}" onsubmit="return confirm('¿Eliminar esta necesidad de personal?');">
                           {% csrf_token %}
                           <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
@@ -380,7 +414,7 @@
                   </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7" class="text-center text-muted py-4">Aún no hay planes Workforce.</td></tr>
+                <tr><td colspan="8" class="text-center text-muted py-4">Aún no hay planes Workforce.</td></tr>
                 {% endfor %}
               </tbody>
             </table>

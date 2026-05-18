@@ -18,6 +18,7 @@ from mi_app.models import (
     Subscription,
     Vacancy,
     WorkforceArea,
+    WorkforceAuditLog,
     WorkforcePlan,
     WorkforcePosition,
 )
@@ -274,7 +275,11 @@ class ATSWorkforceTests(TestCase):
         self.assertEqual(vacancy.title, "Desarrollador")
         self.assertEqual(vacancy.openings, 3)
         self.assertEqual(vacancy.source, Vacancy.SOURCE_WORKFORCE)
+        self.assertEqual(vacancy.status, Vacancy.STATUS_OPEN)
+        self.assertEqual(vacancy.area_name, "Sistemas")
+        self.assertEqual(vacancy.estimated_budget, Decimal("105000.00"))
         self.assertTrue(vacancy.ai_enabled)
+        self.assertTrue(WorkforceAuditLog.objects.filter(plan=plan, action="Creó vacante").exists())
 
     def test_workforce_records_can_be_updated_and_deleted(self):
         area = WorkforceArea.objects.create(client=self.ats_client, name="Sistemas")
@@ -291,7 +296,7 @@ class ATSWorkforceTests(TestCase):
             position=position,
             current_staff=1,
             required_staff=3,
-            status=WorkforcePlan.STATUS_PENDING,
+            status=WorkforcePlan.STATUS_DRAFT,
         )
 
         response = self.client.post(reverse("orbita_workforce_plan_update", args=[plan.public_id]), {
@@ -310,7 +315,13 @@ class ATSWorkforceTests(TestCase):
         plan.refresh_from_db()
         self.assertEqual(plan.gap, 5)
         self.assertEqual(plan.estimated_budget, Decimal("175000.00"))
-        self.assertEqual(plan.status, WorkforcePlan.STATUS_APPROVED)
+        self.assertEqual(plan.status, WorkforcePlan.STATUS_DRAFT)
+
+        response = self.client.post(reverse("orbita_workforce_plan_send", args=[plan.public_id]))
+        self.assertEqual(response.status_code, 302)
+        plan.refresh_from_db()
+        self.assertEqual(plan.status, WorkforcePlan.STATUS_PENDING)
+        self.assertEqual(plan.approval_stage, WorkforcePlan.STAGE_HR)
 
         response = self.client.post(reverse("orbita_workforce_plan_delete", args=[plan.public_id]))
 
@@ -335,6 +346,56 @@ class ATSWorkforceTests(TestCase):
 
         self.client.post(reverse("orbita_workforce_area_delete", args=[area.public_id]))
         self.assertFalse(WorkforceArea.objects.filter(pk=area.pk).exists())
+
+    def test_workforce_approval_flow_advances_by_role(self):
+        area = WorkforceArea.objects.create(client=self.ats_client, name="Sistemas")
+        position = WorkforcePosition.objects.create(
+            client=self.ats_client,
+            area=area,
+            name="Backend",
+            salary_min="20000.00",
+            salary_max="30000.00",
+        )
+        plan = WorkforcePlan.objects.create(
+            client=self.ats_client,
+            area=area,
+            position=position,
+            current_staff=2,
+            required_staff=10,
+            status=WorkforcePlan.STATUS_DRAFT,
+        )
+
+        self.ats_client.workforce_role = ATSClient.WORKFORCE_ROLE_HR
+        self.ats_client.save(update_fields=["workforce_role"])
+        self.client.post(reverse("orbita_workforce_plan_send", args=[plan.public_id]), {"comment": "Lista para revisar."})
+        plan.refresh_from_db()
+        self.assertEqual(plan.status, WorkforcePlan.STATUS_PENDING)
+        self.assertEqual(plan.approval_stage, WorkforcePlan.STAGE_HR)
+        self.assertEqual(plan.operational_risk, "Alto")
+
+        self.client.post(reverse("orbita_workforce_plan_approve", args=[plan.public_id]))
+        plan.refresh_from_db()
+        self.assertEqual(plan.approval_stage, WorkforcePlan.STAGE_DIRECTION)
+
+        self.ats_client.workforce_role = ATSClient.WORKFORCE_ROLE_DIRECTION
+        self.ats_client.save(update_fields=["workforce_role"])
+        self.client.post(reverse("orbita_workforce_plan_approve", args=[plan.public_id]))
+        plan.refresh_from_db()
+        self.assertEqual(plan.approval_stage, WorkforcePlan.STAGE_FINANCE)
+
+        self.ats_client.workforce_role = ATSClient.WORKFORCE_ROLE_FINANCE
+        self.ats_client.save(update_fields=["workforce_role"])
+        self.client.post(reverse("orbita_workforce_plan_approve", args=[plan.public_id]))
+        plan.refresh_from_db()
+        self.assertEqual(plan.status, WorkforcePlan.STATUS_APPROVED)
+        self.assertEqual(plan.approval_stage, WorkforcePlan.STAGE_VACANCY)
+
+        self.ats_client.workforce_role = ATSClient.WORKFORCE_ROLE_RECRUITER
+        self.ats_client.save(update_fields=["workforce_role"])
+        self.client.post(reverse("orbita_workforce_plan_convert", args=[plan.public_id]))
+        plan.refresh_from_db()
+        self.assertEqual(plan.status, WorkforcePlan.STATUS_CONVERTED)
+        self.assertGreaterEqual(WorkforceAuditLog.objects.filter(plan=plan).count(), 5)
 
 
 @override_settings(
