@@ -277,57 +277,54 @@
         <div class="wf-kpi"><div class="label">Pendientes</div><div class="value">{{ pending_count }}</div></div>
         <div class="wf-kpi"><div class="label">Riesgo alto</div><div class="value">{{ high_risk_count }}</div></div>
       </div>
-      <div class="wf-two-col">
-        <div>
-          <div class="wf-panel">
-            <h2><i class="bi bi-clipboard2-plus"></i> Necesidad de personal</h2>
-            <form method="post" action="{% url 'orbita_workforce_plan_create' %}" class="wf-form-stack">
-              {% csrf_token %}
-              <div class="row g-2">
-                <div class="col-12"><label>Área</label>{{ plan_form.area }}</div>
-                <div class="col-12"><label>Puesto</label>{{ plan_form.position }}</div>
-                <div class="col-6"><label>Actual</label>{{ plan_form.current_staff }}</div>
-                <div class="col-6"><label>Requerido</label>{{ plan_form.required_staff }}</div>
-                <div class="col-6"><label>Vacantes abiertas</label>{{ plan_form.open_vacancies }}</div>
-                <div class="col-6"><label>Rotación %</label>{{ plan_form.turnover_rate }}</div>
-                <div class="col-6"><label>Prioridad</label>{{ plan_form.priority }}</div>
-                <div class="col-6"><label>Estado</label>{{ plan_form.status }}</div>
-                <div class="col-12"><label>Justificación</label>{{ plan_form.executive_justification }}</div>
-              </div>
-              <div id="wf-budget-preview" class="wf-budget-preview">
-                Brecha estimada: 0 · Presupuesto estimado: $0
-                <small>Brecha por salario máximo del puesto seleccionado.</small>
-              </div>
-              <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check2-circle me-1"></i>Registrar necesidad</button>
-            </form>
+      <div class="wf-panel">
+        <h2><i class="bi bi-clipboard2-plus"></i> Necesidad de personal</h2>
+        <form method="post" action="{% url 'orbita_workforce_plan_create' %}" class="wf-form-stack">
+          {% csrf_token %}
+          <div class="row g-2">
+            <div class="col-12 col-md-6"><label>Área</label>{{ plan_form.area }}</div>
+            <div class="col-12 col-md-6"><label>Puesto</label>{{ plan_form.position }}</div>
+            <div class="col-6 col-md-3"><label>Actual</label>{{ plan_form.current_staff }}</div>
+            <div class="col-6 col-md-3"><label>Requerido</label>{{ plan_form.required_staff }}</div>
+            <div class="col-6 col-md-3"><label>Vacantes abiertas</label>{{ plan_form.open_vacancies }}</div>
+            <div class="col-6 col-md-3"><label>Rotación %</label>{{ plan_form.turnover_rate }}</div>
+            <div class="col-12 col-md-6"><label>Prioridad</label>{{ plan_form.priority }}</div>
+            <div class="col-12 col-md-6"><label>Estado</label>{{ plan_form.status }}</div>
+            <div class="col-12"><label>Justificación</label>{{ plan_form.executive_justification }}</div>
           </div>
+          <div id="wf-budget-preview" class="wf-budget-preview">
+            Brecha estimada: 0 · Presupuesto estimado: $0
+            <small>Brecha por salario máximo del puesto seleccionado.</small>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm align-self-start"><i class="bi bi-check2-circle me-1"></i>Registrar necesidad</button>
+        </form>
+      </div>
 
-          {% if edit_plan %}
-            <div class="wf-panel">
-              <h2><i class="bi bi-pencil-square"></i> Editar necesidad</h2>
-              <form method="post" action="{% url 'orbita_workforce_plan_update' edit_plan.public_id %}" class="wf-form-stack">
-                {% csrf_token %}
-                <div class="row g-2">
-                  <div class="col-12"><label>Área</label><select name="area" class="form-select">{% for area in areas %}<option value="{{ area.id }}" {% if area.id == edit_plan.area_id %}selected{% endif %}>{{ area.name }}</option>{% endfor %}</select></div>
-                  <div class="col-12"><label>Puesto</label><select name="position" class="form-select">{% for position in positions %}<option value="{{ position.id }}" {% if position.id == edit_plan.position_id %}selected{% endif %}>{{ position.name }} · {{ position.area.name }}</option>{% endfor %}</select></div>
-                  <div class="col-6"><label>Actual</label><input type="number" name="current_staff" value="{{ edit_plan.current_staff }}" min="0" class="form-control"></div>
-                  <div class="col-6"><label>Requerido</label><input type="number" name="required_staff" value="{{ edit_plan.required_staff }}" min="0" class="form-control"></div>
-                  <div class="col-6"><label>Vacantes abiertas</label><input type="number" name="open_vacancies" value="{{ edit_plan.open_vacancies }}" min="0" class="form-control"></div>
-                  <div class="col-6"><label>Rotación %</label><input type="number" name="turnover_rate" value="{{ edit_plan.turnover_rate }}" min="0" max="100" step="0.01" class="form-control"></div>
-                  <div class="col-6"><label>Prioridad</label><select name="priority" class="form-select"><option value="baja" {% if edit_plan.priority == "baja" %}selected{% endif %}>Baja</option><option value="media" {% if edit_plan.priority == "media" %}selected{% endif %}>Media</option><option value="alta" {% if edit_plan.priority == "alta" %}selected{% endif %}>Alta</option><option value="critica" {% if edit_plan.priority == "critica" %}selected{% endif %}>Crítica</option></select></div>
-                  <div class="col-6"><label>Estado</label><select name="status" class="form-select"><option value="borrador" {% if edit_plan.status == "borrador" %}selected{% endif %}>Borrador</option><option value="pendiente" {% if edit_plan.status == "pendiente" %}selected{% endif %}>Pendiente de aprobación</option><option value="aprobado" {% if edit_plan.status == "aprobado" %}selected{% endif %}>Aprobado</option><option value="rechazado" {% if edit_plan.status == "rechazado" %}selected{% endif %}>Rechazado</option></select></div>
-                  <div class="col-12"><label>Justificación</label><textarea name="executive_justification" rows="3" class="form-control">{{ edit_plan.executive_justification }}</textarea></div>
-                </div>
-                <div class="d-flex gap-2">
-                  <button type="submit" class="btn btn-primary btn-sm">Guardar cambios</button>
-                  <a href="{% url 'orbita_workforce_dashboard' %}?tab=planes" class="btn btn-outline-secondary btn-sm">Cancelar</a>
-                </div>
-              </form>
-            </div>
-          {% endif %}
-        </div>
-
+      {% if edit_plan %}
         <div class="wf-panel">
+          <h2><i class="bi bi-pencil-square"></i> Editar necesidad</h2>
+          <form method="post" action="{% url 'orbita_workforce_plan_update' edit_plan.public_id %}" class="wf-form-stack">
+            {% csrf_token %}
+            <div class="row g-2">
+              <div class="col-12 col-md-6"><label>Área</label><select name="area" class="form-select">{% for area in areas %}<option value="{{ area.id }}" {% if area.id == edit_plan.area_id %}selected{% endif %}>{{ area.name }}</option>{% endfor %}</select></div>
+              <div class="col-12 col-md-6"><label>Puesto</label><select name="position" class="form-select">{% for position in positions %}<option value="{{ position.id }}" {% if position.id == edit_plan.position_id %}selected{% endif %}>{{ position.name }} · {{ position.area.name }}</option>{% endfor %}</select></div>
+              <div class="col-6 col-md-3"><label>Actual</label><input type="number" name="current_staff" value="{{ edit_plan.current_staff }}" min="0" class="form-control"></div>
+              <div class="col-6 col-md-3"><label>Requerido</label><input type="number" name="required_staff" value="{{ edit_plan.required_staff }}" min="0" class="form-control"></div>
+              <div class="col-6 col-md-3"><label>Vacantes abiertas</label><input type="number" name="open_vacancies" value="{{ edit_plan.open_vacancies }}" min="0" class="form-control"></div>
+              <div class="col-6 col-md-3"><label>Rotación %</label><input type="number" name="turnover_rate" value="{{ edit_plan.turnover_rate }}" min="0" max="100" step="0.01" class="form-control"></div>
+              <div class="col-12 col-md-6"><label>Prioridad</label><select name="priority" class="form-select"><option value="baja" {% if edit_plan.priority == "baja" %}selected{% endif %}>Baja</option><option value="media" {% if edit_plan.priority == "media" %}selected{% endif %}>Media</option><option value="alta" {% if edit_plan.priority == "alta" %}selected{% endif %}>Alta</option><option value="critica" {% if edit_plan.priority == "critica" %}selected{% endif %}>Crítica</option></select></div>
+              <div class="col-12 col-md-6"><label>Estado</label><select name="status" class="form-select"><option value="borrador" {% if edit_plan.status == "borrador" %}selected{% endif %}>Borrador</option><option value="pendiente" {% if edit_plan.status == "pendiente" %}selected{% endif %}>Pendiente de aprobación</option><option value="aprobado" {% if edit_plan.status == "aprobado" %}selected{% endif %}>Aprobado</option><option value="rechazado" {% if edit_plan.status == "rechazado" %}selected{% endif %}>Rechazado</option></select></div>
+              <div class="col-12"><label>Justificación</label><textarea name="executive_justification" rows="3" class="form-control">{{ edit_plan.executive_justification }}</textarea></div>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary btn-sm">Guardar cambios</button>
+              <a href="{% url 'orbita_workforce_dashboard' %}?tab=planes" class="btn btn-outline-secondary btn-sm">Cancelar</a>
+            </div>
+          </form>
+        </div>
+      {% endif %}
+
+      <div class="wf-panel">
           <h2><i class="bi bi-kanban"></i> Solicitudes registradas</h2>
           <div class="table-responsive">
             <table class="wf-table">
@@ -381,7 +378,6 @@
             </table>
           </div>
         </div>
-      </div>
     {% endif %}
   </div>
 {% endblock %}
