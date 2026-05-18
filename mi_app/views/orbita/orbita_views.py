@@ -1766,7 +1766,7 @@ class ATSVacancyDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
         return redirect(reverse("orbita_dashboard") + "?section=reclutamiento")
 
 
-def _redirect_workforce(tab="resumen"):
+def _redirect_workforce(tab="planes"):
     return redirect(f"{reverse('orbita_workforce_dashboard')}?tab={tab}")
 
 
@@ -1780,8 +1780,12 @@ class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
         client = _get_client_or_403(request)
         if not client:
             return redirect("orbita_dashboard")
-        valid_tabs = {"resumen", "areas", "puestos", "planes"}
-        active_tab = request.GET.get("tab") if request.GET.get("tab") in valid_tabs else "resumen"
+        valid_tabs = {"areas", "puestos", "planes"}
+        active_tab = request.GET.get("tab")
+        if active_tab == "resumen":
+            active_tab = "planes"
+        if active_tab not in valid_tabs:
+            active_tab = "planes"
         areas = WorkforceArea.objects.filter(client=client).prefetch_related("positions")
         positions = WorkforcePosition.objects.filter(client=client).select_related("area")
         plans = WorkforcePlan.objects.filter(client=client).select_related("area", "position")[:100]

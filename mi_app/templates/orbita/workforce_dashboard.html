@@ -173,30 +173,12 @@
         {% elif active_tab == "puestos" %}
           <h2>Puestos requeridos</h2>
           <p>Define puestos, salarios y área responsable.</p>
-        {% elif active_tab == "planes" %}
-          <h2>Planeación y autorizaciones</h2>
-          <p>Registra necesidades, apruébalas y conviértelas en vacantes.</p>
         {% else %}
-          <h2>Resumen Workforce</h2>
-          <p>Vista ejecutiva de plantilla, brechas, riesgo y presupuesto.</p>
+          <h2>Necesidad de personal</h2>
+          <p>Registra necesidades, revisa brechas, aprueba solicitudes y conviértelas en vacantes.</p>
         {% endif %}
       </div>
     </div>
-
-    {% if active_tab == "resumen" %}
-      <div class="wf-kpis">
-        <div class="wf-kpi"><div class="label">Personal actual</div><div class="value">{{ total_current }}</div></div>
-        <div class="wf-kpi"><div class="label">Personal requerido</div><div class="value">{{ total_required }}</div></div>
-        <div class="wf-kpi"><div class="label">Brecha</div><div class="value">{{ total_gap }}</div></div>
-        <div class="wf-kpi"><div class="label">Presupuesto estimado</div><div class="value">${{ total_budget|floatformat:0 }}</div></div>
-        <div class="wf-kpi"><div class="label">Pendientes</div><div class="value">{{ pending_count }}</div></div>
-        <div class="wf-kpi"><div class="label">Riesgo alto</div><div class="value">{{ high_risk_count }}</div></div>
-      </div>
-      <div class="wf-panel">
-        <h2><i class="bi bi-activity"></i> Estado de la plantilla</h2>
-        <p class="text-muted small mb-0">Usa Áreas y Puestos como catálogo. En Planeación registra la necesidad, apruébala y conviértela en vacante cuando exista brecha real.</p>
-      </div>
-    {% endif %}
 
     {% if active_tab == "areas" %}
       <div class="wf-two-col">
@@ -287,6 +269,14 @@
     {% endif %}
 
     {% if active_tab == "planes" %}
+      <div class="wf-kpis">
+        <div class="wf-kpi"><div class="label">Personal actual</div><div class="value">{{ total_current }}</div></div>
+        <div class="wf-kpi"><div class="label">Personal requerido</div><div class="value">{{ total_required }}</div></div>
+        <div class="wf-kpi"><div class="label">Brecha</div><div class="value">{{ total_gap }}</div></div>
+        <div class="wf-kpi"><div class="label">Presupuesto estimado</div><div class="value">${{ total_budget|floatformat:0 }}</div></div>
+        <div class="wf-kpi"><div class="label">Pendientes</div><div class="value">{{ pending_count }}</div></div>
+        <div class="wf-kpi"><div class="label">Riesgo alto</div><div class="value">{{ high_risk_count }}</div></div>
+      </div>
       <div class="wf-two-col">
         <div>
           <div class="wf-panel">
@@ -338,7 +328,7 @@
         </div>
 
         <div class="wf-panel">
-          <h2><i class="bi bi-kanban"></i> Planeación y autorizaciones</h2>
+          <h2><i class="bi bi-kanban"></i> Solicitudes registradas</h2>
           <div class="table-responsive">
             <table class="wf-table">
               <thead>
