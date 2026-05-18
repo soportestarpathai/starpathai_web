@@ -1768,11 +1768,17 @@ class ATSVacancyDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
 
 
 def _redirect_workforce(tab="necesidad"):
-    return redirect(f"{reverse('orbita_workforce_dashboard')}?tab={tab}")
+    route_names = {
+        "necesidad": "orbita_workforce_needs",
+        "planeacion": "orbita_workforce_planning",
+        "areas": "orbita_workforce_areas",
+        "puestos": "orbita_workforce_positions",
+    }
+    return redirect(reverse(route_names.get(tab, "orbita_workforce_dashboard")))
 
 
 def _workforce_link():
-    return f"{reverse('orbita_workforce_dashboard')}?tab=necesidad"
+    return reverse("orbita_workforce_needs")
 
 
 def _workforce_role(user, client):
@@ -1856,11 +1862,17 @@ class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
         if not client:
             return redirect("orbita_dashboard")
         valid_tabs = {"necesidad", "areas", "puestos", "planeacion"}
-        active_tab = request.GET.get("tab")
+        route_tabs = {
+            "orbita_workforce_needs": "necesidad",
+            "orbita_workforce_planning": "planeacion",
+            "orbita_workforce_areas": "areas",
+            "orbita_workforce_positions": "puestos",
+        }
+        active_tab = route_tabs.get(getattr(request.resolver_match, "url_name", ""), request.GET.get("tab"))
         if active_tab in {"resumen", "planes"}:
             active_tab = "necesidad"
         if active_tab not in valid_tabs:
-            active_tab = "necesidad"
+            active_tab = "planeacion"
         areas = WorkforceArea.objects.filter(client=client).prefetch_related("positions")
         positions = WorkforcePosition.objects.filter(client=client).select_related("area")
         plans = list(WorkforcePlan.objects.filter(client=client).select_related("area", "position")[:100])
@@ -1872,7 +1884,7 @@ class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
                 edit_uuid = uuid_lib.UUID(str(edit_public_id))
                 edit_plan = WorkforcePlan.objects.filter(client=client, public_id=edit_uuid).select_related("area", "position").first()
                 if edit_plan:
-                    active_tab = "planeacion"
+                    active_tab = "necesidad"
             except (TypeError, ValueError):
                 edit_plan = None
         total_current = sum(plan.current_staff for plan in plans)
@@ -1883,6 +1895,43 @@ class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
         approved_count = sum(1 for plan in plans if plan.status == WorkforcePlan.STATUS_APPROVED)
         high_risk_count = sum(1 for plan in plans if plan.operational_risk == "Alto")
         created_vacancy_count = Vacancy.objects.filter(client=client, source=Vacancy.SOURCE_WORKFORCE).count()
+        critical_plans = [
+            plan for plan in plans
+            if plan.operational_risk == "Alto" and plan.status not in {WorkforcePlan.STATUS_CONVERTED, WorkforcePlan.STATUS_CANCELED}
+        ]
+        recommendations = []
+        if total_gap > 0:
+            recommendations.append({
+                "level": "info",
+                "title": "Recomendar contratación",
+                "message": f"Hay una brecha total de {total_gap} persona(s). Prioriza las necesidades pendientes y aprobadas.",
+            })
+        if high_risk_count > 0:
+            recommendations.append({
+                "level": "critical",
+                "title": "Alerta crítica",
+                "message": f"{high_risk_count} necesidad(es) tienen riesgo alto por brecha mayor o igual a 10.",
+            })
+        if total_budget == 0 and total_gap > 0:
+            recommendations.append({
+                "level": "warning",
+                "title": "Presupuesto pendiente",
+                "message": "Hay brecha de personal, pero el presupuesto estimado está en $0. Revisa salarios máximos en Puestos.",
+            })
+        area_summary = []
+        for area in areas:
+            area_plans = [plan for plan in plans if plan.area_id == area.id]
+            if not area_plans:
+                continue
+            area_summary.append({
+                "area": area,
+                "current": sum(plan.current_staff for plan in area_plans),
+                "projected": sum(plan.projected_staff for plan in area_plans),
+                "gap": sum(plan.gap for plan in area_plans),
+                "budget": sum(plan.estimated_budget for plan in area_plans),
+                "pending": sum(1 for plan in area_plans if plan.status == WorkforcePlan.STATUS_PENDING),
+                "high_risk": sum(1 for plan in area_plans if plan.operational_risk == "Alto"),
+            })
         return render(request, self.template_name, {
             "orbita_client": client,
             "subscription": _get_or_create_subscription(request.user),
@@ -1905,6 +1954,9 @@ class ATSWorkforceDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, V
             "created_vacancy_count": created_vacancy_count,
             "workforce_role": _workforce_role(request.user, client),
             "can_create_workforce_plan": _workforce_can(request.user, client, "create"),
+            "critical_plans": critical_plans,
+            "recommendations": recommendations,
+            "area_summary": area_summary,
         })
 
 

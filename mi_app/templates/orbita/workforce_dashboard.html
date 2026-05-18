@@ -145,6 +145,23 @@
   .wf-risk-mid { color: #d97706; font-weight: 800; }
   .wf-risk-low { color: #059669; font-weight: 800; }
   .wf-actions { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+  .wf-intel-grid {
+    display: grid;
+    grid-template-columns: minmax(300px, 1.1fr) minmax(300px, .9fr);
+    gap: 1rem;
+  }
+  .wf-rec-list { display: grid; gap: .55rem; }
+  .wf-rec {
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: .75rem;
+    background: #f8fafc;
+  }
+  .wf-rec strong { display: block; color: #0b1c2d; margin-bottom: .15rem; }
+  .wf-rec p { margin: 0; color: #64748b; font-size: .82rem; }
+  .wf-rec.critical { border-color: rgba(220,38,38,.28); background: #fef2f2; }
+  .wf-rec.warning { border-color: rgba(217,119,6,.28); background: #fffbeb; }
+  .wf-rec.info { border-color: rgba(0,196,201,.28); background: #ecfeff; }
   .wf-edit-link {
     color: #00aeb5;
     font-weight: 800;
@@ -153,6 +170,7 @@
   }
   @media (max-width: 992px) {
     .wf-two-col { grid-template-columns: 1fr; }
+    .wf-intel-grid { grid-template-columns: 1fr; }
     .wf-section-head { align-items: flex-start; flex-direction: column; }
   }
 {% endblock %}
@@ -175,10 +193,10 @@
           <p>Define puestos, salarios y área responsable.</p>
         {% elif active_tab == "planeacion" %}
           <h2>Planeación</h2>
-          <p>Registra una nueva necesidad de personal para enviarla a autorización.</p>
+          <p>Workforce Intelligence con riesgos, recomendaciones y resumen por área.</p>
         {% else %}
           <h2>Necesidad de personal</h2>
-          <p>Consulta métricas, brechas y solicitudes registradas para convertirlas en vacantes.</p>
+          <p>Registra necesidades, envíalas a aprobación y conviértelas en vacantes.</p>
         {% endif %}
       </div>
     </div>
@@ -271,7 +289,7 @@
       </div>
     {% endif %}
 
-    {% if active_tab == "necesidad" %}
+    {% if active_tab == "necesidad" or active_tab == "planeacion" %}
       <div class="wf-kpis">
         <div class="wf-kpi"><div class="label">Personal actual</div><div class="value">{{ total_current }}</div></div>
         <div class="wf-kpi"><div class="label">Plantilla proyectada</div><div class="value">{{ total_required }}</div></div>
@@ -284,6 +302,89 @@
     {% endif %}
 
     {% if active_tab == "planeacion" %}
+      <div class="wf-intel-grid">
+        <div class="wf-panel">
+          <h2><i class="bi bi-exclamation-triangle"></i> Necesidades críticas</h2>
+          <div class="table-responsive">
+            <table class="wf-table">
+              <thead>
+                <tr>
+                  <th>Necesidad</th>
+                  <th>Brecha</th>
+                  <th>Presupuesto</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for plan in critical_plans %}
+                <tr>
+                  <td><strong>{{ plan.position.name }}</strong><br><span class="text-muted small">{{ plan.area.name }}</span></td>
+                  <td>{{ plan.gap }}</td>
+                  <td>${{ plan.estimated_budget|floatformat:0 }}</td>
+                  <td><span class="wf-status">{{ plan.get_status_display }}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-4">No hay necesidades críticas activas.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="wf-panel">
+          <h2><i class="bi bi-lightbulb"></i> Recomendaciones</h2>
+          <div class="wf-rec-list">
+            {% for rec in recommendations %}
+              <div class="wf-rec {{ rec.level }}">
+                <strong>{{ rec.title }}</strong>
+                <p>{{ rec.message }}</p>
+              </div>
+            {% empty %}
+              <div class="wf-rec info">
+                <strong>Sin alertas activas</strong>
+                <p>La planeación actual no muestra brechas críticas ni advertencias de presupuesto.</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="wf-panel">
+        <h2><i class="bi bi-building"></i> Resumen por área</h2>
+        <div class="table-responsive">
+          <table class="wf-table">
+            <thead>
+              <tr>
+                <th>Área</th>
+                <th>Actual</th>
+                <th>Proyectada</th>
+                <th>Brecha</th>
+                <th>Presupuesto</th>
+                <th>Pendientes</th>
+                <th>Riesgo alto</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in area_summary %}
+              <tr>
+                <td><strong>{{ item.area.name }}</strong></td>
+                <td>{{ item.current }}</td>
+                <td>{{ item.projected }}</td>
+                <td>{{ item.gap }}</td>
+                <td>${{ item.budget|floatformat:0 }}</td>
+                <td>{{ item.pending }}</td>
+                <td>{{ item.high_risk }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-center text-muted py-4">Aún no hay datos por área.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if active_tab == "necesidad" %}
       <div class="wf-panel">
         <h2><i class="bi bi-clipboard2-plus"></i> Necesidad de personal</h2>
         {% if can_create_workforce_plan %}
@@ -327,7 +428,7 @@
             </div>
             <div class="d-flex gap-2">
               <button type="submit" class="btn btn-primary btn-sm">Guardar cambios</button>
-              <a href="{% url 'orbita_workforce_dashboard' %}?tab=planeacion" class="btn btn-outline-secondary btn-sm">Cancelar</a>
+              <a href="{% url 'orbita_workforce_needs' %}" class="btn btn-outline-secondary btn-sm">Cancelar</a>
             </div>
           </form>
         </div>
@@ -396,7 +497,7 @@
                         {% endif %}
                       {% endif %}
                       {% if plan.can_edit %}
-                        <a class="wf-edit-link" href="{% url 'orbita_workforce_dashboard' %}?tab=planeacion&edit={{ plan.public_id }}">Editar</a>
+                        <a class="wf-edit-link" href="{% url 'orbita_workforce_needs' %}?edit={{ plan.public_id }}">Editar</a>
                       {% endif %}
                       {% if plan.can_cancel %}
                         <form method="post" action="{% url 'orbita_workforce_plan_cancel' plan.public_id %}" onsubmit="return confirm('¿Cancelar esta necesidad de personal?');">

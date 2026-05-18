@@ -245,6 +245,20 @@ class ATSWorkforceTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Planeación de personal")
+        self.assertContains(response, "Workforce Intelligence")
+
+    def test_workforce_submodule_routes_render_expected_sections(self):
+        routes = [
+            ("orbita_workforce_needs", "Necesidad de personal"),
+            ("orbita_workforce_planning", "Recomendaciones"),
+            ("orbita_workforce_areas", "Áreas / Departamentos"),
+            ("orbita_workforce_positions", "Puestos requeridos"),
+        ]
+
+        for route_name, expected_text in routes:
+            response = self.client.get(reverse(route_name))
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, expected_text)
 
     def test_approved_plan_can_convert_to_vacancy(self):
         area = WorkforceArea.objects.create(client=self.ats_client, name="Sistemas")
