@@ -868,7 +868,11 @@
       await delay(400);
       hideTyping();
 
-      if (data.completed) {
+      if (data.duplicate) {
+        currentStepIdx = STEPS.length;
+        buildProgressSteps();
+        showAlreadySubmitted();
+      } else if (data.completed) {
         currentStepIdx = STEPS.length;
         buildProgressSteps();
         showCompleted();
@@ -888,6 +892,18 @@
         "<div class='check-icon'><i class='bi bi-check-lg'></i></div>" +
         "<h2>¡Postulación recibida!</h2>" +
         "<p>Gracias por completar el proceso. Tu información ha sido enviada correctamente. Te contactaremos pronto.</p>" +
+        "</div>"
+      );
+    }
+
+    function showAlreadySubmitted() {
+      completed = true;
+      inputArea.classList.add("hidden");
+      addMsg("bot",
+        "<div class='chat-completed-card'>" +
+        "<div class='check-icon'><i class='bi bi-check-lg'></i></div>" +
+        "<h2>Respuesta ya registrada</h2>" +
+        "<p>Ya recibimos una respuesta con este correo para este formulario. No necesitas enviarla de nuevo.</p>" +
         "</div>"
       );
     }

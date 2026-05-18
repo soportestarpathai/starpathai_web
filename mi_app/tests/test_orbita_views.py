@@ -1,6 +1,7 @@
 """
 Tests para vistas ATS: acceso, permisos, flujos cliente y admin.
 """
+import json
 from decimal import Decimal
 
 from django.test import TestCase, Client, override_settings
@@ -13,6 +14,7 @@ from mi_app.models import (
     ATSFormField,
     ATSFormSubmission,
     Candidate,
+    FormChatSession,
     Subscription,
     Vacancy,
     WorkforceArea,
@@ -68,6 +70,12 @@ class ATSPlataformaAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
 class ATSFormPublicTests(TestCase):
     """Formulario público: GET y thanks."""
 
@@ -75,6 +83,7 @@ class ATSFormPublicTests(TestCase):
         self.client = Client()
         self.user = User.objects.create_user(username="c@test.com", email="c@test.com", password="x")
         self.ats_client = ATSClient.objects.create(user=self.user, company_name="Test", contact_name="C")
+        Subscription.objects.create(user=self.user)
         self.ats_form = ATSForm.objects.create(client=self.ats_client, name="Form Test", is_active=True)
 
     def test_form_public_get_returns_200_for_active_form(self):
@@ -93,6 +102,46 @@ class ATSFormPublicTests(TestCase):
         url = reverse("orbita_form_public", args=[self.ats_form.uuid])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+    def test_form_public_accepts_only_one_submission_per_email(self):
+        url = reverse("orbita_form_public", args=[self.ats_form.uuid])
+
+        first = self.client.post(url, {"submitter_email": "Postulante@Example.com"})
+        second = self.client.post(url, {"submitter_email": "postulante@example.com"})
+
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(second.status_code, 200)
+        self.assertContains(second, "Respuesta ya registrada")
+        self.assertEqual(ATSFormSubmission.objects.filter(form=self.ats_form).count(), 1)
+
+    def test_form_chat_accepts_only_one_submission_per_email(self):
+        ATSFormSubmission.objects.create(
+            form=self.ats_form,
+            payload={"Correo electrónico": "postulante@example.com"},
+            submitter_email="postulante@example.com",
+        )
+        session = FormChatSession.objects.create(
+            form=self.ats_form,
+            current_step=0,
+            total_steps=1,
+            status=FormChatSession.STATUS_STARTED,
+        )
+
+        response = self.client.post(
+            reverse("orbita_form_chat_answer", args=[self.ats_form.uuid]),
+            data=json.dumps({
+                "session_uuid": str(session.session_uuid),
+                "step_id": "submitter_email",
+                "value": "Postulante@Example.com",
+            }),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["duplicate"])
+        self.assertTrue(data["completed"])
+        self.assertEqual(ATSFormSubmission.objects.filter(form=self.ats_form).count(), 1)
 
 
 class ATSNotificationPanelTests(TestCase):

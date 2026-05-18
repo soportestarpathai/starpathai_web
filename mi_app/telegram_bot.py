@@ -31,6 +31,11 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+from mi_app.services.form_submissions import (
+    create_submission_once,
+    has_existing_submission_for_email,
+    normalize_submitter_email,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +168,7 @@ def _save_answer(session, step, value, orbita_form):
     if step["id"] == "submitter_email" or (
         step["type"] == "email" and val_str and "@" in val_str
     ):
-        session.candidate_email = val_str
+        session.candidate_email = normalize_submitter_email(val_str)
 
     name_keywords = {
         "nombre",
@@ -191,6 +196,33 @@ def _save_answer(session, step, value, orbita_form):
     return is_last
 
 
+def _mark_duplicate_if_needed(orbita_form, session_id):
+    from mi_app.models import FormChatSession
+
+    close_old_connections()
+    session = FormChatSession.objects.get(pk=session_id)
+    if not session.candidate_email:
+        return False
+    if not has_existing_submission_for_email(orbita_form, session.candidate_email):
+        return False
+    session.status = FormChatSession.STATUS_COMPLETED
+    session.completed_at = timezone.now()
+    session.save(update_fields=["status", "completed_at", "updated_at"])
+    return True
+
+
+def _telegram_user_already_completed(orbita_form, telegram_user_id):
+    from mi_app.models import FormChatSession
+
+    close_old_connections()
+    return FormChatSession.objects.filter(
+        form=orbita_form,
+        source=FormChatSession.SOURCE_TELEGRAM,
+        telegram_user_id=telegram_user_id,
+        submission__isnull=False,
+    ).exists()
+
+
 def _finalize(orbita_form, session):
     """Replica la lógica de FormChatAnswerAPI._finalize_submission sin request."""
     from mi_app.models import (
@@ -207,7 +239,7 @@ def _finalize(orbita_form, session):
     steps = _build_steps(orbita_form)
 
     payload = {}
-    submitter_email = session.candidate_email or ""
+    submitter_email = normalize_submitter_email(session.candidate_email or "")
     for step in steps:
         val = answers.get(step["id"], "")
         if val and step["type"] != "file":
@@ -215,13 +247,12 @@ def _finalize(orbita_form, session):
         elif val and step["type"] == "file":
             payload[step["label"]] = val
         if step["type"] == "email" and val and not submitter_email:
-            submitter_email = val
+            submitter_email = normalize_submitter_email(val)
 
-    submission = ATSFormSubmission.objects.create(
-        form=orbita_form,
-        payload=payload,
-        submitter_email=submitter_email,
-    )
+    submission, duplicate_submission = create_submission_once(orbita_form, payload, submitter_email)
+    if duplicate_submission:
+        logger.info("telegram_bot: duplicate submission form=%s session=%s email=%s", orbita_form.pk, session.session_uuid, submitter_email)
+        return True
     session.submission = submission
     session.save(update_fields=["submission"])
 
@@ -261,7 +292,7 @@ def _finalize(orbita_form, session):
                 ATSNotification.TYPE_CANDIDATE,
                 "Nuevo candidato (Telegram)",
                 message=f"{submission.candidate.name} — Telegram «{orbita_form.name}».",
-                link=reverse("orbita_candidate_detail", args=[submission.candidate.pk]),
+                link=reverse("orbita_candidate_detail", args=[submission.candidate.public_id]),
             )
     else:
         notify_orbita_client(
@@ -272,6 +303,7 @@ def _finalize(orbita_form, session):
             link=reverse("orbita_form_submissions", args=[orbita_form.pk]),
         )
     logger.info("telegram_bot: session completed form=%s session=%s", orbita_form.pk, session.session_uuid)
+    return False
 
 
 # ──────────────────────────── Handlers ────────────────────────────
@@ -346,6 +378,13 @@ async def apply_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_user = update.effective_user
     tg_display_name = _telegram_display_name(tg_user)
     tg_username = (getattr(tg_user, "username", "") or "").strip()
+    already_completed = await sync_to_async(_telegram_user_already_completed)(orbita_form, update.effective_user.id)
+    if already_completed:
+        await query.edit_message_text(
+            "Ya registramos una respuesta tuya para este formulario.\n\n"
+            "No necesitas enviar otra postulación."
+        )
+        return ConversationHandler.END
     session = await sync_to_async(_create_session)(
         orbita_form,
         steps,
@@ -439,9 +478,22 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     orbita_form = await sync_to_async(_get_form)(form_uuid)
     is_last = await sync_to_async(_save_answer)(session, step, value, orbita_form)
+    duplicate_submission = await sync_to_async(_mark_duplicate_if_needed)(orbita_form, session_id)
+    if duplicate_submission:
+        await update.message.reply_text(
+            "Ya registramos una respuesta con este correo para este formulario.\n\n"
+            "No necesitas enviar otra postulación."
+        )
+        return ConversationHandler.END
 
     if is_last:
-        await sync_to_async(_finalize)(orbita_form, session)
+        duplicate_submission = await sync_to_async(_finalize)(orbita_form, session)
+        if duplicate_submission:
+            await update.message.reply_text(
+                "Ya registramos una respuesta con este correo para este formulario.\n\n"
+                "No necesitas enviar otra postulación."
+            )
+            return ConversationHandler.END
         session = await sync_to_async(_get_session)(session_id)
         if not session:
             await update.message.reply_text(
@@ -563,7 +615,13 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await sync_to_async(session.save)()
 
     if is_last:
-        await sync_to_async(_finalize)(orbita_form, session)
+        duplicate_submission = await sync_to_async(_finalize)(orbita_form, session)
+        if duplicate_submission:
+            await update.message.reply_text(
+                "Ya registramos una respuesta con este correo para este formulario.\n\n"
+                "No necesitas enviar otra postulación."
+            )
+            return ConversationHandler.END
         session = await sync_to_async(_get_session)(session_id)
         if not session:
             await update.message.reply_text(

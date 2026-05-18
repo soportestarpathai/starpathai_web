@@ -84,6 +84,10 @@ from mi_app.orbita_plans import (
     subscription_module_enabled,
 )
 from mi_app.orbita_notifications import notify_orbita_client, notify_support_plan_change, notify_support_account_deletion_request, send_email_to_candidate
+from mi_app.services.form_submissions import (
+    create_submission_once,
+    normalize_submitter_email,
+)
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -1333,14 +1337,15 @@ class ATSFormPublicView(View):
                     })
                 files_to_save.append((None, cv_file))
                 payload["CV"] = cv_file.name
-        submitter_email = submitter_email or request.POST.get("submitter_email", "").strip()
+        submitter_email = normalize_submitter_email(submitter_email or request.POST.get("submitter_email", "").strip())
         if submitter_email and "Correo electrónico" not in payload and "Email" not in payload:
             payload["Correo electrónico"] = submitter_email
-        submission = ATSFormSubmission.objects.create(
-            form=orbita_form,
-            payload=payload,
-            submitter_email=submitter_email or "",
-        )
+        submission, duplicate_submission = create_submission_once(orbita_form, payload, submitter_email)
+        if duplicate_submission:
+            return render(request, self.thank_you_template, {
+                "orbita_form": orbita_form,
+                "already_submitted": True,
+            })
         for field, uploaded_file in files_to_save:
             ATSFormSubmissionFile.objects.create(
                 submission=submission,

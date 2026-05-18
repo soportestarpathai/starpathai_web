@@ -27,6 +27,11 @@ from mi_app.models import (
 )
 from mi_app.orbita_notifications import notify_orbita_client
 from mi_app.orbita_plans import subscription_module_enabled
+from mi_app.services.form_submissions import (
+    create_submission_once,
+    has_existing_submission_for_email,
+    normalize_submitter_email,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +171,19 @@ class FormChatAnswerAPI(View):
         if step_id == "submitter_email" or (
             "_email" not in step_id and not session.candidate_email and "@" in val_str
         ):
-            session.candidate_email = val_str
+            session.candidate_email = normalize_submitter_email(val_str)
+
+        if session.candidate_email and has_existing_submission_for_email(orbita_form, session.candidate_email):
+            session.status = FormChatSession.STATUS_COMPLETED
+            session.completed_at = timezone.now()
+            session.save()
+            return JsonResponse({
+                "ok": True,
+                "current_step": session.current_step,
+                "total_steps": session.total_steps,
+                "completed": True,
+                "duplicate": True,
+            })
 
         name_keywords = {"nombre", "name", "nombre_completo", "nombre completo", "candidato", "postulante", "solicitante"}
         steps = _build_steps(orbita_form)
@@ -190,14 +207,16 @@ class FormChatAnswerAPI(View):
 
         session.save()
 
+        duplicate_submission = False
         if is_last:
-            self._finalize_submission(request, orbita_form, session)
+            duplicate_submission = self._finalize_submission(request, orbita_form, session)
 
         return JsonResponse({
             "ok": True,
             "current_step": session.current_step,
             "total_steps": session.total_steps,
             "completed": is_last,
+            "duplicate": duplicate_submission,
         })
 
     def _finalize_submission(self, request, orbita_form, session):
@@ -207,7 +226,7 @@ class FormChatAnswerAPI(View):
         steps = _build_steps(orbita_form)
 
         payload = {}
-        submitter_email = session.candidate_email or ""
+        submitter_email = normalize_submitter_email(session.candidate_email or "")
 
         for step in steps:
             val = answers.get(step["id"], "")
@@ -216,13 +235,12 @@ class FormChatAnswerAPI(View):
             elif val and step["type"] == "file":
                 payload[step["label"]] = val
             if step["type"] == "email" and val and not submitter_email:
-                submitter_email = val
+                submitter_email = normalize_submitter_email(val)
 
-        submission = ATSFormSubmission.objects.create(
-            form=orbita_form,
-            payload=payload,
-            submitter_email=submitter_email,
-        )
+        submission, duplicate_submission = create_submission_once(orbita_form, payload, submitter_email)
+        if duplicate_submission:
+            logger.info("chat_session duplicate form=%s session=%s email=%s", orbita_form.pk, session.session_uuid, submitter_email)
+            return True
 
         session.submission = submission
         session.save(update_fields=["submission"])
@@ -277,6 +295,7 @@ class FormChatAnswerAPI(View):
         cache.set(cache_key, count + 1, timeout=timeout)
 
         logger.info("chat_session completed form=%s session=%s", orbita_form.pk, session.session_uuid)
+        return False
 
 
 class FormChatFileUploadAPI(View):
@@ -331,8 +350,9 @@ class FormChatFileUploadAPI(View):
 
         session.save()
 
+        duplicate_submission = False
         if is_last:
-            FormChatAnswerAPI()._finalize_submission(request, orbita_form, session)
+            duplicate_submission = FormChatAnswerAPI()._finalize_submission(request, orbita_form, session)
 
         return JsonResponse({
             "ok": True,
@@ -340,6 +360,7 @@ class FormChatFileUploadAPI(View):
             "current_step": session.current_step,
             "total_steps": session.total_steps,
             "completed": is_last,
+            "duplicate": duplicate_submission,
         })
 
 

@@ -60,8 +60,13 @@
   <div class="ats-thankyou">
     <div class="card">
       <div class="icon-wrap"><i class="bi bi-check-circle-fill"></i></div>
-      <h1>Respuesta enviada</h1>
-      <p>Gracias por completar <strong>{{ orbita_form.name }}</strong>. Tu información ha sido recibida correctamente.</p>
+      {% if already_submitted %}
+        <h1>Respuesta ya registrada</h1>
+        <p>Ya recibimos una respuesta para <strong>{{ orbita_form.name }}</strong> con ese correo. No necesitas enviarla de nuevo.</p>
+      {% else %}
+        <h1>Respuesta enviada</h1>
+        <p>Gracias por completar <strong>{{ orbita_form.name }}</strong>. Tu información ha sido recibida correctamente.</p>
+      {% endif %}
     </div>
   </div>
 </body>
