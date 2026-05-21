@@ -1821,6 +1821,88 @@ def _get_vacancy_dashboard_config(vacancy):
     return config
 
 
+def _payload_first_value(payload, *needles):
+    if not isinstance(payload, dict):
+        return ""
+    normalized_needles = [needle.lower() for needle in needles]
+    for key, value in payload.items():
+        key_text = str(key).lower()
+        if any(needle in key_text for needle in normalized_needles):
+            if value is None:
+                return ""
+            return str(value).strip()
+    return ""
+
+
+def _candidate_resume_lines(candidate, limit=5):
+    text = (getattr(candidate, "raw_text", "") or "").strip()
+    if not text:
+        return []
+    lines = []
+    for line in text.replace("\r", "\n").split("\n"):
+        clean = " ".join(line.strip(" •-*").split())
+        if len(clean) < 22 or "@" in clean:
+            continue
+        if clean.lower().startswith(("curriculum", "cv ", "tel", "email", "correo")):
+            continue
+        if clean not in lines:
+            lines.append(clean[:180])
+        if len(lines) >= limit:
+            break
+    return lines
+
+
+def _candidate_profile_data(candidate):
+    form_submission = candidate.form_submissions.select_related("form").first()
+    payload = form_submission.payload if form_submission else {}
+    skills = list(candidate.skill_evaluations.all()[:10])
+    top_skills = skills[:6]
+    skill_labels = [skill.skill for skill in top_skills]
+    skill_values = [skill.level for skill in top_skills]
+    summary = (candidate.explanation_text or "").strip()
+    if not summary:
+        vacancy_title = candidate.vacancy.title if candidate.vacancy_id else "el perfil solicitado"
+        summary = (
+            f"Perfil generado con los datos disponibles de la postulación y el análisis de Órbita para {vacancy_title}. "
+            "Completa o vuelve a analizar el CV para enriquecer esta lectura ejecutiva."
+        )
+    strengths = [
+        {"label": skill.skill, "value": int(skill.level or 0), "match": skill.match_percentage}
+        for skill in top_skills
+    ]
+    return {
+        "candidate": candidate,
+        "form_submission": form_submission,
+        "payload": payload,
+        "email": candidate.email or _payload_first_value(payload, "correo", "email"),
+        "phone": _payload_first_value(payload, "telefono", "teléfono", "phone", "celular"),
+        "location": _payload_first_value(payload, "ubicacion", "ubicación", "direccion", "dirección", "ciudad", "estado"),
+        "linkedin": _payload_first_value(payload, "linkedin", "linked in"),
+        "github": _payload_first_value(payload, "github", "git hub"),
+        "headline": candidate.vacancy.title if candidate.vacancy_id else "Perfil de candidato",
+        "summary": summary,
+        "strengths": strengths,
+        "skill_chips": [skill.skill for skill in skills[:12]],
+        "radar_axes": _radar_axes(skill_labels) if skill_labels else [],
+        "radar_points": _radar_points(skill_values) if skill_values else "",
+        "experience_lines": _candidate_resume_lines(candidate),
+        "education": _payload_first_value(payload, "educacion", "educación", "estudios", "universidad", "carrera"),
+        "languages": _payload_first_value(payload, "idioma", "ingles", "inglés"),
+        "status_label": candidate.get_status_display(),
+        "match": candidate.match_percentage if candidate.match_percentage is not None else candidate.score,
+    }
+
+
+def _qualified_candidates_for_vacancy(client, vacancy):
+    config = _get_vacancy_dashboard_config(vacancy)
+    return (
+        Candidate.objects.filter(client=client, vacancy=vacancy)
+        .filter(Q(status=Candidate.STATUS_APTO) | Q(score__gte=config.tier1_min))
+        .prefetch_related("skill_evaluations", "form_submissions__form")
+        .order_by("-score", "-match_percentage", "-analysis_date")
+    )
+
+
 def _vacancy_dashboard_context(request, client, vacancy, *, export_mode=False):
     config = _get_vacancy_dashboard_config(vacancy)
     candidates = list(
@@ -2040,6 +2122,59 @@ class ATSVacancyDashboardPDFView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
         vacancy = get_object_or_404(Vacancy, public_id=public_id, client=client)
         context = _vacancy_dashboard_context(request, client, vacancy, export_mode=True)
         return render(request, self.template_name, context)
+
+
+class ATSCandidateProfilePDFView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    """Perfil ejecutivo imprimible de una postulación, generado con datos del análisis IA."""
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "candidates"
+    template_name = "orbita/candidate_profile_pdf.html"
+
+    def get(self, request, public_id):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        candidate = get_object_or_404(
+            Candidate.objects.select_related("client", "vacancy").prefetch_related(
+                "skill_evaluations",
+                "form_submissions__form",
+            ),
+            public_id=public_id,
+            client=client,
+        )
+        return render(request, self.template_name, {
+            "orbita_client": client,
+            "subscription": _get_or_create_subscription(request.user),
+            "orbita_page": "candidatos",
+            "profiles": [_candidate_profile_data(candidate)],
+            "single_profile": True,
+            "source_vacancy": candidate.vacancy,
+            "is_pdf_export": True,
+        })
+
+
+class ATSVacancyQualifiedProfilesPDFView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    """Exporta perfiles ejecutivos de candidatos que cumplen requisitos de la vacante."""
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "candidates"
+    template_name = "orbita/candidate_profile_pdf.html"
+
+    def get(self, request, public_id):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        vacancy = get_object_or_404(Vacancy, public_id=public_id, client=client)
+        candidates = list(_qualified_candidates_for_vacancy(client, vacancy)[:100])
+        profiles = [_candidate_profile_data(candidate) for candidate in candidates]
+        return render(request, self.template_name, {
+            "orbita_client": client,
+            "subscription": _get_or_create_subscription(request.user),
+            "orbita_page": "reclutamiento",
+            "profiles": profiles,
+            "single_profile": False,
+            "source_vacancy": vacancy,
+            "is_pdf_export": True,
+        })
 
 
 def _redirect_workforce(tab="necesidad"):

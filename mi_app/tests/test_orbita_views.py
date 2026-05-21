@@ -499,6 +499,52 @@ class ATSWorkforceTests(TestCase):
         self.assertEqual(config.tier1_min, 88)
         self.assertFalse(config.show_scatter)
 
+    def test_candidate_profile_pdf_renders_ai_resume_design(self):
+        vacancy = Vacancy.objects.create(client=self.ats_client, title="Líder IA", ai_enabled=True)
+        candidate = Candidate.objects.create(
+            client=self.ats_client,
+            vacancy=vacancy,
+            name="Tu Nombre",
+            email="tu.correo@example.com",
+            score=91,
+            status=Candidate.STATUS_APTO,
+            match_percentage=94,
+            explanation_text="Perfil fuerte para liderazgo técnico e IA aplicada.",
+            raw_text="Desarrollo de soluciones de IA y automatización de procesos.\nLiderazgo de proyectos tecnológicos escalables.",
+        )
+        SkillEvaluation.objects.create(candidate=candidate, skill="IA / LLM", level=92, match_percentage=95)
+
+        response = self.client.get(reverse("orbita_candidate_profile_pdf", args=[candidate.public_id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Perfil generado con análisis IA")
+        self.assertContains(response, "Fortalezas clave")
+        self.assertContains(response, "window.print")
+
+    def test_vacancy_profiles_pdf_includes_only_qualified_candidates(self):
+        vacancy = Vacancy.objects.create(client=self.ats_client, title="Backend", ai_enabled=True)
+        qualified = Candidate.objects.create(
+            client=self.ats_client,
+            vacancy=vacancy,
+            name="Candidata Apta",
+            score=82,
+            status=Candidate.STATUS_APTO,
+        )
+        Candidate.objects.create(
+            client=self.ats_client,
+            vacancy=vacancy,
+            name="Candidato No Apto",
+            score=20,
+            status=Candidate.STATUS_NO_APTO,
+        )
+        SkillEvaluation.objects.create(candidate=qualified, skill="Python", level=88, match_percentage=90)
+
+        response = self.client.get(reverse("orbita_vacancy_profiles_pdf", args=[vacancy.public_id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Candidata Apta")
+        self.assertNotContains(response, "Candidato No Apto")
+
 
 @override_settings(
     STORAGES={

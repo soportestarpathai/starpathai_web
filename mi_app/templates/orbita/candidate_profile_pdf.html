@@ -1,0 +1,347 @@
+{% extends "orbita/base_orbita.html" %}
+
+{% block orbita_title %}Perfiles PDF{% endblock %}
+{% block orbita_header_title %}Perfiles PDF{% endblock %}
+
+{% block orbita_extra_css %}
+  .cp-toolbar {
+    max-width: 1060px;
+    margin: 0 auto 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+  }
+  .cp-toolbar .btn { border-radius: 999px; font-weight: 800; }
+  .cp-empty {
+    max-width: 760px;
+    margin: 2rem auto;
+    background: #fff;
+    border: 1px solid rgba(11,28,45,.08);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    color: #64748b;
+  }
+  .cp-page {
+    width: min(1060px, 100%);
+    min-height: 1380px;
+    margin: 0 auto 1.2rem;
+    background: #fff;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 14px 38px rgba(15,23,42,.12);
+    color: #07142d;
+  }
+  .cp-side {
+    background: linear-gradient(180deg, #071b31 0%, #062039 52%, #031325 100%);
+    color: #fff;
+    padding: 2.05rem 1.7rem;
+  }
+  .cp-main { padding: 2.25rem 2.05rem; }
+  .cp-name {
+    font-family: var(--ats-heading);
+    font-size: 2.65rem;
+    letter-spacing: .02em;
+    font-weight: 900;
+    line-height: .98;
+    color: #07142d;
+    text-transform: uppercase;
+    margin: 0;
+  }
+  .cp-headline {
+    color: #0d9488;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-weight: 850;
+    margin-top: .7rem;
+    font-size: .92rem;
+  }
+  .cp-rule { width: 48px; height: 3px; background: #13c6c2; border-radius: 999px; margin: .9rem 0 1.35rem; }
+  .cp-summary { color: #1f2937; line-height: 1.8; font-size: .98rem; max-width: 780px; }
+  .cp-section { margin-top: 1.7rem; padding-top: 1.35rem; border-top: 1px solid #e5e7eb; }
+  .cp-title {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-family: var(--ats-heading);
+    font-weight: 900;
+    font-size: 1rem;
+    text-transform: uppercase;
+    margin-bottom: .9rem;
+  }
+  .cp-title i {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    background: #0fb5b0;
+    color: #fff;
+  }
+  .cp-side-title {
+    color: #13c6c2;
+    font-family: var(--ats-heading);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-size: .95rem;
+    margin: 0 0 .75rem;
+  }
+  .cp-side-rule { width: 46px; height: 2px; background: #13c6c2; margin-bottom: 1.1rem; }
+  .cp-contact { display: grid; gap: .85rem; margin-bottom: 1.55rem; }
+  .cp-contact-item {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: .6rem;
+    align-items: start;
+    font-size: .86rem;
+    color: rgba(255,255,255,.88);
+    word-break: break-word;
+  }
+  .cp-contact-item i { color: #13c6c2; font-size: 1rem; }
+  .cp-side-block { border-top: 1px solid rgba(255,255,255,.13); padding-top: 1.35rem; margin-top: 1.35rem; }
+  .cp-radar-wrap { display: grid; place-items: center; margin: .7rem 0 1rem; }
+  .cp-radar text { fill: rgba(255,255,255,.82); font-size: 7px; font-weight: 700; }
+  .cp-radar .grid { fill: none; stroke: rgba(255,255,255,.18); stroke-width: 1; }
+  .cp-radar .axis { stroke: rgba(255,255,255,.16); stroke-width: 1; }
+  .cp-radar .shape { fill: rgba(139,92,246,.62); stroke: #13c6c2; stroke-width: 2; }
+  .cp-chip-list { display: flex; flex-wrap: wrap; gap: .55rem; }
+  .cp-chip {
+    border: 1px solid rgba(255,255,255,.34);
+    border-radius: 999px;
+    padding: .35rem .75rem;
+    color: #fff;
+    font-size: .78rem;
+    font-weight: 700;
+  }
+  .cp-side-list { display: grid; gap: .58rem; padding: 0; margin: 0; list-style: none; }
+  .cp-side-list li { display: flex; gap: .5rem; font-size: .84rem; color: rgba(255,255,255,.88); line-height: 1.45; }
+  .cp-side-list i { color: #9b5cf6; flex: 0 0 auto; }
+  .cp-timeline { display: grid; gap: 1rem; }
+  .cp-timeline-row { display: grid; grid-template-columns: 96px 1fr; gap: 1rem; }
+  .cp-year { color: #0d9488; font-size: .86rem; font-weight: 850; }
+  .cp-role { font-weight: 900; color: #0f172a; margin-bottom: .25rem; }
+  .cp-company { color: #0d9488; font-weight: 760; font-size: .88rem; margin-bottom: .45rem; }
+  .cp-bullets { margin: 0; padding-left: 1rem; color: #334155; line-height: 1.75; font-size: .88rem; }
+  .cp-projects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+  .cp-project {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: .9rem;
+    text-align: center;
+    min-height: 126px;
+  }
+  .cp-project i {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    color: #fff;
+    background: #7c3aed;
+    margin-bottom: .55rem;
+  }
+  .cp-project strong { display:block; font-size:.86rem; color:#0f172a; margin-bottom:.35rem; }
+  .cp-project span { color:#475569; font-size:.76rem; line-height:1.45; }
+  .cp-split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .cp-mini-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .5rem; color: #475569; font-size: .88rem; }
+  .cp-mini-list i { color: #0d9488; margin-right: .45rem; }
+  .cp-score-box {
+    margin-top: 1.2rem;
+    border: 1px solid rgba(19,198,194,.35);
+    border-radius: 12px;
+    padding: .8rem;
+    color: rgba(255,255,255,.9);
+  }
+  .cp-score-main { font-family: var(--ats-heading); font-size: 1.55rem; font-weight: 900; color: #13c6c2; }
+  .cp-score-grid { display:grid; grid-template-columns: 1fr 1fr; gap:.75rem; margin-top:.6rem; font-size:.78rem; color:rgba(255,255,255,.72); }
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+    body, .ats-content { background: #fff !important; }
+    .ats-sidebar, .ats-topbar, .ats-footer, .ats-sidebar-backdrop, .cp-toolbar { display: none !important; }
+    .ats-main-wrap { margin-left: 0 !important; }
+    .ats-content { padding: 0 !important; }
+    .cp-page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0;
+      border-radius: 0;
+      box-shadow: none;
+      page-break-after: always;
+      break-after: page;
+    }
+    .cp-page:last-child { page-break-after: auto; break-after: auto; }
+    .cp-side { padding: 16mm 11mm; }
+    .cp-main { padding: 16mm 13mm; }
+    .cp-name { font-size: 2.25rem; }
+    .cp-projects { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .cp-page { grid-template-columns: 1fr; min-height: auto; }
+    .cp-projects, .cp-split { grid-template-columns: 1fr; }
+  }
+{% endblock %}
+
+{% block orbita_content %}
+<div class="cp-toolbar">
+  <div>
+    <a href="{% if source_vacancy %}{% url 'orbita_vacancy_dashboard' source_vacancy.public_id %}{% else %}{% url 'orbita_dashboard' %}?section=candidatos{% endif %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <button type="button" class="btn btn-sm btn-primary" onclick="window.print()"><i class="bi bi-filetype-pdf me-1"></i>Guardar como PDF</button>
+  </div>
+</div>
+
+{% if not profiles %}
+  <div class="cp-empty">
+    <i class="bi bi-file-earmark-person display-5 d-block mb-2"></i>
+    <h2 class="h5">No hay perfiles aptos para exportar</h2>
+    <p class="mb-0">Esta vacante aún no tiene candidatos en estado Apto ni dentro del Tier 1 configurado.</p>
+  </div>
+{% endif %}
+
+{% for profile in profiles %}
+<article class="cp-page">
+  <aside class="cp-side">
+    <h2 class="cp-side-title">Contacto</h2>
+    <div class="cp-side-rule"></div>
+    <div class="cp-contact">
+      <div class="cp-contact-item"><i class="bi bi-envelope"></i><span>{{ profile.email|default:"Sin correo" }}</span></div>
+      <div class="cp-contact-item"><i class="bi bi-telephone-fill"></i><span>{{ profile.phone|default:"Sin teléfono" }}</span></div>
+      <div class="cp-contact-item"><i class="bi bi-geo-alt-fill"></i><span>{{ profile.location|default:"Ubicación no registrada" }}</span></div>
+      {% if profile.linkedin %}<div class="cp-contact-item"><i class="bi bi-linkedin"></i><span>{{ profile.linkedin }}</span></div>{% endif %}
+      {% if profile.github %}<div class="cp-contact-item"><i class="bi bi-github"></i><span>{{ profile.github }}</span></div>{% endif %}
+    </div>
+
+    <div class="cp-side-block">
+      <h2 class="cp-side-title">Fortalezas clave</h2>
+      <div class="cp-side-rule"></div>
+      {% if profile.radar_points %}
+      <div class="cp-radar-wrap">
+        <svg class="cp-radar" viewBox="0 0 190 190" width="230" height="230" role="img" aria-label="Fortalezas clave">
+          <circle class="grid" cx="95" cy="95" r="24"></circle>
+          <circle class="grid" cx="95" cy="95" r="48"></circle>
+          <circle class="grid" cx="95" cy="95" r="72"></circle>
+          {% for axis in profile.radar_axes %}
+            <line class="axis" x1="95" y1="95" x2="{{ axis.line_x }}" y2="{{ axis.line_y }}"></line>
+            <text x="{{ axis.x }}" y="{{ axis.y }}" text-anchor="middle">{{ axis.label|truncatechars:13 }}</text>
+          {% endfor %}
+          <polygon class="shape" points="{{ profile.radar_points }}"></polygon>
+        </svg>
+      </div>
+      {% endif %}
+      <ul class="cp-side-list">
+        {% for item in profile.strengths %}
+          <li><i class="bi bi-patch-check-fill"></i><span>{{ item.label }} · {{ item.value }}%</span></li>
+        {% empty %}
+          <li><i class="bi bi-info-circle"></i><span>Analiza el CV para mostrar fortalezas.</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="cp-side-block">
+      <h2 class="cp-side-title">Tecnologías</h2>
+      <div class="cp-side-rule"></div>
+      <div class="cp-chip-list">
+        {% for chip in profile.skill_chips %}
+          <span class="cp-chip">{{ chip }}</span>
+        {% empty %}
+          <span class="cp-chip">Perfil por analizar</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="cp-score-box">
+      <div class="cp-score-main">{{ profile.candidate.score|floatformat:0 }}%</div>
+      <div>Score IA · {{ profile.status_label }}</div>
+      <div class="cp-score-grid">
+        <span>Match<br><strong>{{ profile.match|floatformat:0 }}%</strong></span>
+        <span>Vacante<br><strong>{{ profile.headline|truncatechars:22 }}</strong></span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="cp-main">
+    <h1 class="cp-name">{{ profile.candidate.name }}</h1>
+    <div class="cp-headline">{{ profile.headline }} | Perfil generado con análisis IA</div>
+    <div class="cp-rule"></div>
+    <p class="cp-summary">{{ profile.summary }}</p>
+
+    <section class="cp-section">
+      <div class="cp-title"><i class="bi bi-briefcase-fill"></i>Experiencia profesional</div>
+      <div class="cp-timeline">
+        <div class="cp-timeline-row">
+          <div class="cp-year">Actual</div>
+          <div>
+            <div class="cp-role">{{ profile.headline }}</div>
+            <div class="cp-company">Lectura generada desde CV y evaluación Órbita</div>
+            <ul class="cp-bullets">
+              {% for line in profile.experience_lines %}
+                <li>{{ line }}</li>
+              {% empty %}
+                <li>Compatibilidad calculada contra el perfil de la vacante y habilidades evaluadas.</li>
+                <li>Revisión ejecutiva basada en score, match, explicación IA y datos de postulación.</li>
+                <li>Completa el análisis del CV para enriquecer trayectoria, proyectos y logros detectados.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cp-section">
+      <div class="cp-title"><i class="bi bi-rocket-takeoff-fill"></i>Hallazgos destacados</div>
+      <div class="cp-projects">
+        {% for item in profile.strengths|slice:":3" %}
+          <div class="cp-project">
+            <i class="bi bi-stars"></i>
+            <strong>{{ item.label }}</strong>
+            <span>Nivel detectado {{ item.value }}%{% if item.match is not None %}, match {{ item.match|floatformat:0 }}%{% endif %}.</span>
+          </div>
+        {% empty %}
+          <div class="cp-project">
+            <i class="bi bi-cpu"></i>
+            <strong>Análisis pendiente</strong>
+            <span>Sube o analiza el CV para generar hallazgos por habilidad.</span>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="cp-section">
+      <div class="cp-split">
+        <div>
+          <div class="cp-title"><i class="bi bi-mortarboard-fill"></i>Educación</div>
+          <ul class="cp-mini-list">
+            <li><i class="bi bi-check2-circle"></i>{{ profile.education|default:"No registrada en la postulación." }}</li>
+          </ul>
+        </div>
+        <div>
+          <div class="cp-title"><i class="bi bi-star-fill"></i>Otros</div>
+          <ul class="cp-mini-list">
+            <li><i class="bi bi-translate"></i>{{ profile.languages|default:"Idiomas no registrados." }}</li>
+            <li><i class="bi bi-clipboard-data"></i>Evaluación: {{ profile.status_label }} con {{ profile.candidate.score|floatformat:0 }}%.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+</article>
+{% endfor %}
+{% endblock %}
+
+{% block orbita_extra_js %}
+  {% if is_pdf_export %}
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => window.print(), 500);
+    });
+  </script>
+  {% endif %}
+{% endblock %}
