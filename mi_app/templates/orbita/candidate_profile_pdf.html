@@ -91,6 +91,29 @@ h1 {
   font-size: 14px;
 }
 
+.validation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  border: 1px solid #b7f3dd;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 7px 11px;
+  text-transform: uppercase;
+}
+
+.validation-badge::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #50d9a3;
+}
+
 .sidebar h2 {
   font-size: 14px;
   margin: 24px 0 12px;
@@ -337,6 +360,42 @@ li {
   margin: 0 0 7px;
 }
 
+.verdict-lines p {
+  margin-bottom: 6px;
+}
+
+.verdict-pill {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  background: #eef2ff;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.verdict-pill.APTO {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.verdict-pill.REVISION {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.verdict-pill.NO_APTO {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.score-note {
+  color: #64748b;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
 .cv.cv-tight .sidebar {
   padding: 20px 20px;
 }
@@ -397,6 +456,12 @@ li {
 
 .cv.cv-tight .card p {
   font-size: 10px;
+}
+
+.cv.cv-tight .validation-badge,
+.cv.cv-tight .verdict-pill {
+  font-size: 10px;
+  padding: 5px 9px;
 }
 
 .bar {
@@ -545,6 +610,7 @@ li {
   <main class="main">
     <h1>{{ profile.candidate.name|upper }}</h1>
     <div class="subtitle">{{ profile.headline }} | Perfil generado con análisis IA</div>
+    <div class="validation-badge">CV validado por Órbita</div>
 
     <p class="profile">{{ profile.summary }}</p>
 
@@ -615,11 +681,12 @@ li {
         {% endif %}
       </div>
 
-      <div>
-        <h2 class="section-title">Otros</h2>
-        <p>Potencial de avance: {{ profile.status_label }}</p>
-        <p>Match estimado: {{ profile.match|floatformat:0 }}%</p>
-        <p>Score general: {{ profile.candidate.score|floatformat:0 }}%</p>
+      <div class="verdict-lines">
+        <h2 class="section-title">Dictamen Órbita</h2>
+        <span class="verdict-pill {{ profile.candidate.status }}">{{ profile.status_label }}</span>
+        <p>Match con vacante: {{ profile.match|floatformat:0 }}%</p>
+        <p>Score IA: {{ profile.candidate.score|floatformat:0 }}%</p>
+        <p class="score-note">El porcentaje se calcula automáticamente con el análisis de Órbita a partir del CV, habilidades detectadas y criterios configurados para la vacante.</p>
       </div>
     </section>
   </main>
