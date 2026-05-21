@@ -1893,13 +1893,14 @@ def _candidate_profile_data(candidate):
     }
 
 
-def _qualified_candidates_for_vacancy(client, vacancy):
-    config = _get_vacancy_dashboard_config(vacancy)
-    return (
-        Candidate.objects.filter(client=client, vacancy=vacancy)
-        .filter(Q(status=Candidate.STATUS_APTO) | Q(score__gte=config.tier1_min))
-        .prefetch_related("skill_evaluations", "form_submissions__form")
-        .order_by("-score", "-match_percentage", "-analysis_date")
+def _profile_candidates_for_vacancy(client, vacancy, status_filter=""):
+    qs = Candidate.objects.filter(client=client, vacancy=vacancy)
+    if status_filter in (Candidate.STATUS_APTO, Candidate.STATUS_REVISION, Candidate.STATUS_NO_APTO):
+        qs = qs.filter(status=status_filter)
+    return qs.prefetch_related("skill_evaluations", "form_submissions__form").order_by(
+        "-score",
+        "-match_percentage",
+        "-analysis_date",
     )
 
 
@@ -2154,7 +2155,7 @@ class ATSCandidateProfilePDFView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
 
 
 class ATSVacancyQualifiedProfilesPDFView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
-    """Lista perfiles que cumplen para descargar su PDF de forma individual."""
+    """Lista postulantes de la vacante para descargar su PDF de forma individual."""
     login_url = reverse_lazy("orbita_plataforma")
     module_required = "candidates"
     template_name = "orbita/candidate_profile_list.html"
@@ -2164,8 +2165,12 @@ class ATSVacancyQualifiedProfilesPDFView(OrbitaModuleRequiredMixin, LoginRequire
         if not client:
             return redirect("orbita_dashboard")
         vacancy = get_object_or_404(Vacancy, public_id=public_id, client=client)
-        candidates = list(_qualified_candidates_for_vacancy(client, vacancy)[:100])
+        status_filter = (request.GET.get("status") or "").strip().upper()
+        if status_filter not in (Candidate.STATUS_APTO, Candidate.STATUS_REVISION, Candidate.STATUS_NO_APTO):
+            status_filter = ""
+        candidates = list(_profile_candidates_for_vacancy(client, vacancy, status_filter)[:300])
         profiles = [_candidate_profile_data(candidate) for candidate in candidates]
+        counts_qs = Candidate.objects.filter(client=client, vacancy=vacancy)
         return render(request, self.template_name, {
             "orbita_client": client,
             "subscription": _get_or_create_subscription(request.user),
@@ -2173,6 +2178,13 @@ class ATSVacancyQualifiedProfilesPDFView(OrbitaModuleRequiredMixin, LoginRequire
             "profiles": profiles,
             "single_profile": False,
             "source_vacancy": vacancy,
+            "status_filter": status_filter,
+            "status_counts": {
+                "total": counts_qs.count(),
+                "apto": counts_qs.filter(status=Candidate.STATUS_APTO).count(),
+                "revision": counts_qs.filter(status=Candidate.STATUS_REVISION).count(),
+                "no_apto": counts_qs.filter(status=Candidate.STATUS_NO_APTO).count(),
+            },
             "is_pdf_export": False,
         })
 

@@ -1,7 +1,7 @@
 {% extends "orbita/base_orbita.html" %}
 
-{% block orbita_title %}Perfiles aptos{% endblock %}
-{% block orbita_header_title %}Perfiles aptos{% endblock %}
+{% block orbita_title %}Seleccionar perfil PDF{% endblock %}
+{% block orbita_header_title %}Seleccionar perfil PDF{% endblock %}
 
 {% block orbita_extra_css %}
   .pl-shell { max-width: 1120px; margin: 0 auto; }
@@ -29,6 +29,31 @@
   }
   .pl-back:hover { color: #fff; background: rgba(255,255,255,.08); }
   .pl-grid { display: grid; gap: .85rem; }
+  .pl-filters {
+    background: #fff;
+    border: 1px solid rgba(11,28,45,.08);
+    border-radius: 10px;
+    padding: .75rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: .55rem;
+    flex-wrap: wrap;
+  }
+  .pl-filter {
+    border: 1px solid #dfe3e8;
+    border-radius: 999px;
+    padding: .45rem .8rem;
+    text-decoration: none;
+    color: #334155;
+    font-size: .82rem;
+    font-weight: 850;
+  }
+  .pl-filter:hover,
+  .pl-filter.active {
+    background: #031b33;
+    color: #fff;
+    border-color: #031b33;
+  }
   .pl-card {
     background: #fff;
     border: 1px solid rgba(11,28,45,.08);
@@ -53,6 +78,18 @@
   .pl-name { font-weight: 900; color: #071633; }
   .pl-meta { color: #64748b; font-size: .82rem; margin-top: .1rem; }
   .pl-score { display: inline-flex; align-items: center; gap: .35rem; color: #008f8f; font-weight: 850; font-size: .82rem; margin-top: .35rem; }
+  .pl-status {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: .22rem .55rem;
+    font-size: .74rem;
+    font-weight: 850;
+    margin-left: .35rem;
+  }
+  .pl-status.APTO { background: #dcfce7; color: #15803d; }
+  .pl-status.REVISION { background: #fef3c7; color: #b45309; }
+  .pl-status.NO_APTO { background: #ffe4e6; color: #be123c; }
   .pl-action { border-radius: 999px; font-weight: 800; white-space: nowrap; }
   .pl-empty {
     background: #fff;
@@ -72,10 +109,17 @@
 <div class="pl-shell">
   <div class="pl-hero">
     <div>
-      <h1><i class="bi bi-file-earmark-person me-2"></i>Perfiles aptos individuales</h1>
-      <p>{{ source_vacancy.title }} · Cada candidato se descarga por separado.</p>
+      <h1><i class="bi bi-file-earmark-person me-2"></i>Selecciona el perfil para descargar</h1>
+      <p>{{ source_vacancy.title }} · Aptos, en revisión y no aptos se descargan por separado.</p>
     </div>
     <a href="{% url 'orbita_vacancy_dashboard' source_vacancy.public_id %}" class="pl-back"><i class="bi bi-arrow-left me-1"></i>Volver</a>
+  </div>
+
+  <div class="pl-filters">
+    <a href="{% url 'orbita_vacancy_profiles_pdf' source_vacancy.public_id %}" class="pl-filter {% if not status_filter %}active{% endif %}">Todos · {{ status_counts.total }}</a>
+    <a href="{% url 'orbita_vacancy_profiles_pdf' source_vacancy.public_id %}?status=APTO" class="pl-filter {% if status_filter == 'APTO' %}active{% endif %}">Aptos · {{ status_counts.apto }}</a>
+    <a href="{% url 'orbita_vacancy_profiles_pdf' source_vacancy.public_id %}?status=REVISION" class="pl-filter {% if status_filter == 'REVISION' %}active{% endif %}">En revisión · {{ status_counts.revision }}</a>
+    <a href="{% url 'orbita_vacancy_profiles_pdf' source_vacancy.public_id %}?status=NO_APTO" class="pl-filter {% if status_filter == 'NO_APTO' %}active{% endif %}">No aptos · {{ status_counts.no_apto }}</a>
   </div>
 
   <div class="pl-grid">
@@ -85,7 +129,10 @@
         <div>
           <div class="pl-name">{{ profile.candidate.name }}</div>
           <div class="pl-meta">{{ profile.email|default:"Sin correo" }} · {{ profile.headline }}</div>
-          <div class="pl-score"><i class="bi bi-check-circle-fill"></i> Score {{ profile.candidate.score|floatformat:0 }}% · Match {{ profile.match|floatformat:0 }}%</div>
+          <div class="pl-score">
+            <i class="bi bi-file-earmark-person-fill"></i> Score {{ profile.candidate.score|floatformat:0 }}% · Match {{ profile.match|floatformat:0 }}%
+            <span class="pl-status {{ profile.candidate.status }}">{{ profile.status_label }}</span>
+          </div>
         </div>
         <a href="{% url 'orbita_candidate_profile_pdf' profile.candidate.public_id %}" target="_blank" rel="noopener" class="btn btn-primary btn-sm pl-action">
           <i class="bi bi-filetype-pdf me-1"></i>PDF individual
@@ -94,7 +141,7 @@
     {% empty %}
       <div class="pl-empty">
         <i class="bi bi-person-check display-5 d-block mb-2"></i>
-        <p class="mb-0">No hay candidatos aptos ni en Tier 1 para esta vacante.</p>
+        <p class="mb-0">No hay postulantes con este filtro para esta vacante.</p>
       </div>
     {% endfor %}
   </div>

@@ -436,7 +436,7 @@
           <a href="{% url 'orbita_candidate_export' %}?section=candidatos&amp;format=xlsx{% if filter_q %}&amp;q={{ filter_q|urlencode }}{% endif %}{% if filter_status %}&amp;status={{ filter_status|urlencode }}{% endif %}{% if filter_vacancy %}&amp;vacancy={{ filter_vacancy|urlencode }}{% endif %}" class="btn btn-sm btn-outline-light rounded-pill"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a>
           <a href="{% url 'orbita_candidate_export' %}?section=candidatos&amp;format=zip{% if filter_q %}&amp;q={{ filter_q|urlencode }}{% endif %}{% if filter_status %}&amp;status={{ filter_status|urlencode }}{% endif %}{% if filter_vacancy %}&amp;vacancy={{ filter_vacancy|urlencode }}{% endif %}" class="btn btn-sm btn-outline-light rounded-pill"><i class="bi bi-file-zip me-1"></i>CVs ZIP</a>
           {% if selected_vacancy %}
-            <a href="{% url 'orbita_vacancy_profiles_pdf' selected_vacancy.public_id %}" class="btn btn-sm btn-outline-light rounded-pill"><i class="bi bi-file-earmark-person me-1"></i>PDF individuales</a>
+            <a href="{% url 'orbita_vacancy_profiles_pdf' selected_vacancy.public_id %}" class="btn btn-sm btn-outline-light rounded-pill"><i class="bi bi-file-earmark-person me-1"></i>Elegir PDF</a>
           {% endif %}
         </div>
         {% endif %}
@@ -626,7 +626,7 @@
           </div>
           <div class="vc-actions">
             <a href="{% url 'orbita_vacancy_dashboard' v.public_id %}" class="btn btn-vc-cand"><i class="bi bi-graph-up-arrow me-1"></i>Dashboard</a>
-            <a href="{% url 'orbita_vacancy_profiles_pdf' v.public_id %}" class="btn btn-vc-cand"><i class="bi bi-filetype-pdf me-1"></i>PDF individuales</a>
+            <a href="{% url 'orbita_vacancy_profiles_pdf' v.public_id %}" class="btn btn-vc-cand"><i class="bi bi-filetype-pdf me-1"></i>Elegir PDF</a>
             <a href="{% url 'orbita_vacancy_edit' v.public_id %}" class="btn btn-vc-edit"><i class="bi bi-pencil me-1"></i>Editar</a>
             <a href="{% url 'orbita_dashboard' %}?section=candidatos&amp;vacancy={{ v.public_id }}" class="btn btn-vc-cand"><i class="bi bi-people me-1"></i>Candidatos</a>
             <form method="post" action="{% url 'orbita_vacancy_delete' v.public_id %}" class="d-inline ms-auto" onsubmit="return atsConfirmSubmit(event, { title: '¿Eliminar esta vacante?', text: 'Los candidatos no se borran.', icon: 'warning', confirmButtonText: 'Sí, eliminar' });">

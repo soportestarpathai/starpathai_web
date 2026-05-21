@@ -521,7 +521,7 @@ class ATSWorkforceTests(TestCase):
         self.assertContains(response, "Fortalezas clave")
         self.assertContains(response, "window.print")
 
-    def test_vacancy_profiles_pdf_includes_only_qualified_candidates(self):
+    def test_vacancy_profiles_pdf_lists_candidates_for_individual_download(self):
         vacancy = Vacancy.objects.create(client=self.ats_client, title="Backend", ai_enabled=True)
         qualified = Candidate.objects.create(
             client=self.ats_client,
@@ -543,8 +543,13 @@ class ATSWorkforceTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Candidata Apta")
+        self.assertContains(response, "Candidato No Apto")
         self.assertContains(response, "PDF individual")
-        self.assertNotContains(response, "Candidato No Apto")
+
+        no_apto_response = self.client.get(reverse("orbita_vacancy_profiles_pdf", args=[vacancy.public_id]) + "?status=NO_APTO")
+        self.assertEqual(no_apto_response.status_code, 200)
+        self.assertContains(no_apto_response, "Candidato No Apto")
+        self.assertNotContains(no_apto_response, "Candidata Apta")
 
 
 @override_settings(
