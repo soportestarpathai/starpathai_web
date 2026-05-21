@@ -517,7 +517,7 @@ class ATSWorkforceTests(TestCase):
         response = self.client.get(reverse("orbita_candidate_profile_pdf", args=[candidate.public_id]))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Perfil generado con análisis IA")
+        self.assertContains(response, "PERFIL GENERADO CON ANÁLISIS IA")
         self.assertContains(response, "Fortalezas clave")
         self.assertContains(response, "window.print")
 
@@ -542,7 +542,7 @@ class ATSWorkforceTests(TestCase):
         response = self.client.get(reverse("orbita_vacancy_profiles_pdf", args=[vacancy.public_id]))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Candidata Apta")
+        self.assertContains(response, "CANDIDATA APTA")
         self.assertNotContains(response, "Candidato No Apto")
 
 
