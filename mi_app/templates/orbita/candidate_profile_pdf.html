@@ -63,15 +63,15 @@ body {
 .sidebar {
   background: #031b33;
   color: white;
-  padding: 28px 24px;
+  padding: 24px 22px;
 }
 
 .main {
-  padding: 34px 38px;
+  padding: 30px 36px;
 }
 
 h1 {
-  font-size: 44px;
+  font-size: 40px;
   line-height: 1.02;
   margin: 0;
   letter-spacing: 1px;
@@ -92,8 +92,8 @@ h1 {
 }
 
 .sidebar h2 {
-  font-size: 15px;
-  margin: 30px 0 16px;
+  font-size: 14px;
+  margin: 24px 0 12px;
   border-bottom: 2px solid #50d9a3;
   display: inline-block;
   padding-bottom: 6px;
@@ -108,8 +108,8 @@ h1 {
 .lang p,
 .strength-list p {
   font-size: 13px;
-  line-height: 1.55;
-  margin: 0 0 12px;
+  line-height: 1.45;
+  margin: 0 0 9px;
 }
 
 .sidebar-muted {
@@ -117,12 +117,12 @@ h1 {
 }
 
 .radar-wrap {
-  margin: 2px 0 22px;
+  margin: 0 0 14px;
 }
 
 .radar-chart {
   width: 100%;
-  max-width: 220px;
+  max-width: 176px;
   display: block;
   margin: 0 auto;
 }
@@ -164,8 +164,8 @@ h1 {
 
 .radar-legend {
   display: grid;
-  gap: 6px;
-  margin: 6px 0 18px;
+  gap: 5px;
+  margin: 4px 0 14px;
 }
 
 .radar-key {
@@ -195,24 +195,25 @@ h1 {
 }
 
 .profile {
-  margin: 32px 0;
-  line-height: 1.7;
+  margin: 24px 0;
+  line-height: 1.58;
   font-size: 14px;
 }
 
 .divider {
   border-top: 1px solid #d8dce2;
-  margin: 28px 0;
+  margin: 20px 0;
 }
 
 .section {
-  margin-bottom: 28px;
+  margin-bottom: 20px;
   break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .section-title {
   color: #071633;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
   margin: 0 0 18px;
   text-transform: uppercase;
@@ -220,8 +221,8 @@ h1 {
 
 .section-title::before {
   content: "";
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #50d9a3;
   display: inline-block;
@@ -233,8 +234,9 @@ h1 {
   display: grid;
   grid-template-columns: 90px 1fr;
   gap: 18px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
   break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .year {
@@ -262,41 +264,44 @@ ul {
 
 li {
   font-size: 13px;
-  line-height: 1.7;
-  margin-bottom: 5px;
+  line-height: 1.55;
+  margin-bottom: 4px;
 }
 
 .skills {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
 }
 
 .skills span {
   border: 1px solid rgba(255,255,255,.45);
   border-radius: 20px;
-  padding: 7px 13px;
+  padding: 6px 11px;
   font-size: 12px;
 }
 
 .projects {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: 10px;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .card {
   border: 1px solid #dfe3e8;
   border-radius: 12px;
-  padding: 16px 12px;
+  padding: 13px 10px;
   text-align: center;
   break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .icon {
-  width: 42px;
-  height: 42px;
-  margin: 0 auto 12px;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 10px;
   border-radius: 50%;
   background: #8ef0bd;
   display: grid;
@@ -322,12 +327,76 @@ li {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .bottom p {
   font-size: 13px;
-  line-height: 1.6;
-  margin: 0 0 8px;
+  line-height: 1.48;
+  margin: 0 0 7px;
+}
+
+.cv.cv-tight .sidebar {
+  padding: 20px 20px;
+}
+
+.cv.cv-tight .main {
+  padding: 24px 32px;
+}
+
+.cv.cv-tight h1 {
+  font-size: 34px;
+}
+
+.cv.cv-tight .subtitle,
+.cv.cv-tight .profile,
+.cv.cv-tight li,
+.cv.cv-tight .bottom p {
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+.cv.cv-tight .profile {
+  margin: 16px 0;
+}
+
+.cv.cv-tight .divider {
+  margin: 14px 0;
+}
+
+.cv.cv-tight .section {
+  margin-bottom: 14px;
+}
+
+.cv.cv-tight .timeline {
+  grid-template-columns: 78px 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cv.cv-tight .sidebar h2 {
+  margin: 18px 0 9px;
+}
+
+.cv.cv-tight .radar-chart {
+  max-width: 148px;
+}
+
+.cv.cv-tight .radar-key,
+.cv.cv-tight .skills span,
+.cv.cv-tight .contact p,
+.cv.cv-tight .cert p,
+.cv.cv-tight .lang p {
+  font-size: 11px;
+}
+
+.cv.cv-tight .card {
+  padding: 10px 8px;
+}
+
+.cv.cv-tight .card p {
+  font-size: 10px;
 }
 
 .bar {
@@ -361,6 +430,20 @@ li {
     width: 210mm;
     min-height: 297mm;
     box-shadow: none;
+    overflow: visible;
+  }
+
+  h1,
+  h2,
+  h3,
+  .section-title {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .divider {
+    break-after: avoid;
+    page-break-after: avoid;
   }
 }
 
@@ -433,7 +516,7 @@ li {
     {% if profile.skill_chips %}
       <h2>Habilidades clave</h2>
       <div class="skills">
-        {% for chip in profile.skill_chips|slice:":12" %}
+        {% for chip in profile.skill_chips|slice:":8" %}
           <span>{{ chip }}</span>
         {% endfor %}
       </div>
@@ -441,7 +524,7 @@ li {
 
     <div class="cert">
       <h2>Certificaciones</h2>
-      {% for cert in profile.certifications %}
+      {% for cert in profile.certifications|slice:":4" %}
         <p>{{ cert }}</p>
       {% empty %}
         <p class="sidebar-muted">No registradas en los datos analizados.</p>
@@ -476,7 +559,7 @@ li {
           <h3>{{ profile.headline }}</h3>
           <div class="company">Evaluación de compatibilidad en Órbita</div>
           <ul>
-            {% for line in profile.experience_lines|slice:":4" %}
+            {% for line in profile.experience_lines|slice:":3" %}
               <li>{{ line }}</li>
             {% empty %}
               <li>El CV no contiene experiencia estructurada suficiente para mostrar una trayectoria laboral completa.</li>
@@ -543,12 +626,28 @@ li {
 </div>
 {% endwith %}
 
-{% if is_pdf_export %}
 <script>
+  function fitOrbitaCvToPage() {
+    const cv = document.querySelector(".cv");
+    if (!cv) return;
+    const a4HeightPx = 297 * 96 / 25.4;
+    cv.classList.remove("cv-tight");
+    if (cv.scrollHeight > a4HeightPx * 1.03) {
+      cv.classList.add("cv-tight");
+    }
+  }
+
   window.addEventListener("load", () => {
-    setTimeout(() => window.print(), 500);
+    fitOrbitaCvToPage();
+    {% if is_pdf_export %}
+    setTimeout(() => {
+      fitOrbitaCvToPage();
+      window.print();
+    }, 500);
+    {% endif %}
   });
+
+  window.addEventListener("beforeprint", fitOrbitaCvToPage);
 </script>
-{% endif %}
 </body>
 </html>
