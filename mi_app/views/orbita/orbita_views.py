@@ -1914,14 +1914,26 @@ def _candidate_profile_data(candidate):
     ]
     graph_strengths = list(strengths)
     existing_graph_labels = {item["label"].strip().lower() for item in graph_strengths if item["label"]}
+    match_value = candidate.match_percentage if candidate.match_percentage is not None else candidate.score
     if "score general" not in existing_graph_labels:
         graph_strengths.append({"label": "Score general", "value": int(candidate.score or 0), "match": None})
-    match_value = candidate.match_percentage if candidate.match_percentage is not None else candidate.score
     if "match ia" not in existing_graph_labels:
         graph_strengths.append({"label": "Match IA", "value": int(match_value or 0), "match": None})
     graph_strengths = graph_strengths[:6]
     graph_labels = [item["label"] for item in graph_strengths]
     graph_values = [item["value"] for item in graph_strengths]
+    if candidate.status == Candidate.STATUS_APTO:
+        compatibility_label = "Alta"
+        recommendation = "Entrevistar"
+    elif candidate.status == Candidate.STATUS_NO_APTO:
+        compatibility_label = "Baja"
+        recommendation = "No avanzar"
+    else:
+        compatibility_label = "Media" if float(match_value or 0) >= 50 else "Baja"
+        recommendation = "Revisar"
+    main_strength = strengths[0]["label"] if strengths else "Por validar"
+    low_skills = [item for item in strengths if item["value"] < 60]
+    critical_gap = low_skills[0]["label"] if low_skills else "No detectada"
     return {
         "candidate": candidate,
         "form_submission": form_submission,
@@ -1947,7 +1959,11 @@ def _candidate_profile_data(candidate):
         ),
         "languages": _payload_first_value(payload, "idioma", "ingles", "inglés"),
         "status_label": candidate.get_status_display(),
-        "match": candidate.match_percentage if candidate.match_percentage is not None else candidate.score,
+        "match": match_value,
+        "compatibility_label": compatibility_label,
+        "main_strength": main_strength,
+        "critical_gap": critical_gap,
+        "recommendation": recommendation,
     }
 
 

@@ -126,7 +126,7 @@ h1 {
   margin-top: 0;
 }
 
-.contact p,
+.orbit-reading p,
 .cert p,
 .lang p,
 .strength-list p {
@@ -137,6 +137,38 @@ h1 {
 
 .sidebar-muted {
   color: rgba(255,255,255,.72);
+}
+
+.orbit-reading {
+  display: grid;
+  gap: 7px;
+}
+
+.reading-row {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+
+.reading-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.reading-row small {
+  color: rgba(255,255,255,.62);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.reading-row span {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .radar-wrap {
@@ -444,7 +476,8 @@ li {
 
 .cv.cv-tight .radar-key,
 .cv.cv-tight .skills span,
-.cv.cv-tight .contact p,
+.cv.cv-tight .orbit-reading p,
+.cv.cv-tight .reading-row span,
 .cv.cv-tight .cert p,
 .cv.cv-tight .lang p {
   font-size: 11px;
@@ -540,13 +573,24 @@ li {
 
 <div class="cv">
   <aside class="sidebar">
-    <div class="contact">
-      <h2>Contacto</h2>
-      <p>{{ profile.email|default:"Sin correo registrado" }}</p>
-      <p>{{ profile.phone|default:"Sin teléfono registrado" }}</p>
-      <p>{{ profile.location|default:"Ubicación no registrada" }}</p>
-      {% if profile.linkedin %}<p>{{ profile.linkedin }}</p>{% endif %}
-      {% if profile.github %}<p>{{ profile.github }}</p>{% endif %}
+    <div class="orbit-reading">
+      <h2>Lectura Órbita</h2>
+      <div class="reading-row">
+        <small>Compatibilidad</small>
+        <span>{{ profile.compatibility_label }}</span>
+      </div>
+      <div class="reading-row">
+        <small>Principal fortaleza</small>
+        <span>{{ profile.main_strength }}</span>
+      </div>
+      <div class="reading-row">
+        <small>Brecha crítica</small>
+        <span>{{ profile.critical_gap }}</span>
+      </div>
+      <div class="reading-row">
+        <small>Recomendación</small>
+        <span>{{ profile.recommendation }}</span>
+      </div>
     </div>
 
     <div class="strength-list">
