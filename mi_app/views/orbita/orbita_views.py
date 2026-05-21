@@ -1799,6 +1799,21 @@ def _radar_points(values, radius=78, center=95):
     return " ".join(points)
 
 
+def _radar_plot_points(values, radius=78, center=95):
+    if not values:
+        return []
+    count = len(values)
+    points = []
+    for idx, value in enumerate(values):
+        angle = (2 * math.pi * idx / count) - (math.pi / 2)
+        value_radius = radius * max(0, min(100, float(value or 0))) / 100
+        points.append({
+            "x": center + value_radius * math.cos(angle),
+            "y": center + value_radius * math.sin(angle),
+        })
+    return points
+
+
 def _radar_axes(labels, radius=86, center=95):
     count = len(labels)
     axes = []
@@ -1852,6 +1867,26 @@ def _candidate_resume_lines(candidate, limit=5):
     return lines
 
 
+def _candidate_keyword_lines(candidate, keywords, limit=6):
+    text = (getattr(candidate, "raw_text", "") or "").strip()
+    if not text:
+        return []
+    normalized_keywords = tuple(keyword.lower() for keyword in keywords)
+    lines = []
+    for line in text.replace("\r", "\n").split("\n"):
+        clean = " ".join(line.strip(" •-*").split())
+        if len(clean) < 8:
+            continue
+        lower = clean.lower()
+        if not any(keyword in lower for keyword in normalized_keywords):
+            continue
+        if clean not in lines:
+            lines.append(clean[:140])
+        if len(lines) >= limit:
+            break
+    return lines
+
+
 def _candidate_profile_data(candidate):
     form_submission = candidate.form_submissions.select_related("form").first()
     payload = form_submission.payload if form_submission else {}
@@ -1870,6 +1905,16 @@ def _candidate_profile_data(candidate):
         {"label": skill.skill, "value": int(skill.level or 0), "match": skill.match_percentage}
         for skill in top_skills
     ]
+    graph_strengths = list(strengths)
+    existing_graph_labels = {item["label"].strip().lower() for item in graph_strengths if item["label"]}
+    if "score general" not in existing_graph_labels:
+        graph_strengths.append({"label": "Score general", "value": int(candidate.score or 0), "match": None})
+    match_value = candidate.match_percentage if candidate.match_percentage is not None else candidate.score
+    if "match ia" not in existing_graph_labels:
+        graph_strengths.append({"label": "Match IA", "value": int(match_value or 0), "match": None})
+    graph_strengths = graph_strengths[:6]
+    graph_labels = [item["label"] for item in graph_strengths]
+    graph_values = [item["value"] for item in graph_strengths]
     return {
         "candidate": candidate,
         "form_submission": form_submission,
@@ -1882,11 +1927,17 @@ def _candidate_profile_data(candidate):
         "headline": candidate.vacancy.title if candidate.vacancy_id else "Perfil de candidato",
         "summary": summary,
         "strengths": strengths,
+        "graph_strengths": graph_strengths,
         "skill_chips": [skill.skill for skill in skills[:12]],
-        "radar_axes": _radar_axes(skill_labels) if skill_labels else [],
-        "radar_points": _radar_points(skill_values) if skill_values else "",
+        "radar_axes": _radar_axes(graph_labels) if graph_labels else [],
+        "radar_points": _radar_points(graph_values) if graph_values else "",
+        "radar_plot_points": _radar_plot_points(graph_values) if graph_values else [],
         "experience_lines": _candidate_resume_lines(candidate),
-        "education": _payload_first_value(payload, "educacion", "educación", "estudios", "universidad", "carrera"),
+        "certifications": _candidate_keyword_lines(candidate, ("certificacion", "certificación", "certificate", "certified", "diploma")),
+        "education": (
+            _payload_first_value(payload, "educacion", "educación", "estudios", "universidad", "carrera")
+            or " · ".join(_candidate_keyword_lines(candidate, ("universidad", "ingenier", "licenciatura", "maestria", "maestría", "carrera"), limit=2))
+        ),
         "languages": _payload_first_value(payload, "idioma", "ingles", "inglés"),
         "status_label": candidate.get_status_display(),
         "match": candidate.match_percentage if candidate.match_percentage is not None else candidate.score,

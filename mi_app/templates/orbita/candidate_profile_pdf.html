@@ -1,261 +1,420 @@
-{% extends "orbita/base_orbita.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV IA - {{ profiles.0.candidate.name }}</title>
+<style>
+@page {
+  size: A4;
+  margin: 0;
+}
 
-{% block orbita_title %}CV IA{% endblock %}
-{% block orbita_header_title %}CV IA{% endblock %}
+* {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
 
-{% block orbita_extra_css %}
-  .cv-toolbar {
-    max-width: 210mm;
-    margin: 0 auto 1rem;
-    display: flex;
-    justify-content: space-between;
-    gap: .75rem;
-    flex-wrap: wrap;
-  }
-  .cv-toolbar .btn { border-radius: 999px; font-weight: 800; }
-  .cv {
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #071633;
+  background: #eaeaea;
+}
+
+.pdf-toolbar {
+  width: 210mm;
+  margin: 18px auto 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pdf-toolbar a,
+.pdf-toolbar button {
+  border: 1px solid #d8dce2;
+  border-radius: 999px;
+  background: #fff;
+  color: #071633;
+  cursor: pointer;
+  font: 700 13px "Segoe UI", Arial, sans-serif;
+  padding: 9px 14px;
+  text-decoration: none;
+}
+
+.pdf-toolbar button {
+  background: #031b33;
+  border-color: #031b33;
+  color: #fff;
+}
+
+.cv {
+  width: 210mm;
+  min-height: 297mm;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 32% 68%;
+  background: #fff;
+  box-shadow: 0 18px 42px rgba(15,23,42,.22);
+  overflow: hidden;
+}
+
+.sidebar {
+  background: #031b33;
+  color: white;
+  padding: 28px 24px;
+}
+
+.main {
+  padding: 34px 38px;
+}
+
+h1 {
+  font-size: 44px;
+  line-height: 1.02;
+  margin: 0;
+  letter-spacing: 1px;
+  color: #071633;
+  text-transform: uppercase;
+}
+
+.subtitle,
+.sidebar h2 {
+  color: #50d9a3;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.subtitle {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.sidebar h2 {
+  font-size: 15px;
+  margin: 30px 0 16px;
+  border-bottom: 2px solid #50d9a3;
+  display: inline-block;
+  padding-bottom: 6px;
+}
+
+.sidebar h2:first-child {
+  margin-top: 0;
+}
+
+.contact p,
+.cert p,
+.lang p,
+.strength-list p {
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0 0 12px;
+}
+
+.sidebar-muted {
+  color: rgba(255,255,255,.72);
+}
+
+.radar-wrap {
+  margin: 2px 0 22px;
+}
+
+.radar-chart {
+  width: 100%;
+  max-width: 220px;
+  display: block;
+  margin: 0 auto;
+}
+
+.radar-chart text {
+  fill: #fff;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.radar-grid {
+  fill: none;
+  stroke: rgba(255,255,255,.18);
+  stroke-width: 1;
+}
+
+.radar-axis {
+  stroke: rgba(255,255,255,.20);
+  stroke-width: 1;
+}
+
+.radar-poly {
+  fill: rgba(80,217,163,.52);
+  stroke: #50d9a3;
+  stroke-width: 2.5;
+}
+
+.radar-dot {
+  fill: #50d9a3;
+  stroke: #031b33;
+  stroke-width: 2;
+}
+
+.profile {
+  margin: 32px 0;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.divider {
+  border-top: 1px solid #d8dce2;
+  margin: 28px 0;
+}
+
+.section {
+  margin-bottom: 28px;
+  break-inside: avoid;
+}
+
+.section-title {
+  color: #071633;
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0 0 18px;
+  text-transform: uppercase;
+}
+
+.section-title::before {
+  content: "";
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #50d9a3;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 12px;
+}
+
+.timeline {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 18px;
+  margin-bottom: 24px;
+  break-inside: avoid;
+}
+
+.year {
+  color: #00a887;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.job h3 {
+  margin: 0;
+  color: #071633;
+  font-size: 15px;
+}
+
+.company {
+  color: #00a887;
+  font-size: 13px;
+  margin: 6px 0 12px;
+}
+
+ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+li {
+  font-size: 13px;
+  line-height: 1.7;
+  margin-bottom: 5px;
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skills span {
+  border: 1px solid rgba(255,255,255,.45);
+  border-radius: 20px;
+  padding: 7px 13px;
+  font-size: 12px;
+}
+
+.projects {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.card {
+  border: 1px solid #dfe3e8;
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+  break-inside: avoid;
+}
+
+.icon {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #8ef0bd;
+  display: grid;
+  place-items: center;
+  color: #031b33;
+  font-weight: 900;
+}
+
+.card h3 {
+  color: #071633;
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.card p {
+  color: #243047;
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.bottom p {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
+
+.bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,.3);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 4px 0 10px;
+}
+
+.bar div {
+  height: 100%;
+  background: #8ef0bd;
+}
+
+@media print {
+  html,
+  body {
     width: 210mm;
     min-height: 297mm;
-    margin: auto;
-    display: grid;
-    grid-template-columns: 32% 68%;
-    background: #fff;
-    color: #071633;
-    font-family: "Segoe UI", Arial, sans-serif;
-    box-shadow: 0 14px 38px rgba(15,23,42,.16);
+    background: white;
   }
-  .sidebar {
-    background: #031b33;
-    color: white;
-    padding: 28px 24px;
+
+  .pdf-toolbar {
+    display: none !important;
   }
-  .main {
-    padding: 34px 38px;
-  }
-  .cv h1 {
-    font-size: 44px;
+
+  .cv {
     margin: 0;
-    letter-spacing: 1px;
-    color: #071633;
-    line-height: 1.04;
-    text-transform: uppercase;
-  }
-  .subtitle,
-  .section-title,
-  .sidebar h2 {
-    color: #50d9a3;
-    text-transform: uppercase;
-    font-weight: 700;
-  }
-  .subtitle {
-    margin-top: 8px;
-    font-size: 14px;
-  }
-  .sidebar h2 {
-    font-size: 15px;
-    margin-top: 30px;
-    border-bottom: 2px solid #50d9a3;
-    display: inline-block;
-    padding-bottom: 6px;
-  }
-  .sidebar h2:first-child { margin-top: 0; }
-  .profile {
-    margin: 32px 0;
-    line-height: 1.7;
-    font-size: 14px;
-  }
-  .contact p,
-  .cert p,
-  .lang p,
-  .strengths p {
-    font-size: 13px;
-    line-height: 1.6;
-    margin: 0 0 10px;
-  }
-  .divider {
-    border-top: 1px solid #d8dce2;
-    margin: 28px 0;
-  }
-  .section {
-    margin-bottom: 28px;
-  }
-  .section-title {
-    font-size: 18px;
-    color: #071633;
-    margin: 0 0 18px;
-  }
-  .timeline {
-    display: grid;
-    grid-template-columns: 90px 1fr;
-    gap: 18px;
-    margin-bottom: 22px;
-  }
-  .year {
-    color: #00a887;
-    font-size: 13px;
-    font-weight: 600;
-  }
-  .job h3 {
-    margin: 0;
-    font-size: 15px;
-    color: #071633;
-  }
-  .company {
-    color: #00a887;
-    font-size: 13px;
-    margin: 6px 0 12px;
-  }
-  .cv ul {
-    margin: 0;
-    padding-left: 18px;
-  }
-  .cv li {
-    font-size: 13px;
-    line-height: 1.7;
-    margin-bottom: 5px;
-  }
-  .skills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .skills span {
-    border: 1px solid rgba(255,255,255,.45);
-    border-radius: 20px;
-    padding: 7px 13px;
-    font-size: 12px;
-  }
-  .projects {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-  }
-  .card {
-    border: 1px solid #dfe3e8;
-    border-radius: 12px;
-    padding: 16px 12px;
-    text-align: center;
+    width: 210mm;
+    min-height: 297mm;
     box-shadow: none;
   }
-  .icon {
-    width: 42px;
-    height: 42px;
-    margin: 0 auto 12px;
-    border-radius: 50%;
-    background: #8ef0bd;
-    display: grid;
-    place-items: center;
-    color: #031b33;
-    font-weight: 900;
-  }
-  .card h3 {
-    font-size: 13px;
-    margin: 0 0 8px;
-    color: #071633;
-  }
-  .card p {
-    font-size: 11px;
-    line-height: 1.5;
-    margin: 0;
-    color: #243047;
-  }
-  .bottom {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-  }
-  .bottom p {
-    font-size: 13px;
-    line-height: 1.6;
-    margin: 0 0 8px;
-  }
-  .bar {
-    width: 100%;
-    height: 6px;
-    background: rgba(255,255,255,.3);
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 4px 0 10px;
-  }
-  .bar div {
-    height: 100%;
-    background: #8ef0bd;
-  }
-  @media print {
-    @page { size: A4; margin: 0; }
-    body, .ats-content { background: white !important; }
-    .ats-sidebar, .ats-topbar, .ats-footer, .ats-sidebar-backdrop, .cv-toolbar { display: none !important; }
-    .ats-main-wrap { margin-left: 0 !important; }
-    .ats-content { padding: 0 !important; }
-    .cv {
-      margin: 0;
-      width: 210mm;
-      min-height: 297mm;
-      box-shadow: none;
-    }
-  }
-  @media (max-width: 900px) {
-    .cv { width: 100%; min-height: auto; grid-template-columns: 1fr; }
-    .projects, .bottom { grid-template-columns: 1fr; }
-  }
-{% endblock %}
+}
 
-{% block orbita_content %}
-<div class="cv-toolbar">
-  <a href="{% if source_vacancy %}{% url 'orbita_vacancy_profiles_pdf' source_vacancy.public_id %}{% else %}{% url 'orbita_dashboard' %}?section=candidatos{% endif %}" class="btn btn-sm btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i>Volver
-  </a>
-  <button type="button" class="btn btn-sm btn-primary" onclick="window.print()">
-    <i class="bi bi-filetype-pdf me-1"></i>Guardar PDF individual
-  </button>
+@media screen and (max-width: 900px) {
+  .pdf-toolbar,
+  .cv {
+    width: 100%;
+  }
+
+  .cv {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .projects,
+  .bottom {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+{% with profile=profiles.0 %}
+<div class="pdf-toolbar">
+  <a href="{% if source_vacancy %}{% url 'orbita_vacancy_profiles_pdf' source_vacancy.public_id %}{% else %}{% url 'orbita_dashboard' %}?section=candidatos{% endif %}">Volver</a>
+  <button type="button" onclick="window.print()">Guardar PDF individual</button>
 </div>
 
-{% with profile=profiles.0 %}
 <div class="cv">
   <aside class="sidebar">
     <div class="contact">
       <h2>Contacto</h2>
-      <p>✉ {{ profile.email|default:"Sin correo" }}</p>
-      <p>☎ {{ profile.phone|default:"Sin teléfono" }}</p>
-      <p>📍 {{ profile.location|default:"Ubicación no registrada" }}</p>
-      {% if profile.linkedin %}<p>in {{ profile.linkedin }}</p>{% endif %}
-      {% if profile.github %}<p>GitHub: {{ profile.github }}</p>{% endif %}
+      <p>{{ profile.email|default:"Sin correo registrado" }}</p>
+      <p>{{ profile.phone|default:"Sin teléfono registrado" }}</p>
+      <p>{{ profile.location|default:"Ubicación no registrada" }}</p>
+      {% if profile.linkedin %}<p>{{ profile.linkedin }}</p>{% endif %}
+      {% if profile.github %}<p>{{ profile.github }}</p>{% endif %}
     </div>
 
-    <div class="strengths">
+    <div class="strength-list">
       <h2>Fortalezas clave</h2>
-      {% for item in profile.strengths|slice:":6" %}
+      {% if profile.radar_points %}
+        <div class="radar-wrap">
+          <svg class="radar-chart" viewBox="0 0 190 190" role="img" aria-label="Gráfica radar de fortalezas clave">
+            <polygon class="radar-grid" points="95,18 168.2,71.2 140.3,157.8 49.7,157.8 21.8,71.2"></polygon>
+            <polygon class="radar-grid" points="95,43 144.4,79.1 125.6,137.4 64.4,137.4 45.6,79.1"></polygon>
+            <polygon class="radar-grid" points="95,68 120.6,87 110.9,117 79.1,117 69.4,87"></polygon>
+            {% for axis in profile.radar_axes %}
+              <line class="radar-axis" x1="95" y1="95" x2="{{ axis.line_x|floatformat:1 }}" y2="{{ axis.line_y|floatformat:1 }}"></line>
+              <text x="{{ axis.x|floatformat:1 }}" y="{{ axis.y|floatformat:1 }}" text-anchor="middle">{{ axis.label|truncatechars:13 }}</text>
+            {% endfor %}
+            <polygon class="radar-poly" points="{{ profile.radar_points }}"></polygon>
+            {% for point in profile.radar_plot_points %}
+              <circle class="radar-dot" cx="{{ point.x|floatformat:1 }}" cy="{{ point.y|floatformat:1 }}" r="4"></circle>
+            {% endfor %}
+          </svg>
+        </div>
+      {% endif %}
+      {% for item in profile.graph_strengths|slice:":6" %}
         <p>{{ item.label }} · {{ item.value }}%</p>
       {% empty %}
-        <p>Analiza el CV para detectar fortalezas.</p>
+        <p class="sidebar-muted">Sin habilidades detectadas todavía.</p>
       {% endfor %}
     </div>
 
-    <h2>Tecnologías</h2>
-    <div class="skills">
-      {% for chip in profile.skill_chips|slice:":12" %}
-        <span>{{ chip }}</span>
-      {% empty %}
-        <span>Perfil IA</span><span>Score</span><span>Match</span>
-      {% endfor %}
-    </div>
+    {% if profile.skill_chips %}
+      <h2>Tecnologías</h2>
+      <div class="skills">
+        {% for chip in profile.skill_chips|slice:":12" %}
+          <span>{{ chip }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <div class="cert">
       <h2>Certificaciones</h2>
-      {% for item in profile.strengths|slice:":6" %}
-        <p>● Validación IA en {{ item.label }}</p>
+      {% for cert in profile.certifications %}
+        <p>{{ cert }}</p>
       {% empty %}
-        <p>● Certificaciones no registradas</p>
-        <p>● Analiza el CV para detectar credenciales</p>
+        <p class="sidebar-muted">No registradas en los datos analizados.</p>
       {% endfor %}
     </div>
 
     <div class="lang">
       <h2>Idiomas</h2>
-      <p>Español — Nativo</p>
-      <div class="bar"><div style="width:90%"></div></div>
-      <p>Inglés — {% if profile.languages %}{{ profile.languages }}{% else %}No registrado{% endif %}</p>
-      <div class="bar"><div style="width:{% if profile.languages %}65{% else %}35{% endif %}%"></div></div>
+      {% if profile.languages %}
+        <p>{{ profile.languages }}</p>
+        <div class="bar"><div style="width:65%"></div></div>
+      {% else %}
+        <p class="sidebar-muted">No registrados en los datos analizados.</p>
+      {% endif %}
     </div>
   </aside>
 
@@ -271,17 +430,16 @@
       <h2 class="section-title">Experiencia profesional</h2>
 
       <div class="timeline">
-        <div class="year">2026 – Actualidad</div>
+        <div class="year">Postulación</div>
         <div class="job">
           <h3>{{ profile.headline }}</h3>
-          <div class="company">Postulación evaluada en Órbita</div>
+          <div class="company">Evaluación de compatibilidad en Órbita</div>
           <ul>
-            {% for line in profile.experience_lines|slice:":3" %}
+            {% for line in profile.experience_lines|slice:":4" %}
               <li>{{ line }}</li>
             {% empty %}
-              <li>Compatibilidad calculada contra el perfil de la vacante y habilidades evaluadas.</li>
-              <li>Revisión ejecutiva basada en score, match, explicación IA y datos de postulación.</li>
-              <li>Perfil listo para revisión de RH y entrevista técnica.</li>
+              <li>El CV no contiene experiencia estructurada suficiente para mostrar una trayectoria laboral completa.</li>
+              <li>El perfil se generó con score, match, habilidades detectadas y explicación IA disponible.</li>
             {% endfor %}
           </ul>
         </div>
@@ -293,9 +451,9 @@
           <h3>Evaluación de compatibilidad</h3>
           <div class="company">Match IA {{ profile.match|floatformat:0 }}% · {{ profile.status_label }}</div>
           <ul>
-            <li>El perfil fue comparado contra los criterios configurados para la vacante.</li>
-            <li>Las fortalezas clave se derivan de las habilidades detectadas por el análisis de CV.</li>
-            <li>El resultado debe complementarse con entrevista y validación documental.</li>
+            <li>Comparación contra los criterios configurados para la vacante.</li>
+            <li>Fortalezas y brechas calculadas desde el análisis del CV y la postulación.</li>
+            <li>Resultado sugerido para apoyar la decisión de RH, no sustituye entrevista ni validación documental.</li>
           </ul>
         </div>
       </div>
@@ -313,9 +471,9 @@
             <p>Nivel detectado {{ item.value }}%{% if item.match is not None %}; match {{ item.match|floatformat:0 }}%{% endif %}.</p>
           </div>
         {% empty %}
-          <div class="card"><div class="icon">IA</div><h3>Análisis pendiente</h3><p>Sube o analiza el CV para generar hallazgos por habilidad.</p></div>
-          <div class="card"><div class="icon">CV</div><h3>CV original</h3><p>La información se enriquece desde el archivo cargado.</p></div>
-          <div class="card"><div class="icon">RH</div><h3>Validación RH</h3><p>Perfil listo para revisión ejecutiva del candidato.</p></div>
+          <div class="card"><div class="icon">IA</div><h3>Análisis pendiente</h3><p>No hay habilidades suficientes para construir esta sección.</p></div>
+          <div class="card"><div class="icon">CV</div><h3>CV original</h3><p>La informacion se enriquece desde el archivo cargado.</p></div>
+          <div class="card"><div class="icon">RH</div><h3>Validacion RH</h3><p>Perfil disponible para revision del equipo.</p></div>
           <div class="card"><div class="icon">OK</div><h3>Requisitos</h3><p>Se mostrarán brechas y fortalezas al analizar el CV.</p></div>
         {% endfor %}
       </div>
@@ -326,28 +484,30 @@
     <section class="bottom">
       <div>
         <h2 class="section-title">Educación</h2>
-        <p><strong>2026</strong> — {{ profile.education|default:"Formación no registrada" }}</p>
-        <p><strong>IA</strong> — Evaluación Órbita contra {{ profile.headline }}</p>
+        {% if profile.education %}
+          <p>{{ profile.education }}</p>
+        {% else %}
+          <p>Formación no registrada en los datos analizados.</p>
+        {% endif %}
       </div>
 
       <div>
         <h2 class="section-title">Otros</h2>
-        <p>● Potencial de avance: {{ profile.status_label }}</p>
-        <p>● Match estimado: {{ profile.match|floatformat:0 }}%</p>
-        <p>● Score general: {{ profile.candidate.score|floatformat:0 }}%</p>
+        <p>Potencial de avance: {{ profile.status_label }}</p>
+        <p>Match estimado: {{ profile.match|floatformat:0 }}%</p>
+        <p>Score general: {{ profile.candidate.score|floatformat:0 }}%</p>
       </div>
     </section>
   </main>
 </div>
 {% endwith %}
-{% endblock %}
 
-{% block orbita_extra_js %}
-  {% if is_pdf_export %}
-  <script>
-    window.addEventListener('load', () => {
-      setTimeout(() => window.print(), 500);
-    });
-  </script>
-  {% endif %}
-{% endblock %}
+{% if is_pdf_export %}
+<script>
+  window.addEventListener("load", () => {
+    setTimeout(() => window.print(), 500);
+  });
+</script>
+{% endif %}
+</body>
+</html>
