@@ -5,21 +5,33 @@
 {% block orbita_header_title %}Dashboard de vacante{% endblock %}
 
 {% block orbita_extra_css %}
-  .vd-shell { max-width: 1440px; }
+  .vd-shell { max-width: 1480px; }
   .vd-hero {
-    background: #0b1c2d;
+    background: linear-gradient(135deg, #0b1c2d 0%, #132f51 68%, #153b67 100%);
     color: #fff;
     border-radius: 14px;
-    padding: 1.35rem 1.5rem;
+    padding: 1.45rem 1.55rem;
     margin-bottom: 1rem;
     display: flex;
     justify-content: space-between;
     gap: 1rem;
     align-items: flex-start;
+    box-shadow: 0 18px 42px rgba(11,28,45,.13);
   }
   .vd-hero h1 { font-family: var(--ats-heading); font-size: 1.3rem; font-weight: 850; margin: 0 0 .3rem; color: #fff; }
   .vd-hero p { margin: 0; color: rgba(255,255,255,.62); font-size: .86rem; }
-  .vd-pill { background: #3b82f6; color: #fff; border-radius: 999px; padding: .55rem .85rem; font-weight: 800; font-size: .78rem; white-space: nowrap; }
+  .vd-hero-actions { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; justify-content: flex-end; }
+  .vd-pill { background: #3b82f6; color: #fff; border-radius: 999px; padding: .55rem .85rem; font-weight: 800; font-size: .78rem; white-space: nowrap; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+  .vd-soft-link {
+    border: 1px solid rgba(255,255,255,.18);
+    color: rgba(255,255,255,.82);
+    text-decoration: none;
+    border-radius: 999px;
+    padding: .5rem .75rem;
+    font-size: .76rem;
+    font-weight: 800;
+  }
+  .vd-soft-link:hover { color:#fff; background: rgba(255,255,255,.08); }
   .vd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .85rem; margin-bottom: 1rem; }
   .vd-card {
     background: #fff;
@@ -37,30 +49,119 @@
     margin: 0 0 .7rem;
     font-weight: 850;
   }
+  .vd-kpi-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 118px;
+  }
+  .vd-kpi-card:after {
+    content: "";
+    position: absolute;
+    right: -34px;
+    top: -48px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(59,130,246,.07);
+  }
+  .vd-kpi-top { display: flex; align-items: flex-start; justify-content: space-between; gap: .7rem; }
+  .vd-kpi-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: #eff6ff;
+    color: #2563eb;
+    flex: 0 0 auto;
+  }
   .vd-big { font-family: var(--ats-heading); font-size: 1.85rem; font-weight: 900; color: #2563eb; line-height: 1; }
   .vd-sub { color: #94a3b8; font-size: .78rem; margin-top: .35rem; }
   .vd-section { margin-bottom: 1rem; }
   .vd-two { display: grid; grid-template-columns: 1.15fr .85fr; gap: 1rem; }
   .vd-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .vd-table-wrap {
+    overflow: auto;
+    max-height: 520px;
+    border: 1px solid #e5eaf1;
+    border-radius: 10px;
+  }
   .vd-table th { background: #172b49; color: #fff; padding: .65rem; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
   .vd-table td { padding: .65rem; border-bottom: 1px solid #e5eaf1; color: #334155; vertical-align: middle; }
+  .vd-table tbody tr:nth-child(even) td { background: #f8fafc; }
+  .vd-rank-table th { position: sticky; top: 0; z-index: 3; }
+  .vd-rank-table th:nth-child(1), .vd-rank-table td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    min-width: 42px;
+  }
+  .vd-rank-table th:nth-child(2), .vd-rank-table td:nth-child(2) {
+    position: sticky;
+    left: 42px;
+    z-index: 4;
+    min-width: 190px;
+    max-width: 230px;
+  }
+  .vd-rank-table td:nth-child(1), .vd-rank-table td:nth-child(2) { background: #fff; }
+  .vd-rank-table tr:nth-child(even) td:nth-child(1), .vd-rank-table tr:nth-child(even) td:nth-child(2) { background: #f8fafc; }
+  .vd-rank-table .vd-criteria-th {
+    min-width: 132px;
+    max-width: 160px;
+    white-space: normal;
+    line-height: 1.2;
+    vertical-align: bottom;
+  }
+  .vd-rank-table .vd-criteria-th span {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .vd-candidate-name {
+    color: #00aeb5;
+    font-weight: 850;
+    text-decoration: none;
+  }
+  .vd-candidate-name:hover { color: #078b91; }
   .vd-scorebar { height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; min-width: 72px; }
   .vd-scorebar span { display: block; height: 100%; background: #16a34a; border-radius: inherit; }
-  .vd-tier { display: inline-flex; align-items: center; border-radius: 999px; padding: .18rem .5rem; background: #dcfce7; color: #15803d; font-weight: 850; font-size: .72rem; }
+  .vd-tier { display: inline-flex; align-items: center; border-radius: 999px; padding: .22rem .52rem; background: #dcfce7; color: #15803d; font-weight: 850; font-size: .72rem; line-height: 1.1; }
+  .vd-tier[data-tier="Tier 2"] { background: #fef3c7; color: #b45309; }
+  .vd-tier[data-tier="Tier 3"], .vd-tier[data-tier="Tier 4"] { background: #ffe4e6; color: #be123c; }
   .vd-criterion { text-align: center; font-weight: 900; }
   .vd-criterion.ok { color: #16a34a; }
   .vd-criterion.warn { color: #d97706; }
   .vd-criterion.fail { color: #e11d48; }
-  .vd-radar-wrap { display: grid; place-items: center; min-height: 250px; }
+  .vd-criterion i {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #f8fafc;
+  }
+  .vd-criterion.ok i { background: #dcfce7; }
+  .vd-criterion.warn i { background: #fef3c7; }
+  .vd-criterion.fail i { background: #ffe4e6; }
+  .vd-radar-wrap { display: grid; place-items: center; min-height: 310px; }
   .vd-radar text { fill: #64748b; font-size: 8px; font-weight: 700; }
   .vd-radar .grid { fill: none; stroke: #e2e8f0; stroke-width: 1; }
   .vd-radar .axis { stroke: #e2e8f0; stroke-width: 1; }
   .vd-radar .group { fill: rgba(59,130,246,.16); stroke: #2563eb; stroke-width: 2; }
   .vd-radar .tier1 { fill: rgba(22,163,74,.1); stroke: #16a34a; stroke-width: 2; stroke-dasharray: 4 3; }
+  .vd-chart-legend { display:flex; gap:.9rem; align-items:center; justify-content:center; color:#64748b; font-size:.76rem; font-weight:700; margin-top:.25rem; }
+  .vd-legend-dot { width:10px; height:10px; border-radius:999px; display:inline-block; margin-right:.25rem; background:#2563eb; }
+  .vd-legend-dot.tier1 { background:#16a34a; }
   .vd-gap { display: grid; gap: .6rem; }
-  .vd-gap-row { display: grid; grid-template-columns: minmax(120px, 1fr) 2fr auto; align-items: center; gap: .65rem; color: #475569; font-size: .8rem; }
+  .vd-gap-row { display: grid; grid-template-columns: minmax(160px, 1fr) 2fr auto; align-items: center; gap: .65rem; color: #475569; font-size: .8rem; }
+  .vd-gap-row span:first-child { line-height:1.35; }
   .vd-gap-bar { height: 10px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
   .vd-gap-bar span { display:block; height:100%; background: linear-gradient(90deg,#ef4444,#f59e0b); border-radius:inherit; }
+  .vd-bands { display:grid; gap:.55rem; margin-top:.9rem; }
+  .vd-band-row { display:grid; grid-template-columns: 64px 1fr auto; gap:.6rem; align-items:center; color:#64748b; font-size:.78rem; font-weight:700; }
+  .vd-band-bar { height:8px; background:#f1f5f9; border-radius:999px; overflow:hidden; }
+  .vd-band-bar span { display:block; height:100%; background:#2563eb; border-radius:inherit; }
   .vd-scatter { position: relative; height: 280px; border: 1px solid #e2e8f0; border-radius: 10px; background: linear-gradient(#f8fafc 1px, transparent 1px), linear-gradient(90deg,#f8fafc 1px, transparent 1px); background-size: 100% 25%, 25% 100%; }
   .vd-point { position: absolute; border-radius: 999px; background: rgba(22,163,74,.65); border: 2px solid #16a34a; transform: translate(-50%, -50%); }
   .vd-point[data-tier="Tier 2"] { background: rgba(245,158,11,.58); border-color: #f59e0b; }
@@ -69,7 +170,9 @@
   .vd-ai-item { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:.7rem; color:#475569; font-size:.84rem; }
   @media (max-width: 992px) {
     .vd-hero { flex-direction: column; }
+    .vd-hero-actions { justify-content: flex-start; }
     .vd-two { grid-template-columns: 1fr; }
+    .vd-table-wrap { max-height: none; }
   }
 {% endblock %}
 
@@ -84,20 +187,36 @@
         {% if vacancy.desired_skills %} · {{ vacancy.desired_skills|length }} habilidad{{ vacancy.desired_skills|length|pluralize:"es" }} clave{% endif %}
       </p>
     </div>
-    <div class="vd-pill">{{ total_candidates }} candidato{{ total_candidates|pluralize }} evaluado{{ total_candidates|pluralize }}</div>
+    <div class="vd-hero-actions">
+      <a href="{% url 'orbita_dashboard' %}?section=reclutamiento" class="vd-soft-link"><i class="bi bi-arrow-left me-1"></i>Vacantes</a>
+      <a href="{% url 'orbita_dashboard' %}?section=candidatos&amp;vacancy={{ vacancy.public_id }}" class="vd-soft-link"><i class="bi bi-people me-1"></i>Candidatos</a>
+      <div class="vd-pill">{{ total_candidates }} candidato{{ total_candidates|pluralize }} evaluado{{ total_candidates|pluralize }}</div>
+    </div>
   </div>
 
   <div class="vd-grid">
-    <div class="vd-card"><h2>Candidatos para entrevistar</h2><div class="vd-big" style="color:#16a34a;">{{ tier1_count }}</div><div class="vd-sub">Tier 1 · Score >= 72</div></div>
-    <div class="vd-card"><h2>A considerar</h2><div class="vd-big" style="color:#d97706;">{{ tier2_count }}</div><div class="vd-sub">Tier 2 · Score 60-71</div></div>
-    <div class="vd-card"><h2>Promedio del grupo</h2><div class="vd-big">{{ avg_score }}</div><div class="vd-sub">Max: {{ max_score }} · Min: {{ min_score }}</div></div>
-    <div class="vd-card"><h2>Proceso IA</h2><div class="vd-big" style="color:{% if vacancy.ai_enabled %}#16a34a{% else %}#94a3b8{% endif %};">{% if vacancy.ai_enabled %}Activo{% else %}Manual{% endif %}</div><div class="vd-sub">Scoring y match por CV</div></div>
+    <div class="vd-card vd-kpi-card">
+      <div class="vd-kpi-top"><h2>Candidatos para entrevistar</h2><div class="vd-kpi-icon"><i class="bi bi-person-check"></i></div></div>
+      <div class="vd-big" style="color:#16a34a;">{{ tier1_count }}</div><div class="vd-sub">Tier 1 · Score >= 72</div>
+    </div>
+    <div class="vd-card vd-kpi-card">
+      <div class="vd-kpi-top"><h2>A considerar</h2><div class="vd-kpi-icon" style="background:#fffbeb;color:#d97706;"><i class="bi bi-hourglass-split"></i></div></div>
+      <div class="vd-big" style="color:#d97706;">{{ tier2_count }}</div><div class="vd-sub">Tier 2 · Score 60-71</div>
+    </div>
+    <div class="vd-card vd-kpi-card">
+      <div class="vd-kpi-top"><h2>Promedio del grupo</h2><div class="vd-kpi-icon"><i class="bi bi-speedometer2"></i></div></div>
+      <div class="vd-big">{{ avg_score }}</div><div class="vd-sub">Max: {{ max_score }} · Min: {{ min_score }}</div>
+    </div>
+    <div class="vd-card vd-kpi-card">
+      <div class="vd-kpi-top"><h2>Proceso IA</h2><div class="vd-kpi-icon" style="background:#ecfdf5;color:#16a34a;"><i class="bi bi-cpu"></i></div></div>
+      <div class="vd-big" style="color:{% if vacancy.ai_enabled %}#16a34a{% else %}#94a3b8{% endif %};">{% if vacancy.ai_enabled %}Activo{% else %}Manual{% endif %}</div><div class="vd-sub">Scoring y match por CV</div>
+    </div>
   </div>
 
   <div class="vd-card vd-section">
     <h2>Ranking general - score ponderado</h2>
-    <div class="table-responsive">
-      <table class="vd-table">
+    <div class="vd-table-wrap">
+      <table class="vd-table vd-rank-table">
         <thead>
           <tr>
             <th>#</th>
@@ -105,16 +224,16 @@
             <th>Score</th>
             <th>Tier</th>
             <th>Match IA</th>
-            {% for label in criteria_labels %}<th>{{ label }}</th>{% endfor %}
+            {% for label in criteria_labels %}<th class="vd-criteria-th" title="{{ label }}"><span>{{ label }}</span></th>{% endfor %}
           </tr>
         </thead>
         <tbody>
           {% for row in candidate_rows %}
           <tr>
             <td><strong>{{ row.rank }}</strong></td>
-            <td><a href="{% url 'orbita_candidate_detail' row.candidate.public_id %}" class="text-decoration-none fw-bold">{{ row.candidate.name }}</a><br><span class="text-muted small">{{ row.candidate.email }}</span></td>
+            <td><a href="{% url 'orbita_candidate_detail' row.candidate.public_id %}" class="vd-candidate-name">{{ row.candidate.name }}</a><br><span class="text-muted small">{{ row.candidate.email }}</span></td>
             <td><div class="d-flex align-items-center gap-2"><div class="vd-scorebar"><span style="width:{{ row.score_width }}%;"></span></div><strong>{{ row.score }}</strong></div></td>
-            <td><span class="vd-tier">{{ row.tier }}</span></td>
+            <td><span class="vd-tier" data-tier="{{ row.tier }}">{{ row.tier }}</span></td>
             <td>{{ row.match }}%</td>
             {% for cell in row.criteria %}
               <td class="vd-criterion {{ cell.status }}" title="{{ cell.value }}%">{% if cell.status == "ok" %}<i class="bi bi-check-square-fill"></i>{% elif cell.status == "warn" %}<i class="bi bi-exclamation-triangle-fill"></i>{% else %}<i class="bi bi-x-lg"></i>{% endif %}</td>
@@ -144,6 +263,10 @@
           <polygon class="group" points="{{ group_radar_points }}"></polygon>
           <polygon class="tier1" points="{{ tier1_radar_points }}"></polygon>
         </svg>
+        <div class="vd-chart-legend">
+          <span><i class="vd-legend-dot"></i>Promedio pool</span>
+          <span><i class="vd-legend-dot tier1"></i>Promedio Tier 1</span>
+        </div>
         {% else %}
           <p class="text-muted mb-0">Aún no hay habilidades IA para graficar.</p>
         {% endif %}
@@ -161,6 +284,15 @@
         </div>
         {% empty %}
           <p class="text-muted mb-0">Sin gaps detectados con la información actual.</p>
+        {% endfor %}
+      </div>
+      <div class="vd-bands">
+        {% for band in score_bands %}
+        <div class="vd-band-row">
+          <span>{{ band.label }}</span>
+          <div class="vd-band-bar"><span style="width:{{ band.width }}%;"></span></div>
+          <strong>{{ band.count }}</strong>
+        </div>
         {% endfor %}
       </div>
     </div>
