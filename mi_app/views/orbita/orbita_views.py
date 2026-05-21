@@ -7,6 +7,7 @@ Vistas para el producto ATS (Applicant Tracking System) de Star Path.
 import json
 import logging
 import math
+import re
 import uuid as uuid_lib
 from collections import defaultdict
 
@@ -1855,7 +1856,7 @@ def _candidate_resume_lines(candidate, limit=5):
         return []
     lines = []
     for line in text.replace("\r", "\n").split("\n"):
-        clean = " ".join(line.strip(" •-*").split())
+        clean = _clean_cv_line(line)
         if len(clean) < 22 or "@" in clean:
             continue
         if clean.lower().startswith(("curriculum", "cv ", "tel", "email", "correo")):
@@ -1867,6 +1868,12 @@ def _candidate_resume_lines(candidate, limit=5):
     return lines
 
 
+def _clean_cv_line(line):
+    clean = re.sub(r"\(cid:\d+\)", "", str(line or ""))
+    clean = re.sub(r"\s+", " ", clean.replace("\u2022", " ")).strip(" -–—•\t")
+    return clean.strip()
+
+
 def _candidate_keyword_lines(candidate, keywords, limit=6):
     text = (getattr(candidate, "raw_text", "") or "").strip()
     if not text:
@@ -1874,7 +1881,7 @@ def _candidate_keyword_lines(candidate, keywords, limit=6):
     normalized_keywords = tuple(keyword.lower() for keyword in keywords)
     lines = []
     for line in text.replace("\r", "\n").split("\n"):
-        clean = " ".join(line.strip(" •-*").split())
+        clean = _clean_cv_line(line)
         if len(clean) < 8:
             continue
         lower = clean.lower()

@@ -129,8 +129,8 @@ h1 {
 
 .radar-chart text {
   fill: #fff;
-  font-size: 9px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 800;
 }
 
 .radar-grid {
@@ -154,6 +154,44 @@ h1 {
   fill: #50d9a3;
   stroke: #031b33;
   stroke-width: 2;
+}
+
+.radar-label-dot {
+  fill: #031b33;
+  stroke: #50d9a3;
+  stroke-width: 1.5;
+}
+
+.radar-legend {
+  display: grid;
+  gap: 6px;
+  margin: 6px 0 18px;
+}
+
+.radar-key {
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  gap: 7px;
+  align-items: start;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.radar-key b {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  background: #50d9a3;
+  color: #031b33;
+  font-size: 10px;
+}
+
+.radar-key small {
+  color: rgba(255,255,255,.72);
+  font-size: 11px;
 }
 
 .profile {
@@ -373,24 +411,27 @@ li {
             <polygon class="radar-grid" points="95,68 120.6,87 110.9,117 79.1,117 69.4,87"></polygon>
             {% for axis in profile.radar_axes %}
               <line class="radar-axis" x1="95" y1="95" x2="{{ axis.line_x|floatformat:1 }}" y2="{{ axis.line_y|floatformat:1 }}"></line>
-              <text x="{{ axis.x|floatformat:1 }}" y="{{ axis.y|floatformat:1 }}" text-anchor="middle">{{ axis.label|truncatechars:13 }}</text>
             {% endfor %}
             <polygon class="radar-poly" points="{{ profile.radar_points }}"></polygon>
             {% for point in profile.radar_plot_points %}
               <circle class="radar-dot" cx="{{ point.x|floatformat:1 }}" cy="{{ point.y|floatformat:1 }}" r="4"></circle>
+              <circle class="radar-label-dot" cx="{{ point.x|floatformat:1 }}" cy="{{ point.y|floatformat:1 }}" r="7"></circle>
+              <text x="{{ point.x|floatformat:1 }}" y="{{ point.y|floatformat:1 }}" text-anchor="middle" dominant-baseline="central">{{ forloop.counter }}</text>
             {% endfor %}
           </svg>
         </div>
       {% endif %}
+      <div class="radar-legend">
       {% for item in profile.graph_strengths|slice:":6" %}
-        <p>{{ item.label }} · {{ item.value }}%</p>
+        <div class="radar-key"><b>{{ forloop.counter }}</b><span>{{ item.label }}</span><small>{{ item.value }}%</small></div>
       {% empty %}
         <p class="sidebar-muted">Sin habilidades detectadas todavía.</p>
       {% endfor %}
+      </div>
     </div>
 
     {% if profile.skill_chips %}
-      <h2>Tecnologías</h2>
+      <h2>Habilidades clave</h2>
       <div class="skills">
         {% for chip in profile.skill_chips|slice:":12" %}
           <span>{{ chip }}</span>
@@ -462,7 +503,7 @@ li {
     <div class="divider"></div>
 
     <section class="section">
-      <h2 class="section-title">Proyectos destacados</h2>
+      <h2 class="section-title">Competencias destacadas</h2>
       <div class="projects">
         {% for item in profile.strengths|slice:":4" %}
           <div class="card">
@@ -472,8 +513,8 @@ li {
           </div>
         {% empty %}
           <div class="card"><div class="icon">IA</div><h3>Análisis pendiente</h3><p>No hay habilidades suficientes para construir esta sección.</p></div>
-          <div class="card"><div class="icon">CV</div><h3>CV original</h3><p>La informacion se enriquece desde el archivo cargado.</p></div>
-          <div class="card"><div class="icon">RH</div><h3>Validacion RH</h3><p>Perfil disponible para revision del equipo.</p></div>
+          <div class="card"><div class="icon">CV</div><h3>CV original</h3><p>La información se enriquece desde el archivo cargado.</p></div>
+          <div class="card"><div class="icon">RH</div><h3>Validación RH</h3><p>Perfil disponible para revisión del equipo.</p></div>
           <div class="card"><div class="icon">OK</div><h3>Requisitos</h3><p>Se mostrarán brechas y fortalezas al analizar el CV.</p></div>
         {% endfor %}
       </div>
