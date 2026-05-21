@@ -6,6 +6,7 @@ from .models import (
     PlanChangeRequest,
     Subscription,
     Vacancy,
+    VacancyDashboardConfig,
     CVAnalysisConfig,
     Candidate,
     SkillEvaluation,
@@ -74,6 +75,13 @@ class VacancyAdmin(admin.ModelAdmin):
     list_display = ("title", "client", "status", "source", "openings", "area_name", "estimated_budget", "created_at")
     list_filter = ("status", "source", "client")
     search_fields = ("title", "client__company_name")
+
+
+@admin.register(VacancyDashboardConfig)
+class VacancyDashboardConfigAdmin(admin.ModelAdmin):
+    list_display = ("vacancy", "tier1_min", "tier2_min", "tier3_min", "max_criteria", "updated_at")
+    list_filter = ("show_kpis", "show_ranking", "show_ai_insights")
+    search_fields = ("vacancy__title", "vacancy__client__company_name")
 
 
 @admin.register(WorkforceArea)

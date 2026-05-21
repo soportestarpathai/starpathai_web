@@ -1,0 +1,146 @@
+{% extends "orbita/base_orbita.html" %}
+
+{% block orbita_title %}Configurar dashboard{% endblock %}
+{% block orbita_header_title %}Configurar dashboard{% endblock %}
+
+{% block orbita_extra_css %}
+  .vdc-shell { max-width: 980px; margin: 0 auto; }
+  .vdc-hero {
+    background: linear-gradient(135deg, #0b1c2d 0%, #132f51 72%, #153b67 100%);
+    color: #fff;
+    border-radius: 14px;
+    padding: 1.35rem 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .vdc-hero h1 { font-family: var(--ats-heading); font-size: 1.25rem; font-weight: 850; margin: 0 0 .25rem; color: #fff; }
+  .vdc-hero p { margin: 0; color: rgba(255,255,255,.65); font-size: .86rem; }
+  .vdc-card {
+    background: #fff;
+    border: 1px solid rgba(11,28,45,.07);
+    border-radius: 10px;
+    padding: 1.1rem;
+    box-shadow: 0 10px 28px rgba(15,23,42,.04);
+    margin-bottom: 1rem;
+  }
+  .vdc-card h2 {
+    font-family: var(--ats-heading);
+    font-size: .92rem;
+    font-weight: 850;
+    margin: 0 0 .9rem;
+    color: #0f172a;
+  }
+  .vdc-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .85rem; }
+  .vdc-switches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+  .vdc-switch {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: .72rem .8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .85rem;
+  }
+  .vdc-switch label { margin: 0; color: #334155; font-weight: 750; font-size: .86rem; }
+  .vdc-actions { display: flex; justify-content: flex-end; gap: .65rem; flex-wrap: wrap; }
+  .vdc-soft-link {
+    border: 1px solid rgba(255,255,255,.18);
+    color: rgba(255,255,255,.82);
+    text-decoration: none;
+    border-radius: 999px;
+    padding: .5rem .75rem;
+    font-size: .76rem;
+    font-weight: 800;
+  }
+  .vdc-soft-link:hover { color: #fff; background: rgba(255,255,255,.08); }
+  @media (max-width: 768px) {
+    .vdc-hero { flex-direction: column; }
+    .vdc-grid, .vdc-switches { grid-template-columns: 1fr; }
+    .vdc-actions { justify-content: stretch; }
+    .vdc-actions .btn { width: 100%; }
+  }
+{% endblock %}
+
+{% block orbita_content %}
+<div class="vdc-shell">
+  <div class="vdc-hero">
+    <div>
+      <h1><i class="bi bi-sliders me-2"></i>Dashboard dinámico</h1>
+      <p>{{ vacancy.title }} · Ajusta umbrales, criterios visibles y secciones del reporte.</p>
+    </div>
+    <a href="{% url 'orbita_vacancy_dashboard' vacancy.public_id %}" class="vdc-soft-link"><i class="bi bi-arrow-left me-1"></i>Volver</a>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="vdc-card">
+      <h2>Reglas de scoring</h2>
+      <div class="vdc-grid">
+        <div>
+          <label class="form-label">{{ form.tier1_min.label }}</label>
+          {{ form.tier1_min }}
+          {% if form.tier1_min.errors %}<div class="text-danger small mt-1">{{ form.tier1_min.errors }}</div>{% endif %}
+        </div>
+        <div>
+          <label class="form-label">{{ form.tier2_min.label }}</label>
+          {{ form.tier2_min }}
+          {% if form.tier2_min.errors %}<div class="text-danger small mt-1">{{ form.tier2_min.errors }}</div>{% endif %}
+        </div>
+        <div>
+          <label class="form-label">{{ form.tier3_min.label }}</label>
+          {{ form.tier3_min }}
+          {% if form.tier3_min.errors %}<div class="text-danger small mt-1">{{ form.tier3_min.errors }}</div>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="vdc-card">
+      <h2>Criterios y gaps</h2>
+      <div class="vdc-grid">
+        <div>
+          <label class="form-label">{{ form.skill_pass_min.label }}</label>
+          {{ form.skill_pass_min }}
+          {% if form.skill_pass_min.errors %}<div class="text-danger small mt-1">{{ form.skill_pass_min.errors }}</div>{% endif %}
+        </div>
+        <div>
+          <label class="form-label">{{ form.skill_warning_min.label }}</label>
+          {{ form.skill_warning_min }}
+          {% if form.skill_warning_min.errors %}<div class="text-danger small mt-1">{{ form.skill_warning_min.errors }}</div>{% endif %}
+        </div>
+        <div>
+          <label class="form-label">{{ form.max_criteria.label }}</label>
+          {{ form.max_criteria }}
+          {% if form.max_criteria.help_text %}<div class="form-text">{{ form.max_criteria.help_text }}</div>{% endif %}
+          {% if form.max_criteria.errors %}<div class="text-danger small mt-1">{{ form.max_criteria.errors }}</div>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="vdc-card">
+      <h2>Secciones visibles</h2>
+      <div class="vdc-switches">
+        {% for field in form %}
+          {% if field.name|slice:":5" == "show_" %}
+          <div class="vdc-switch">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="vdc-actions">
+      <a href="{% url 'orbita_vacancy_dashboard' vacancy.public_id %}" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Guardar configuración</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

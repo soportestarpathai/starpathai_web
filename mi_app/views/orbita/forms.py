@@ -204,6 +204,7 @@ from mi_app.models import (
     WorkforceArea,
     WorkforcePosition,
     WorkforcePlan,
+    VacancyDashboardConfig,
 )
 
 
@@ -649,6 +650,73 @@ class ATSVacancyForm(forms.ModelForm):
         if commit:
             obj.save()
         return obj
+
+
+class VacancyDashboardConfigForm(forms.ModelForm):
+    """Personalización del dashboard analítico de una vacante."""
+    class Meta:
+        model = VacancyDashboardConfig
+        fields = (
+            "tier1_min",
+            "tier2_min",
+            "tier3_min",
+            "skill_pass_min",
+            "skill_warning_min",
+            "max_criteria",
+            "show_kpis",
+            "show_ranking",
+            "show_radar",
+            "show_gaps",
+            "show_score_bands",
+            "show_scatter",
+            "show_ai_insights",
+        )
+        labels = {
+            "tier1_min": "Tier 1 desde",
+            "tier2_min": "Tier 2 desde",
+            "tier3_min": "Tier 3 desde",
+            "skill_pass_min": "Criterio aprobado desde",
+            "skill_warning_min": "Criterio en revisión desde",
+            "max_criteria": "Criterios visibles",
+            "show_kpis": "KPIs principales",
+            "show_ranking": "Ranking de candidatos",
+            "show_radar": "Radar de criterios",
+            "show_gaps": "Gaps críticos",
+            "show_score_bands": "Bandas de score",
+            "show_scatter": "Match IA vs score",
+            "show_ai_insights": "Lectura del proceso IA",
+        }
+        help_texts = {
+            "max_criteria": "Entre 3 y 12 criterios. Se priorizan las habilidades de la vacante y luego las más frecuentes.",
+        }
+        widgets = {
+            "tier1_min": forms.NumberInput(attrs={"class": "form-control", "min": 0, "max": 100}),
+            "tier2_min": forms.NumberInput(attrs={"class": "form-control", "min": 0, "max": 100}),
+            "tier3_min": forms.NumberInput(attrs={"class": "form-control", "min": 0, "max": 100}),
+            "skill_pass_min": forms.NumberInput(attrs={"class": "form-control", "min": 0, "max": 100}),
+            "skill_warning_min": forms.NumberInput(attrs={"class": "form-control", "min": 0, "max": 100}),
+            "max_criteria": forms.NumberInput(attrs={"class": "form-control", "min": 3, "max": 12}),
+            "show_kpis": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
+            "show_ranking": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
+            "show_radar": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
+            "show_gaps": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
+            "show_score_bands": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
+            "show_scatter": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
+            "show_ai_insights": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        tier1 = cleaned.get("tier1_min")
+        tier2 = cleaned.get("tier2_min")
+        tier3 = cleaned.get("tier3_min")
+        pass_min = cleaned.get("skill_pass_min")
+        warning_min = cleaned.get("skill_warning_min")
+        if None not in (tier1, tier2, tier3) and not (tier1 > tier2 > tier3):
+            raise forms.ValidationError("Los umbrales deben quedar en orden: Tier 1 mayor que Tier 2 y Tier 2 mayor que Tier 3.")
+        if None not in (pass_min, warning_min) and pass_min <= warning_min:
+            raise forms.ValidationError("El criterio aprobado debe ser mayor que el criterio en revisión.")
+        return cleaned
 
 
 class WorkforceAreaForm(forms.ModelForm):

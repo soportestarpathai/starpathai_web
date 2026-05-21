@@ -18,6 +18,7 @@ from mi_app.models import (
     SkillEvaluation,
     Subscription,
     Vacancy,
+    VacancyDashboardConfig,
     WorkforceArea,
     WorkforceAuditLog,
     WorkforcePlan,
@@ -438,6 +439,65 @@ class ATSWorkforceTests(TestCase):
         self.assertContains(response, "Tier 1")
         self.assertContains(response, "Gaps críticos")
         self.assertContains(response, "Lectura del proceso IA")
+
+    def test_vacancy_dashboard_config_changes_tier_thresholds(self):
+        vacancy = Vacancy.objects.create(
+            client=self.ats_client,
+            title="Administrador",
+            ai_enabled=True,
+            desired_skills=["Administración", "Finanzas"],
+        )
+        VacancyDashboardConfig.objects.create(vacancy=vacancy, tier1_min=90, tier2_min=70, tier3_min=45)
+        Candidate.objects.create(
+            client=self.ats_client,
+            vacancy=vacancy,
+            name="Candidato Ajustado",
+            email="ajustado@example.com",
+            score=79.5,
+            match_percentage=80,
+        )
+
+        response = self.client.get(reverse("orbita_vacancy_dashboard", args=[vacancy.public_id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Tier 2")
+        self.assertContains(response, "Score >= 90")
+
+    def test_vacancy_dashboard_pdf_view_renders_printable_dashboard(self):
+        vacancy = Vacancy.objects.create(client=self.ats_client, title="Analista PDF", ai_enabled=True)
+
+        response = self.client.get(reverse("orbita_vacancy_dashboard_pdf", args=[vacancy.public_id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Exportación de dashboard")
+        self.assertContains(response, "window.print")
+
+    def test_vacancy_dashboard_config_view_updates_settings(self):
+        vacancy = Vacancy.objects.create(client=self.ats_client, title="Configurable", ai_enabled=True)
+
+        get_response = self.client.get(reverse("orbita_vacancy_dashboard_config", args=[vacancy.public_id]))
+        self.assertEqual(get_response.status_code, 200)
+        self.assertContains(get_response, "Dashboard dinámico")
+
+        response = self.client.post(reverse("orbita_vacancy_dashboard_config", args=[vacancy.public_id]), {
+            "tier1_min": 88,
+            "tier2_min": 68,
+            "tier3_min": 45,
+            "skill_pass_min": 75,
+            "skill_warning_min": 35,
+            "max_criteria": 6,
+            "show_kpis": "on",
+            "show_ranking": "on",
+            "show_radar": "on",
+            "show_gaps": "on",
+            "show_score_bands": "on",
+            "show_ai_insights": "on",
+        })
+
+        self.assertEqual(response.status_code, 302)
+        config = VacancyDashboardConfig.objects.get(vacancy=vacancy)
+        self.assertEqual(config.tier1_min, 88)
+        self.assertFalse(config.show_scatter)
 
 
 @override_settings(

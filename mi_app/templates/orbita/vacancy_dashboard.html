@@ -32,6 +32,7 @@
     font-weight: 800;
   }
   .vd-soft-link:hover { color:#fff; background: rgba(255,255,255,.08); }
+  .vd-print-stamp { display: none; color: #64748b; font-size: .78rem; margin-bottom: .85rem; }
   .vd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .85rem; margin-bottom: 1rem; }
   .vd-card {
     background: #fff;
@@ -174,6 +175,23 @@
     .vd-two { grid-template-columns: 1fr; }
     .vd-table-wrap { max-height: none; }
   }
+  @media print {
+    @page { size: A4 landscape; margin: 10mm; }
+    body { background: #fff !important; }
+    .ats-sidebar, .ats-topbar, .ats-footer, .ats-sidebar-backdrop, .vd-no-print { display: none !important; }
+    .ats-main-wrap { margin-left: 0 !important; }
+    .ats-content { padding: 0 !important; background: #fff !important; }
+    .vd-shell { max-width: none; }
+    .vd-print-stamp { display: block; }
+    .vd-hero { box-shadow: none; border-radius: 10px; break-inside: avoid; }
+    .vd-card { box-shadow: none; break-inside: avoid; }
+    .vd-table-wrap { max-height: none; overflow: visible; }
+    .vd-table { font-size: .68rem; }
+    .vd-table th, .vd-table td { padding: .42rem; }
+    .vd-rank-table th, .vd-rank-table td { position: static !important; }
+    .vd-two { grid-template-columns: 1fr 1fr; }
+    .vd-scatter { height: 210px; }
+  }
 {% endblock %}
 
 {% block orbita_content %}
@@ -188,20 +206,27 @@
       </p>
     </div>
     <div class="vd-hero-actions">
-      <a href="{% url 'orbita_dashboard' %}?section=reclutamiento" class="vd-soft-link"><i class="bi bi-arrow-left me-1"></i>Vacantes</a>
-      <a href="{% url 'orbita_dashboard' %}?section=candidatos&amp;vacancy={{ vacancy.public_id }}" class="vd-soft-link"><i class="bi bi-people me-1"></i>Candidatos</a>
+      <a href="{% url 'orbita_dashboard' %}?section=reclutamiento" class="vd-soft-link vd-no-print"><i class="bi bi-arrow-left me-1"></i>Vacantes</a>
+      <a href="{% url 'orbita_dashboard' %}?section=candidatos&amp;vacancy={{ vacancy.public_id }}" class="vd-soft-link vd-no-print"><i class="bi bi-people me-1"></i>Candidatos</a>
+      <a href="{% url 'orbita_vacancy_dashboard_config' vacancy.public_id %}" class="vd-soft-link vd-no-print"><i class="bi bi-sliders me-1"></i>Configurar</a>
+      <a href="{% url 'orbita_vacancy_dashboard_pdf' vacancy.public_id %}" class="vd-soft-link vd-no-print" target="_blank" rel="noopener"><i class="bi bi-filetype-pdf me-1"></i>Exportar PDF</a>
       <div class="vd-pill">{{ total_candidates }} candidato{{ total_candidates|pluralize }} evaluado{{ total_candidates|pluralize }}</div>
     </div>
   </div>
 
+  <div class="vd-print-stamp">
+    {{ vacancy.client.company_name }} · {{ vacancy.title }} · Exportación de dashboard
+  </div>
+
+  {% if dashboard_config.show_kpis %}
   <div class="vd-grid">
     <div class="vd-card vd-kpi-card">
       <div class="vd-kpi-top"><h2>Candidatos para entrevistar</h2><div class="vd-kpi-icon"><i class="bi bi-person-check"></i></div></div>
-      <div class="vd-big" style="color:#16a34a;">{{ tier1_count }}</div><div class="vd-sub">Tier 1 · Score >= 72</div>
+      <div class="vd-big" style="color:#16a34a;">{{ tier1_count }}</div><div class="vd-sub">Tier 1 · Score >= {{ dashboard_config.tier1_min }}</div>
     </div>
     <div class="vd-card vd-kpi-card">
       <div class="vd-kpi-top"><h2>A considerar</h2><div class="vd-kpi-icon" style="background:#fffbeb;color:#d97706;"><i class="bi bi-hourglass-split"></i></div></div>
-      <div class="vd-big" style="color:#d97706;">{{ tier2_count }}</div><div class="vd-sub">Tier 2 · Score 60-71</div>
+      <div class="vd-big" style="color:#d97706;">{{ tier2_count }}</div><div class="vd-sub">Tier 2 · Score {{ dashboard_config.tier2_min }}-{{ dashboard_config.tier1_min|add:"-1" }}</div>
     </div>
     <div class="vd-card vd-kpi-card">
       <div class="vd-kpi-top"><h2>Promedio del grupo</h2><div class="vd-kpi-icon"><i class="bi bi-speedometer2"></i></div></div>
@@ -212,7 +237,9 @@
       <div class="vd-big" style="color:{% if vacancy.ai_enabled %}#16a34a{% else %}#94a3b8{% endif %};">{% if vacancy.ai_enabled %}Activo{% else %}Manual{% endif %}</div><div class="vd-sub">Scoring y match por CV</div>
     </div>
   </div>
+  {% endif %}
 
+  {% if dashboard_config.show_ranking %}
   <div class="vd-card vd-section">
     <h2>Ranking general - score ponderado</h2>
     <div class="vd-table-wrap">
@@ -246,8 +273,11 @@
       </table>
     </div>
   </div>
+  {% endif %}
 
+  {% if dashboard_config.show_radar or dashboard_config.show_gaps or dashboard_config.show_score_bands %}
   <div class="vd-two vd-section">
+    {% if dashboard_config.show_radar %}
     <div class="vd-card">
       <h2>Distribución de criterios</h2>
       <div class="vd-radar-wrap">
@@ -272,8 +302,11 @@
         {% endif %}
       </div>
     </div>
+    {% endif %}
 
+    {% if dashboard_config.show_gaps or dashboard_config.show_score_bands %}
     <div class="vd-card">
+      {% if dashboard_config.show_gaps %}
       <h2>Gaps críticos del pool</h2>
       <div class="vd-gap">
         {% for gap in gaps %}
@@ -286,6 +319,8 @@
           <p class="text-muted mb-0">Sin gaps detectados con la información actual.</p>
         {% endfor %}
       </div>
+      {% endif %}
+      {% if dashboard_config.show_score_bands %}
       <div class="vd-bands">
         {% for band in score_bands %}
         <div class="vd-band-row">
@@ -295,10 +330,15 @@
         </div>
         {% endfor %}
       </div>
+      {% endif %}
     </div>
+    {% endif %}
   </div>
+  {% endif %}
 
+  {% if dashboard_config.show_scatter or dashboard_config.show_ai_insights %}
   <div class="vd-two">
+    {% if dashboard_config.show_scatter %}
     <div class="vd-card">
       <h2>Match IA vs score</h2>
       <div class="vd-scatter">
@@ -310,7 +350,9 @@
       </div>
       <div class="vd-sub">Eje X: match IA. Eje Y: score general.</div>
     </div>
+    {% endif %}
 
+    {% if dashboard_config.show_ai_insights %}
     <div class="vd-card">
       <h2>Lectura del proceso IA</h2>
       <div class="vd-ai">
@@ -322,6 +364,18 @@
         {% endif %}
       </div>
     </div>
+    {% endif %}
   </div>
+  {% endif %}
 </div>
+{% endblock %}
+
+{% block orbita_extra_js %}
+  {% if is_pdf_export %}
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => window.print(), 450);
+    });
+  </script>
+  {% endif %}
 {% endblock %}

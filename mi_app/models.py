@@ -325,6 +325,61 @@ class Vacancy(models.Model):
         return f"{self.title} ({self.client.company_name})"
 
 
+class VacancyDashboardConfig(models.Model):
+    """Configuración visual y de lectura analítica para el dashboard de una vacante."""
+    vacancy = models.OneToOneField(
+        Vacancy,
+        on_delete=models.CASCADE,
+        related_name="dashboard_config",
+    )
+    tier1_min = models.PositiveSmallIntegerField(
+        "Mínimo Tier 1",
+        default=72,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    tier2_min = models.PositiveSmallIntegerField(
+        "Mínimo Tier 2",
+        default=60,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    tier3_min = models.PositiveSmallIntegerField(
+        "Mínimo Tier 3",
+        default=40,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    skill_pass_min = models.PositiveSmallIntegerField(
+        "Habilidad aprobada desde",
+        default=70,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    skill_warning_min = models.PositiveSmallIntegerField(
+        "Habilidad en revisión desde",
+        default=40,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    max_criteria = models.PositiveSmallIntegerField(
+        "Criterios máximos",
+        default=8,
+        validators=[MinValueValidator(3), MaxValueValidator(12)],
+    )
+    show_kpis = models.BooleanField("Mostrar KPIs", default=True)
+    show_ranking = models.BooleanField("Mostrar ranking", default=True)
+    show_radar = models.BooleanField("Mostrar radar de criterios", default=True)
+    show_gaps = models.BooleanField("Mostrar gaps críticos", default=True)
+    show_score_bands = models.BooleanField("Mostrar bandas de score", default=True)
+    show_scatter = models.BooleanField("Mostrar match IA vs score", default=True)
+    show_ai_insights = models.BooleanField("Mostrar lectura IA", default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Configuración dashboard de vacante"
+        verbose_name_plural = "Configuraciones dashboard de vacante"
+
+    def __str__(self):
+        return f"Dashboard — {self.vacancy.title}"
+
+
 class WorkforceArea(models.Model):
     """Área/departamento para planeación de personal."""
     client = models.ForeignKey(ATSClient, on_delete=models.CASCADE, related_name="workforce_areas")
