@@ -209,7 +209,7 @@
       <a href="{% url 'orbita_dashboard' %}?section=reclutamiento" class="vd-soft-link vd-no-print"><i class="bi bi-arrow-left me-1"></i>Vacantes</a>
       <a href="{% url 'orbita_dashboard' %}?section=candidatos&amp;vacancy={{ vacancy.public_id }}" class="vd-soft-link vd-no-print"><i class="bi bi-people me-1"></i>Candidatos</a>
       <a href="{% url 'orbita_vacancy_dashboard_config' vacancy.public_id %}" class="vd-soft-link vd-no-print"><i class="bi bi-sliders me-1"></i>Configurar</a>
-      <a href="{% url 'orbita_vacancy_profiles_pdf' vacancy.public_id %}" class="vd-soft-link vd-no-print" target="_blank" rel="noopener"><i class="bi bi-file-earmark-person me-1"></i>Perfiles aptos</a>
+      <a href="{% url 'orbita_vacancy_profiles_pdf' vacancy.public_id %}" class="vd-soft-link vd-no-print"><i class="bi bi-file-earmark-person me-1"></i>PDF individuales</a>
       <a href="{% url 'orbita_vacancy_dashboard_pdf' vacancy.public_id %}" class="vd-soft-link vd-no-print" target="_blank" rel="noopener"><i class="bi bi-filetype-pdf me-1"></i>Exportar PDF</a>
       <div class="vd-pill">{{ total_candidates }} candidato{{ total_candidates|pluralize }} evaluado{{ total_candidates|pluralize }}</div>
     </div>

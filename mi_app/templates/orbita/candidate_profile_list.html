@@ -1,0 +1,102 @@
+{% extends "orbita/base_orbita.html" %}
+
+{% block orbita_title %}Perfiles aptos{% endblock %}
+{% block orbita_header_title %}Perfiles aptos{% endblock %}
+
+{% block orbita_extra_css %}
+  .pl-shell { max-width: 1120px; margin: 0 auto; }
+  .pl-hero {
+    background: linear-gradient(135deg, #0b1c2d 0%, #132f51 72%, #153b67 100%);
+    color: #fff;
+    border-radius: 12px;
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .pl-hero h1 { font-family: var(--ats-heading); color: #fff; font-size: 1.25rem; font-weight: 850; margin: 0 0 .25rem; }
+  .pl-hero p { margin: 0; color: rgba(255,255,255,.66); }
+  .pl-back {
+    border: 1px solid rgba(255,255,255,.2);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 999px;
+    padding: .45rem .75rem;
+    font-weight: 800;
+    font-size: .8rem;
+  }
+  .pl-back:hover { color: #fff; background: rgba(255,255,255,.08); }
+  .pl-grid { display: grid; gap: .85rem; }
+  .pl-card {
+    background: #fff;
+    border: 1px solid rgba(11,28,45,.08);
+    border-radius: 10px;
+    padding: .95rem;
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: .85rem;
+    align-items: center;
+    box-shadow: 0 8px 22px rgba(15,23,42,.04);
+  }
+  .pl-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: #10bfc2;
+    color: #fff;
+    font-weight: 900;
+  }
+  .pl-name { font-weight: 900; color: #071633; }
+  .pl-meta { color: #64748b; font-size: .82rem; margin-top: .1rem; }
+  .pl-score { display: inline-flex; align-items: center; gap: .35rem; color: #008f8f; font-weight: 850; font-size: .82rem; margin-top: .35rem; }
+  .pl-action { border-radius: 999px; font-weight: 800; white-space: nowrap; }
+  .pl-empty {
+    background: #fff;
+    border: 1px solid rgba(11,28,45,.08);
+    border-radius: 10px;
+    padding: 2rem;
+    color: #64748b;
+    text-align: center;
+  }
+  @media (max-width: 700px) {
+    .pl-hero, .pl-card { grid-template-columns: 1fr; display: grid; }
+    .pl-action { width: 100%; }
+  }
+{% endblock %}
+
+{% block orbita_content %}
+<div class="pl-shell">
+  <div class="pl-hero">
+    <div>
+      <h1><i class="bi bi-file-earmark-person me-2"></i>Perfiles aptos individuales</h1>
+      <p>{{ source_vacancy.title }} · Cada candidato se descarga por separado.</p>
+    </div>
+    <a href="{% url 'orbita_vacancy_dashboard' source_vacancy.public_id %}" class="pl-back"><i class="bi bi-arrow-left me-1"></i>Volver</a>
+  </div>
+
+  <div class="pl-grid">
+    {% for profile in profiles %}
+      <div class="pl-card">
+        <div class="pl-avatar">{{ profile.candidate.name|make_list|first|default:"?" }}</div>
+        <div>
+          <div class="pl-name">{{ profile.candidate.name }}</div>
+          <div class="pl-meta">{{ profile.email|default:"Sin correo" }} · {{ profile.headline }}</div>
+          <div class="pl-score"><i class="bi bi-check-circle-fill"></i> Score {{ profile.candidate.score|floatformat:0 }}% · Match {{ profile.match|floatformat:0 }}%</div>
+        </div>
+        <a href="{% url 'orbita_candidate_profile_pdf' profile.candidate.public_id %}" target="_blank" rel="noopener" class="btn btn-primary btn-sm pl-action">
+          <i class="bi bi-filetype-pdf me-1"></i>PDF individual
+        </a>
+      </div>
+    {% empty %}
+      <div class="pl-empty">
+        <i class="bi bi-person-check display-5 d-block mb-2"></i>
+        <p class="mb-0">No hay candidatos aptos ni en Tier 1 para esta vacante.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

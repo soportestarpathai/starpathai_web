@@ -2154,10 +2154,10 @@ class ATSCandidateProfilePDFView(OrbitaModuleRequiredMixin, LoginRequiredMixin, 
 
 
 class ATSVacancyQualifiedProfilesPDFView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
-    """Exporta perfiles ejecutivos de candidatos que cumplen requisitos de la vacante."""
+    """Lista perfiles que cumplen para descargar su PDF de forma individual."""
     login_url = reverse_lazy("orbita_plataforma")
     module_required = "candidates"
-    template_name = "orbita/candidate_profile_pdf.html"
+    template_name = "orbita/candidate_profile_list.html"
 
     def get(self, request, public_id):
         client = _get_client_or_403(request)
@@ -2173,7 +2173,7 @@ class ATSVacancyQualifiedProfilesPDFView(OrbitaModuleRequiredMixin, LoginRequire
             "profiles": profiles,
             "single_profile": False,
             "source_vacancy": vacancy,
-            "is_pdf_export": True,
+            "is_pdf_export": False,
         })
 
 
