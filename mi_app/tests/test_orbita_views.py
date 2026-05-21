@@ -15,6 +15,7 @@ from mi_app.models import (
     ATSFormSubmission,
     Candidate,
     FormChatSession,
+    SkillEvaluation,
     Subscription,
     Vacancy,
     WorkforceArea,
@@ -410,6 +411,33 @@ class ATSWorkforceTests(TestCase):
         plan.refresh_from_db()
         self.assertEqual(plan.status, WorkforcePlan.STATUS_CONVERTED)
         self.assertGreaterEqual(WorkforceAuditLog.objects.filter(plan=plan).count(), 5)
+
+    def test_vacancy_dashboard_renders_ai_pool_metrics(self):
+        vacancy = Vacancy.objects.create(
+            client=self.ats_client,
+            title="Desarrollador Java",
+            ai_enabled=True,
+            desired_skills=["Java 21", "Kafka"],
+            profile_for_analysis="Evaluar Java, Kafka y experiencia técnica.",
+        )
+        candidate = Candidate.objects.create(
+            client=self.ats_client,
+            vacancy=vacancy,
+            name="Osvaldo Escutia",
+            email="osvaldo@example.com",
+            score=79.5,
+            match_percentage=82,
+        )
+        SkillEvaluation.objects.create(candidate=candidate, skill="Java 21", level=85, match_percentage=90)
+        SkillEvaluation.objects.create(candidate=candidate, skill="Kafka", level=35, match_percentage=40)
+
+        response = self.client.get(reverse("orbita_vacancy_dashboard", args=[vacancy.public_id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Dashboard de candidatos")
+        self.assertContains(response, "Tier 1")
+        self.assertContains(response, "Gaps críticos")
+        self.assertContains(response, "Lectura del proceso IA")
 
 
 @override_settings(

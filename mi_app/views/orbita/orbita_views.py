@@ -6,7 +6,9 @@ Vistas para el producto ATS (Applicant Tracking System) de Star Path.
 """
 import json
 import logging
+import math
 import uuid as uuid_lib
+from collections import defaultdict
 
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
@@ -1765,6 +1767,204 @@ class ATSVacancyDeleteView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
         vacancy.delete()
         messages.success(request, "Vacante eliminada.")
         return redirect(reverse("orbita_dashboard") + "?section=reclutamiento")
+
+
+def _vacancy_tier(score):
+    score = float(score or 0)
+    if score >= 72:
+        return "Tier 1"
+    if score >= 60:
+        return "Tier 2"
+    if score >= 40:
+        return "Tier 3"
+    return "Tier 4"
+
+
+def _radar_points(values, radius=78, center=95):
+    if not values:
+        return ""
+    count = len(values)
+    points = []
+    for idx, value in enumerate(values):
+        angle = (2 * math.pi * idx / count) - (math.pi / 2)
+        value_radius = radius * max(0, min(100, float(value or 0))) / 100
+        x = center + value_radius * math.cos(angle)
+        y = center + value_radius * math.sin(angle)
+        points.append(f"{x:.1f},{y:.1f}")
+    return " ".join(points)
+
+
+def _radar_axes(labels, radius=86, center=95):
+    count = len(labels)
+    axes = []
+    if not count:
+        return axes
+    for idx, label in enumerate(labels):
+        angle = (2 * math.pi * idx / count) - (math.pi / 2)
+        axes.append({
+            "label": label,
+            "x": center + radius * math.cos(angle),
+            "y": center + radius * math.sin(angle),
+            "line_x": center + (radius - 16) * math.cos(angle),
+            "line_y": center + (radius - 16) * math.sin(angle),
+        })
+    return axes
+
+
+class ATSVacancyDashboardView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    """Dashboard analítico por vacante con ranking, tiers, gaps y señales de IA."""
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "vacancies"
+    template_name = "orbita/vacancy_dashboard.html"
+
+    def get(self, request, public_id):
+        client = _get_client_or_403(request)
+        if not client:
+            return redirect("orbita_dashboard")
+        vacancy = get_object_or_404(Vacancy, public_id=public_id, client=client)
+        candidates = list(
+            Candidate.objects.filter(client=client, vacancy=vacancy)
+            .prefetch_related("skill_evaluations", "criterion_responses__criterion")
+            .order_by("-score", "-match_percentage", "-analysis_date")
+        )
+        total = len(candidates)
+        scores = [float(candidate.score or 0) for candidate in candidates]
+        avg_score = round(sum(scores) / total, 1) if total else 0
+        max_score = round(max(scores), 1) if scores else 0
+        min_score = round(min(scores), 1) if scores else 0
+
+        tier_counts = {"Tier 1": 0, "Tier 2": 0, "Tier 3": 0, "Tier 4": 0}
+        for candidate in candidates:
+            tier_counts[_vacancy_tier(candidate.score)] += 1
+
+        skill_frequency = defaultdict(int)
+        skill_totals = defaultdict(list)
+        tier1_totals = defaultdict(list)
+        for candidate in candidates:
+            tier = _vacancy_tier(candidate.score)
+            for skill_eval in candidate.skill_evaluations.all():
+                label = (skill_eval.skill or "").strip()
+                if not label:
+                    continue
+                skill_frequency[label] += 1
+                skill_totals[label].append(float(skill_eval.level or 0))
+                if tier == "Tier 1":
+                    tier1_totals[label].append(float(skill_eval.level or 0))
+
+        labels = []
+        for skill in vacancy.desired_skills or []:
+            label = str(skill).strip()
+            if label and label not in labels:
+                labels.append(label)
+        for label, _count in sorted(skill_frequency.items(), key=lambda item: (-item[1], item[0])):
+            if label not in labels:
+                labels.append(label)
+            if len(labels) >= 8:
+                break
+        labels = labels[:8]
+
+        candidate_rows = []
+        gap_counts = defaultdict(int)
+        scatter_points = []
+        max_skill_count = 1
+        for rank, candidate in enumerate(candidates, start=1):
+            skill_map = {s.skill.strip().lower(): s for s in candidate.skill_evaluations.all() if s.skill}
+            criteria_cells = []
+            skill_count = candidate.skill_evaluations.count()
+            max_skill_count = max(max_skill_count, skill_count)
+            for label in labels:
+                skill_eval = skill_map.get(label.lower())
+                value = float(getattr(skill_eval, "level", 0) or 0) if skill_eval else 0
+                if value >= 70:
+                    status = "ok"
+                elif value >= 40:
+                    status = "warn"
+                    gap_counts[label] += 1
+                else:
+                    status = "fail"
+                    gap_counts[label] += 1
+                criteria_cells.append({"label": label, "status": status, "value": round(value, 1)})
+            score = float(candidate.score or 0)
+            match = float(candidate.match_percentage if candidate.match_percentage is not None else score)
+            scatter_points.append({
+                "name": candidate.name,
+                "x": max(6, min(94, match)),
+                "y": max(6, min(94, 100 - score)),
+                "size": 7 + min(14, skill_count * 2),
+                "tier": _vacancy_tier(score),
+            })
+            candidate_rows.append({
+                "rank": rank,
+                "candidate": candidate,
+                "score": round(score, 1),
+                "tier": _vacancy_tier(score),
+                "match": round(match, 1),
+                "criteria": criteria_cells,
+                "score_width": max(4, min(100, score)),
+            })
+
+        chart_labels = labels[:6]
+        group_values = []
+        tier1_values = []
+        for label in chart_labels:
+            values = skill_totals.get(label, [])
+            tier_values = tier1_totals.get(label, [])
+            group_values.append(round(sum(values) / len(values), 1) if values else 0)
+            tier1_values.append(round(sum(tier_values) / len(tier_values), 1) if tier_values else 0)
+
+        top_gap_total = max(gap_counts.values()) if gap_counts else 1
+        gaps = [
+            {"label": label, "count": count, "width": round((count / top_gap_total) * 100)}
+            for label, count in sorted(gap_counts.items(), key=lambda item: (-item[1], item[0]))[:6]
+        ]
+        score_bands = [
+            {"label": "80-100", "count": sum(1 for score in scores if score >= 80)},
+            {"label": "60-79", "count": sum(1 for score in scores if 60 <= score < 80)},
+            {"label": "40-59", "count": sum(1 for score in scores if 40 <= score < 60)},
+            {"label": "0-39", "count": sum(1 for score in scores if score < 40)},
+        ]
+        top_band = max([band["count"] for band in score_bands] or [1]) or 1
+        for band in score_bands:
+            band["width"] = round((band["count"] / top_band) * 100)
+
+        ai_insights = []
+        if not total:
+            ai_insights.append("Aún no hay candidatos analizados para esta vacante.")
+        elif tier_counts["Tier 1"]:
+            ai_insights.append(f"Hay {tier_counts['Tier 1']} candidato(s) en Tier 1 listos para entrevista.")
+        if gaps:
+            ai_insights.append(f"El gap más repetido es {gaps[0]['label']} en {gaps[0]['count']} candidato(s).")
+        if vacancy.ai_enabled:
+            ai_insights.append("La IA está activa para esta vacante y puede recalcular compatibilidad desde cada CV.")
+        else:
+            ai_insights.append("La IA está desactivada para esta vacante; los datos dependen de evaluaciones ya guardadas.")
+
+        context = {
+            "orbita_client": client,
+            "subscription": _get_or_create_subscription(request.user),
+            "orbita_page": "reclutamiento",
+            "vacancy": vacancy,
+            "total_candidates": total,
+            "tier_counts": tier_counts,
+            "tier1_count": tier_counts["Tier 1"],
+            "tier2_count": tier_counts["Tier 2"],
+            "tier3_count": tier_counts["Tier 3"],
+            "tier4_count": tier_counts["Tier 4"],
+            "avg_score": avg_score,
+            "max_score": max_score,
+            "min_score": min_score,
+            "candidate_rows": candidate_rows,
+            "criteria_labels": labels,
+            "chart_labels": chart_labels,
+            "group_radar_points": _radar_points(group_values),
+            "tier1_radar_points": _radar_points(tier1_values),
+            "radar_axes": _radar_axes(chart_labels),
+            "gaps": gaps,
+            "score_bands": score_bands,
+            "scatter_points": scatter_points,
+            "ai_insights": ai_insights,
+        }
+        return render(request, self.template_name, context)
 
 
 def _redirect_workforce(tab="necesidad"):

@@ -1,0 +1,195 @@
+{% extends "orbita/base_orbita.html" %}
+{% load static %}
+
+{% block orbita_title %}Dashboard de vacante{% endblock %}
+{% block orbita_header_title %}Dashboard de vacante{% endblock %}
+
+{% block orbita_extra_css %}
+  .vd-shell { max-width: 1440px; }
+  .vd-hero {
+    background: #0b1c2d;
+    color: #fff;
+    border-radius: 14px;
+    padding: 1.35rem 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .vd-hero h1 { font-family: var(--ats-heading); font-size: 1.3rem; font-weight: 850; margin: 0 0 .3rem; color: #fff; }
+  .vd-hero p { margin: 0; color: rgba(255,255,255,.62); font-size: .86rem; }
+  .vd-pill { background: #3b82f6; color: #fff; border-radius: 999px; padding: .55rem .85rem; font-weight: 800; font-size: .78rem; white-space: nowrap; }
+  .vd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .85rem; margin-bottom: 1rem; }
+  .vd-card {
+    background: #fff;
+    border: 1px solid rgba(11,28,45,.07);
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 10px 28px rgba(15,23,42,.04);
+  }
+  .vd-card h2 {
+    font-family: var(--ats-heading);
+    font-size: .86rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #64748b;
+    margin: 0 0 .7rem;
+    font-weight: 850;
+  }
+  .vd-big { font-family: var(--ats-heading); font-size: 1.85rem; font-weight: 900; color: #2563eb; line-height: 1; }
+  .vd-sub { color: #94a3b8; font-size: .78rem; margin-top: .35rem; }
+  .vd-section { margin-bottom: 1rem; }
+  .vd-two { display: grid; grid-template-columns: 1.15fr .85fr; gap: 1rem; }
+  .vd-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .vd-table th { background: #172b49; color: #fff; padding: .65rem; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+  .vd-table td { padding: .65rem; border-bottom: 1px solid #e5eaf1; color: #334155; vertical-align: middle; }
+  .vd-scorebar { height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; min-width: 72px; }
+  .vd-scorebar span { display: block; height: 100%; background: #16a34a; border-radius: inherit; }
+  .vd-tier { display: inline-flex; align-items: center; border-radius: 999px; padding: .18rem .5rem; background: #dcfce7; color: #15803d; font-weight: 850; font-size: .72rem; }
+  .vd-criterion { text-align: center; font-weight: 900; }
+  .vd-criterion.ok { color: #16a34a; }
+  .vd-criterion.warn { color: #d97706; }
+  .vd-criterion.fail { color: #e11d48; }
+  .vd-radar-wrap { display: grid; place-items: center; min-height: 250px; }
+  .vd-radar text { fill: #64748b; font-size: 8px; font-weight: 700; }
+  .vd-radar .grid { fill: none; stroke: #e2e8f0; stroke-width: 1; }
+  .vd-radar .axis { stroke: #e2e8f0; stroke-width: 1; }
+  .vd-radar .group { fill: rgba(59,130,246,.16); stroke: #2563eb; stroke-width: 2; }
+  .vd-radar .tier1 { fill: rgba(22,163,74,.1); stroke: #16a34a; stroke-width: 2; stroke-dasharray: 4 3; }
+  .vd-gap { display: grid; gap: .6rem; }
+  .vd-gap-row { display: grid; grid-template-columns: minmax(120px, 1fr) 2fr auto; align-items: center; gap: .65rem; color: #475569; font-size: .8rem; }
+  .vd-gap-bar { height: 10px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
+  .vd-gap-bar span { display:block; height:100%; background: linear-gradient(90deg,#ef4444,#f59e0b); border-radius:inherit; }
+  .vd-scatter { position: relative; height: 280px; border: 1px solid #e2e8f0; border-radius: 10px; background: linear-gradient(#f8fafc 1px, transparent 1px), linear-gradient(90deg,#f8fafc 1px, transparent 1px); background-size: 100% 25%, 25% 100%; }
+  .vd-point { position: absolute; border-radius: 999px; background: rgba(22,163,74,.65); border: 2px solid #16a34a; transform: translate(-50%, -50%); }
+  .vd-point[data-tier="Tier 2"] { background: rgba(245,158,11,.58); border-color: #f59e0b; }
+  .vd-point[data-tier="Tier 3"], .vd-point[data-tier="Tier 4"] { background: rgba(239,68,68,.48); border-color: #ef4444; }
+  .vd-ai { display: grid; gap: .55rem; }
+  .vd-ai-item { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:.7rem; color:#475569; font-size:.84rem; }
+  @media (max-width: 992px) {
+    .vd-hero { flex-direction: column; }
+    .vd-two { grid-template-columns: 1fr; }
+  }
+{% endblock %}
+
+{% block orbita_content %}
+<div class="vd-shell">
+  <div class="vd-hero">
+    <div>
+      <h1><i class="bi bi-clipboard-data me-2"></i>Dashboard de candidatos - {{ vacancy.title }}</h1>
+      <p>
+        Análisis de {{ total_candidates }} CVs
+        {% if vacancy.profile_for_analysis %} · Perfil IA configurado{% endif %}
+        {% if vacancy.desired_skills %} · {{ vacancy.desired_skills|length }} habilidad{{ vacancy.desired_skills|length|pluralize:"es" }} clave{% endif %}
+      </p>
+    </div>
+    <div class="vd-pill">{{ total_candidates }} candidato{{ total_candidates|pluralize }} evaluado{{ total_candidates|pluralize }}</div>
+  </div>
+
+  <div class="vd-grid">
+    <div class="vd-card"><h2>Candidatos para entrevistar</h2><div class="vd-big" style="color:#16a34a;">{{ tier1_count }}</div><div class="vd-sub">Tier 1 · Score >= 72</div></div>
+    <div class="vd-card"><h2>A considerar</h2><div class="vd-big" style="color:#d97706;">{{ tier2_count }}</div><div class="vd-sub">Tier 2 · Score 60-71</div></div>
+    <div class="vd-card"><h2>Promedio del grupo</h2><div class="vd-big">{{ avg_score }}</div><div class="vd-sub">Max: {{ max_score }} · Min: {{ min_score }}</div></div>
+    <div class="vd-card"><h2>Proceso IA</h2><div class="vd-big" style="color:{% if vacancy.ai_enabled %}#16a34a{% else %}#94a3b8{% endif %};">{% if vacancy.ai_enabled %}Activo{% else %}Manual{% endif %}</div><div class="vd-sub">Scoring y match por CV</div></div>
+  </div>
+
+  <div class="vd-card vd-section">
+    <h2>Ranking general - score ponderado</h2>
+    <div class="table-responsive">
+      <table class="vd-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Candidato</th>
+            <th>Score</th>
+            <th>Tier</th>
+            <th>Match IA</th>
+            {% for label in criteria_labels %}<th>{{ label }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in candidate_rows %}
+          <tr>
+            <td><strong>{{ row.rank }}</strong></td>
+            <td><a href="{% url 'orbita_candidate_detail' row.candidate.public_id %}" class="text-decoration-none fw-bold">{{ row.candidate.name }}</a><br><span class="text-muted small">{{ row.candidate.email }}</span></td>
+            <td><div class="d-flex align-items-center gap-2"><div class="vd-scorebar"><span style="width:{{ row.score_width }}%;"></span></div><strong>{{ row.score }}</strong></div></td>
+            <td><span class="vd-tier">{{ row.tier }}</span></td>
+            <td>{{ row.match }}%</td>
+            {% for cell in row.criteria %}
+              <td class="vd-criterion {{ cell.status }}" title="{{ cell.value }}%">{% if cell.status == "ok" %}<i class="bi bi-check-square-fill"></i>{% elif cell.status == "warn" %}<i class="bi bi-exclamation-triangle-fill"></i>{% else %}<i class="bi bi-x-lg"></i>{% endif %}</td>
+            {% endfor %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">Aún no hay candidatos evaluados para esta vacante.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="vd-two vd-section">
+    <div class="vd-card">
+      <h2>Distribución de criterios</h2>
+      <div class="vd-radar-wrap">
+        {% if chart_labels %}
+        <svg class="vd-radar" viewBox="0 0 190 190" width="280" height="280" role="img" aria-label="Radar de criterios">
+          <circle class="grid" cx="95" cy="95" r="24"></circle>
+          <circle class="grid" cx="95" cy="95" r="48"></circle>
+          <circle class="grid" cx="95" cy="95" r="72"></circle>
+          {% for axis in radar_axes %}
+            <line class="axis" x1="95" y1="95" x2="{{ axis.line_x }}" y2="{{ axis.line_y }}"></line>
+            <text x="{{ axis.x }}" y="{{ axis.y }}" text-anchor="middle">{{ axis.label|truncatechars:12 }}</text>
+          {% endfor %}
+          <polygon class="group" points="{{ group_radar_points }}"></polygon>
+          <polygon class="tier1" points="{{ tier1_radar_points }}"></polygon>
+        </svg>
+        {% else %}
+          <p class="text-muted mb-0">Aún no hay habilidades IA para graficar.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="vd-card">
+      <h2>Gaps críticos del pool</h2>
+      <div class="vd-gap">
+        {% for gap in gaps %}
+        <div class="vd-gap-row">
+          <span>{{ gap.label }}</span>
+          <div class="vd-gap-bar"><span style="width:{{ gap.width }}%;"></span></div>
+          <strong>{{ gap.count }}</strong>
+        </div>
+        {% empty %}
+          <p class="text-muted mb-0">Sin gaps detectados con la información actual.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="vd-two">
+    <div class="vd-card">
+      <h2>Match IA vs score</h2>
+      <div class="vd-scatter">
+        {% for point in scatter_points %}
+          <span class="vd-point" data-tier="{{ point.tier }}" title="{{ point.name }} · {{ point.tier }}" style="left:{{ point.x }}%; top:{{ point.y }}%; width:{{ point.size }}px; height:{{ point.size }}px;"></span>
+        {% empty %}
+          <p class="text-muted p-3 mb-0">Aún no hay puntos para graficar.</p>
+        {% endfor %}
+      </div>
+      <div class="vd-sub">Eje X: match IA. Eje Y: score general.</div>
+    </div>
+
+    <div class="vd-card">
+      <h2>Lectura del proceso IA</h2>
+      <div class="vd-ai">
+        {% for insight in ai_insights %}
+          <div class="vd-ai-item">{{ insight }}</div>
+        {% endfor %}
+        {% if vacancy.profile_for_analysis %}
+          <div class="vd-ai-item"><strong>Perfil evaluado:</strong> {{ vacancy.profile_for_analysis|truncatewords:34 }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
