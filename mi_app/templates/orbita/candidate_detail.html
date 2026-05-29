@@ -335,7 +335,7 @@
       {% if candidate.cv_file %}
         <p class="small text-muted mb-3">Archivo del candidato. Puedes reemplazarlo o analizarlo con IA.</p>
         <div class="cv-actions mb-3">
-          <a href="{{ candidate.cv_file.url }}" target="_blank" rel="noopener" class="btn-cv-download">
+          <a href="{% url 'orbita_candidate_download_cv' candidate.public_id %}" class="btn-cv-download">
             <i class="bi bi-download"></i>Descargar CV
           </a>
           {% if subscription_can_process_cv and orbita_modules.cv_analysis %}

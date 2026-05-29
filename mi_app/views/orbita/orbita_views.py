@@ -7,7 +7,9 @@ Vistas para el producto ATS (Applicant Tracking System) de Star Path.
 import json
 import logging
 import math
+import os
 import re
+import unicodedata
 import uuid as uuid_lib
 from collections import defaultdict
 
@@ -97,6 +99,18 @@ from mi_app.services.form_submissions import (
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+
+
+def _safe_upload_filename(filename, default="cv.pdf"):
+    """Return an ASCII storage-friendly filename while preserving the extension."""
+    raw_name = (filename or default).split("\\")[-1].split("/")[-1].strip() or default
+    stem, ext = os.path.splitext(raw_name)
+    normalized = unicodedata.normalize("NFKD", stem or "cv")
+    ascii_stem = normalized.encode("ascii", "ignore").decode("ascii")
+    ascii_stem = re.sub(r"[^A-Za-z0-9._-]+", "_", ascii_stem).strip("._-") or "cv"
+    ascii_stem = ascii_stem[:90].rstrip("._-") or "cv"
+    safe_ext = re.sub(r"[^A-Za-z0-9.]", "", ext.lower())[:12]
+    return f"{ascii_stem}{safe_ext or '.pdf'}"
 
 
 def _is_valid_uuid(value):
@@ -653,12 +667,44 @@ class ATSCandidateUploadCVView(OrbitaModuleRequiredMixin, LoginRequiredMixin, Vi
             messages.error(request, f"El archivo es demasiado grande. Máximo {max_size // (1024*1024)} MB.")
             return redirect("orbita_candidate_detail", public_id=candidate.public_id)
         from django.core.files.base import ContentFile
-        name = cv_file.name or "cv.pdf"
+        name = _safe_upload_filename(cv_file.name or "cv.pdf")
         if candidate.cv_file:
             candidate.cv_file.delete(save=False)
         candidate.cv_file.save(name, ContentFile(cv_file.read()), save=True)
         messages.success(request, "CV cargado correctamente. Ya puedes analizarlo con IA si lo deseas.")
         return redirect("orbita_candidate_detail", public_id=candidate.public_id)
+
+
+class ATSCandidateDownloadCVView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
+    """Descargar CV pasando por la app para mostrar errores claros si falta en storage."""
+    login_url = reverse_lazy("orbita_plataforma")
+    module_required = "candidates"
+    http_method_names = ["get"]
+
+    def get(self, request, public_id):
+        orbita_client = getattr(request.user, "ats_client", None)
+        if not orbita_client:
+            return redirect("orbita_dashboard")
+        candidate = get_object_or_404(Candidate, public_id=public_id, client=orbita_client)
+        if not candidate.cv_file:
+            messages.error(request, "Este candidato no tiene CV cargado.")
+            return redirect("orbita_candidate_detail", public_id=candidate.public_id)
+
+        filename = os.path.basename(candidate.cv_file.name) or "cv.pdf"
+        try:
+            return FileResponse(candidate.cv_file.open("rb"), as_attachment=True, filename=filename)
+        except Exception as exc:
+            logger.warning(
+                "No se pudo abrir CV candidate=%s path=%s: %s",
+                candidate.pk,
+                candidate.cv_file.name,
+                exc,
+            )
+            messages.error(
+                request,
+                "El registro del CV existe, pero el archivo no está disponible en el almacenamiento. Vuelve a subirlo para regenerarlo.",
+            )
+            return redirect("orbita_candidate_detail", public_id=candidate.public_id)
 
 
 class ATSCandidateAnalyzeCVView(OrbitaModuleRequiredMixin, LoginRequiredMixin, View):
@@ -1436,12 +1482,16 @@ def _create_candidate_from_submission(submission, payload, submitter_email):
     if cv_attachment and cv_attachment.file:
         from django.core.files.base import ContentFile
         try:
-            name = cv_attachment.original_name or "cv_adjunto"
-            if not name or "." not in name:
-                name = name or "cv_adjunto"
-            candidate.cv_file.save(name, ContentFile(cv_attachment.file.read()), save=True)
-        except Exception:
-            pass
+            name = _safe_upload_filename(cv_attachment.original_name or os.path.basename(cv_attachment.file.name) or "cv_adjunto.pdf")
+            with cv_attachment.file.open("rb") as fh:
+                candidate.cv_file.save(name, ContentFile(fh.read()), save=True)
+        except Exception as exc:
+            logger.warning(
+                "No se pudo copiar CV de submission=%s a candidate=%s: %s",
+                submission.pk,
+                candidate.pk,
+                exc,
+            )
 
     _auto_analyze_candidate_if_applicable(candidate)
     return candidate
