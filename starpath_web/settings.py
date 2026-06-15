@@ -37,7 +37,7 @@ SECRET_KEY = os.environ.get(
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").strip().lower() in ("true", "1", "yes")
 
 # ALLOWED_HOSTS: por defecto local + producción. En servidor puedes definir ALLOWED_HOSTS para añadir más.
-_default_hosts = "localhost,127.0.0.1,starpathai.mx,www.starpathai.mx"
+_default_hosts = "localhost,127.0.0.1,starpathai.mx,www.starpathai.mx,starpathai-web.onrender.com"
 ALLOWED_HOSTS = [
     h.strip()
     for h in os.environ.get("ALLOWED_HOSTS", _default_hosts).strip().split(",")
@@ -46,7 +46,7 @@ ALLOWED_HOSTS = [
 if not ALLOWED_HOSTS:
     ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 # Asegurar que el dominio de producción esté siempre permitido (por si env solo define otros).
-for host in ("starpathai.mx", "www.starpathai.mx"):
+for host in ("starpathai.mx", "www.starpathai.mx", "starpathai-web.onrender.com"):
     if host not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(host)
 
